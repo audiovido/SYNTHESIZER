@@ -1,0 +1,710 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>SY-1 Synth</title>
+<style>
+:root { --bg: #0b0a10; --ink: #ECE6DA; --accent: #F2B33D; }
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--bg); color: var(--ink); font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; overflow-x: clip; }
+.sy1-shell { max-width: 1040px; margin: 0 auto; padding: 16px; padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px)); }
+.sy1-start { position: fixed; z-index: 20; left: 50%; transform: translateX(-50%); top: calc(12px + env(safe-area-inset-top, 0px)); min-height: 48px; padding: 0 22px; box-shadow: 0 8px 24px rgba(0,0,0,0.5); border-radius: 10px; border: 1px solid #3a3450; background: #1d1a27; color: var(--ink); font-weight: 800; cursor: pointer; }
+.sy1-start[hidden] { display: none; }
+/* keyboard */
+.kb-bar { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 12px 0 8px; }
+.kb-btn { min-height: 44px; padding: 0 14px; border-radius: 10px; border: 1px solid #3a3450; background: #1d1a27; color: var(--ink); font-weight: 800; cursor: pointer; }
+.kb-range { font-weight: 800; color: #9b93b0; font-variant-numeric: tabular-nums; }
+.kb { position: relative; display: flex; height: 190px; border-radius: 10px; overflow: hidden; border: 2px solid #0d0b12; touch-action: none; user-select: none; -webkit-user-select: none; direction: ltr; }
+.key { position: relative; flex: 1 1 0; border-right: 1px solid #0d0b12; background: linear-gradient(180deg, #e9e4d8 0%, #cfc8b8 100%); display: flex; align-items: flex-end; justify-content: center; padding-bottom: 8px; font-size: 0.7rem; font-weight: 800; color: #6b6478; cursor: pointer; }
+.key.black { position: absolute; top: 0; width: calc(100% / var(--whites) * 0.62); height: 60%; z-index: 2; border: 1px solid #0d0b12; border-radius: 0 0 6px 6px; background: linear-gradient(180deg, #0d0b12 0%, #2b2738 100%); color: #9b93b0; flex: none; }
+.key.is-pressed { background: linear-gradient(180deg, #F2B33D 0%, #e09a1a 100%) !important; box-shadow: 0 0 14px rgba(242,179,61,0.7); color: #1F1A2E; }
+/* ---------- Synth Lab ---------- */
+.sy1-shell { background: linear-gradient(180deg, #23202f 0%, #17141f 100%); border-color: #0d0b12; color: #ECE6DA; }
+.sy1-shell .serif-heading, .sy1-shell p { color: #ECE6DA; }
+.sy1-shell .vpiano-white-key { background: linear-gradient(180deg, #e9e4d8 0%, #cfc8b8 100%); }
+.sy1-shell .vpiano-white-key.is-pressed { background: linear-gradient(180deg, #F2B33D 0%, #e09a1a 100%); box-shadow: 0 0 14px rgba(242,179,61,0.7); }
+.sy1-shell .vpiano-black-key { background: linear-gradient(180deg, #0d0b12 0%, #2b2738 100%); }
+.sy1-shell .vpiano-black-key.is-pressed { background: #F2B33D; box-shadow: 0 0 12px rgba(242,179,61,0.8); }
+.synth-panel[hidden] { display: none; }
+.synth-panel { margin: 4px 0 14px; padding: 12px; border-radius: 14px; background: #121019; border: 1px solid #3a3450; box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 8px 24px rgba(0,0,0,0.35); color: #ECE6DA; font-family: ui-sans-serif, system-ui, sans-serif; }
+.synth-top { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 10px; }
+.synth-brand { font-weight: 800; letter-spacing: 0.14em; font-size: 0.8rem; color: #9b93b0; }
+.synth-brand b { color: #F2B33D; }
+.synth-scope { flex: 1 1 180px; min-width: 140px; max-width: 100%; height: 56px; border-radius: 8px; background: #07060b; border: 1px solid #2c2740; }
+.synth-presets { display: flex; flex-wrap: wrap; gap: 6px; }
+.synth-preset-btn { min-height: 34px; padding: 4px 10px; border-radius: 8px; border: 1px solid #3a3450; background: #1d1a27; color: #cfc8dd; font-size: 0.78rem; font-weight: 700; cursor: pointer; }
+.synth-preset-btn.active { background: #F2B33D; color: #1F1A2E; border-color: #F2B33D; }
+.synth-sections { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 10px; }
+.synth-sec { background: #1a1724; border: 1px solid #2c2740; border-radius: 10px; padding: 8px 8px 10px; }
+.synth-sec h4 { margin: 0 0 6px; font-size: 0.7rem; letter-spacing: 0.16em; color: #F2B33D; font-weight: 800; }
+.synth-choice { display: flex; gap: 4px; margin-bottom: 6px; }
+.synth-choice-btn { flex: 1; min-height: 32px; border-radius: 6px; border: 1px solid #3a3450; background: #120f19; color: #b9b1cc; font-size: 0.82rem; font-weight: 800; cursor: pointer; padding: 0 4px; }
+.synth-choice-btn.active { background: #2f2944; color: #F2B33D; border-color: #F2B33D; box-shadow: 0 0 8px rgba(242,179,61,0.35); }
+.sk-row { display: flex; justify-content: space-around; gap: 4px; }
+.sk { display: flex; flex-direction: column; align-items: center; width: 54px; cursor: ns-resize; touch-action: none; user-select: none; -webkit-user-select: none; outline: none; }
+.sk-dial { --n: 0.5; position: relative; width: 40px; height: 40px; border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #4a4460 0%, #25212f 60%, #17141f 100%);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.6), 0 0 0 3px #120f19, 0 0 0 4px #2c2740; }
+.sk-dial::before { content: ""; position: absolute; inset: -6px; border-radius: 50%;
+  background: conic-gradient(from 225deg, #F2B33D calc(var(--n) * 270deg), transparent 0);
+  -webkit-mask: radial-gradient(circle, transparent 23px, #000 24px); mask: radial-gradient(circle, transparent 23px, #000 24px); opacity: 0.9; }
+.sk-ind { position: absolute; left: 50%; top: 4px; width: 3px; height: 13px; margin-left: -1.5px; border-radius: 2px; background: #F2B33D;
+  transform-origin: 50% 16px; transform: rotate(calc(-135deg + var(--n) * 270deg)); box-shadow: 0 0 4px rgba(242,179,61,0.8); }
+.sk.dragging .sk-dial, .sk:focus-visible .sk-dial { box-shadow: 0 0 0 3px #120f19, 0 0 0 5px #F2B33D; }
+.sk-label { margin-top: 6px; font-size: 0.62rem; letter-spacing: 0.08em; font-weight: 800; color: #9b93b0; }
+.sk-val { font-size: 0.66rem; color: #ECE6DA; font-variant-numeric: tabular-nums; min-height: 1em; }
+.sk-row-small .sk-dial { width: 32px; height: 32px; }
+.sk-row-small .sk-dial::before { -webkit-mask: radial-gradient(circle, transparent 19px, #000 20px); mask: radial-gradient(circle, transparent 19px, #000 20px); }
+.sk-row-small .sk-ind { height: 10px; transform-origin: 50% 12px; }
+.synth-hint { margin-top: 8px; font-size: 0.74rem; color: #8a83a0; text-align: center; }
+@media (max-width: 480px) {
+  .synth-panel { padding: 10px 8px; }
+  .synth-sections { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .sk { width: 46px; }
+}
+
+</style>
+</head>
+<body>
+<div class="sy1-shell">
+  <button type="button" class="sy1-start" id="sy1-start">▶ Tap to start audio</button>
+  <div id="sy1-panel"></div>
+  <div class="kb-bar">
+    <button type="button" class="kb-btn" id="oct-down">◀ Oct</button>
+    <span class="kb-range" id="kb-range"></span>
+    <button type="button" class="kb-btn" id="oct-up">Oct ▶</button>
+  </div>
+  <div class="kb" id="kb"></div>
+</div>
+<script>
+"use strict";
+/* ============================================================
+   SY-1 — standalone Web Audio subtractive synth (no dependencies)
+   ============================================================ */
+
+// ---- audio context (created on first user gesture: browsers require it) ----
+let audioCtx = null;
+function getAudioCtx() {
+  if (!audioCtx) {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (AC) audioCtx = new AC({ latencyHint: "interactive" });
+  }
+  return audioCtx;
+}
+function getAudioCtxIfAny() { return audioCtx; }
+function unlockAudio() {
+  const ctx = getAudioCtx();
+  if (ctx && ctx.state === "suspended") ctx.resume();
+  const b = document.getElementById("sy1-start");
+  if (b) b.hidden = true;
+}
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+const PRESET_NAMES = { init: "Init", warmPad: "Warm Pad", acidBass: "Acid Bass", lead: "Lead", pluck: "Pluck", brass: "Brass", spaceBells: "Space Bells" };
+
+// ---------------------------------------------------------------------------
+// SYNTH LAB: patch-based subtractive synth on top of the same keyboard.
+// 2 oscillators + sub + noise -> filter (with its own envelope) -> amp ADSR,
+// per-voice LFO, then a shared FX bus: drive -> 3-band EQ -> delay + reverb
+// -> master -> scope. Knob changes apply live, also to notes being held.
+// ---------------------------------------------------------------------------
+const SYNTH_PARAMS = {
+  osc1Wave:   { type: "wave", def: "sawtooth" },
+  osc1Oct:    { min: -2, max: 2, step: 1, def: 0, fmt: (v) => (v > 0 ? "+" : "") + v },
+  osc2Wave:   { type: "wave", def: "square" },
+  osc2Oct:    { min: -2, max: 2, step: 1, def: 0, fmt: (v) => (v > 0 ? "+" : "") + v },
+  osc2Detune: { min: -50, max: 50, step: 1, def: 8, fmt: (v) => v + "¢" },
+  oscMix:     { min: 0, max: 1, def: 0.45, fmt: (v) => Math.round(v * 100) + "%" },
+  sub:        { min: 0, max: 1, def: 0.2, fmt: (v) => Math.round(v * 100) + "%" },
+  noise:      { min: 0, max: 1, def: 0, fmt: (v) => Math.round(v * 100) + "%" },
+  filterType: { type: "filter", def: "lowpass" },
+  cutoff:     { min: 40, max: 18000, curve: "log", def: 2200, fmt: (v) => v >= 1000 ? (v / 1000).toFixed(1) + "k" : Math.round(v) + "" },
+  res:        { min: 0.1, max: 18, curve: "log", def: 2, fmt: (v) => v.toFixed(1) },
+  envAmt:     { min: 0, max: 1, def: 0.45, fmt: (v) => Math.round(v * 100) + "%" },
+  fA:         { min: 0.001, max: 3, curve: "log", def: 0.01, fmt: fmtSec },
+  fD:         { min: 0.01, max: 4, curve: "log", def: 0.35, fmt: fmtSec },
+  fS:         { min: 0, max: 1, def: 0.25, fmt: (v) => Math.round(v * 100) + "%" },
+  aA:         { min: 0.001, max: 4, curve: "log", def: 0.008, fmt: fmtSec },
+  aD:         { min: 0.01, max: 4, curve: "log", def: 0.3, fmt: fmtSec },
+  aS:         { min: 0, max: 1, def: 0.75, fmt: (v) => Math.round(v * 100) + "%" },
+  aR:         { min: 0.01, max: 6, curve: "log", def: 0.35, fmt: fmtSec },
+  lfoRate:    { min: 0.05, max: 20, curve: "log", def: 5, fmt: (v) => v.toFixed(v < 1 ? 2 : 1) + "Hz" },
+  lfoDepth:   { min: 0, max: 1, def: 0, fmt: (v) => Math.round(v * 100) + "%" },
+  lfoTarget:  { type: "lfo", def: "pitch" },
+  drive:      { min: 0, max: 1, def: 0, fmt: (v) => Math.round(v * 100) + "%" },
+  eqLow:      { min: -12, max: 12, def: 0, fmt: fmtDb },
+  eqMid:      { min: -12, max: 12, def: 0, fmt: fmtDb },
+  eqHigh:     { min: -12, max: 12, def: 0, fmt: fmtDb },
+  delayTime:  { min: 0.05, max: 1.2, curve: "log", def: 0.32, fmt: fmtSec },
+  delayFb:    { min: 0, max: 0.85, def: 0.35, fmt: (v) => Math.round(v * 100) + "%" },
+  delayMix:   { min: 0, max: 1, def: 0, fmt: (v) => Math.round(v * 100) + "%" },
+  revSize:    { min: 0.3, max: 6, curve: "log", def: 2.2, fmt: fmtSec },
+  revMix:     { min: 0, max: 1, def: 0.18, fmt: (v) => Math.round(v * 100) + "%" },
+  volume:     { min: 0, max: 1, def: 0.7, fmt: (v) => Math.round(v * 100) + "%" }
+};
+function fmtSec(v) { return v < 1 ? Math.round(v * 1000) + "ms" : v.toFixed(2) + "s"; }
+function fmtDb(v) { return (v > 0 ? "+" : "") + v.toFixed(1) + "dB"; }
+
+const SYNTH_PRESETS = {
+  init: {},
+  warmPad: { osc1Wave: "sawtooth", osc2Wave: "sawtooth", osc2Detune: 12, oscMix: 0.5, sub: 0.25, cutoff: 1400, res: 1.2, envAmt: 0.25, fA: 0.8, fD: 1.5, fS: 0.5, aA: 0.9, aD: 1.2, aS: 0.85, aR: 2.2, lfoRate: 0.35, lfoDepth: 0.25, lfoTarget: "filter", revMix: 0.45, revSize: 4, eqHigh: -3 },
+  acidBass: { osc1Wave: "sawtooth", osc1Oct: -1, osc2Wave: "square", osc2Oct: -1, oscMix: 0.2, sub: 0.3, cutoff: 260, res: 14, envAmt: 0.85, fA: 0.002, fD: 0.22, fS: 0.05, aA: 0.002, aD: 0.25, aS: 0.6, aR: 0.12, drive: 0.55, revMix: 0.05, eqLow: 3 },
+  lead: { osc1Wave: "square", osc2Wave: "sawtooth", osc2Detune: 6, oscMix: 0.5, sub: 0, cutoff: 4200, res: 3, envAmt: 0.3, aA: 0.01, aS: 0.85, aR: 0.25, lfoRate: 5.5, lfoDepth: 0.18, lfoTarget: "pitch", delayMix: 0.3, delayTime: 0.36, delayFb: 0.4, revMix: 0.2 },
+  pluck: { osc1Wave: "triangle", osc2Wave: "square", osc2Oct: 1, oscMix: 0.3, sub: 0, cutoff: 900, res: 4, envAmt: 0.7, fA: 0.001, fD: 0.18, fS: 0, aA: 0.002, aD: 0.45, aS: 0, aR: 0.3, delayMix: 0.25, delayTime: 0.24, revMix: 0.25 },
+  brass: { osc1Wave: "sawtooth", osc2Wave: "sawtooth", osc2Detune: 5, oscMix: 0.5, sub: 0.15, cutoff: 700, res: 1.5, envAmt: 0.6, fA: 0.08, fD: 0.5, fS: 0.45, aA: 0.05, aD: 0.4, aS: 0.8, aR: 0.25, revMix: 0.22, eqMid: 2 },
+  spaceBells: { osc1Wave: "sine", osc2Wave: "sine", osc2Oct: 2, osc2Detune: 3, oscMix: 0.4, sub: 0, cutoff: 9000, res: 1, envAmt: 0.1, aA: 0.002, aD: 1.8, aS: 0, aR: 2.5, lfoRate: 0.2, lfoDepth: 0.2, lfoTarget: "amp", delayMix: 0.35, delayTime: 0.48, delayFb: 0.5, revMix: 0.55, revSize: 5 }
+};
+
+function synthDefaults() {
+  const p = {};
+  Object.keys(SYNTH_PARAMS).forEach((k) => { p[k] = SYNTH_PARAMS[k].def; });
+  return p;
+}
+let synthPatch = synthDefaults();
+let synthPresetId = "init";
+try {
+  const saved = JSON.parse(localStorage.getItem("musicher_synth_patch") || "null");
+  if (saved && typeof saved === "object") {
+    Object.keys(SYNTH_PARAMS).forEach((k) => { if (k in saved) synthPatch[k] = saved[k]; });
+    synthPresetId = localStorage.getItem("musicher_synth_preset") || "custom";
+  }
+} catch (e) {}
+let synthSaveTimer = null;
+function saveSynthPatchSoon() {
+  clearTimeout(synthSaveTimer);
+  synthSaveTimer = setTimeout(() => {
+    try {
+      localStorage.setItem("musicher_synth_patch", JSON.stringify(synthPatch));
+      localStorage.setItem("musicher_synth_preset", synthPresetId);
+    } catch (e) {}
+  }, 300);
+}
+
+// ---- shared FX bus (one per AudioContext) ----
+const synthBuses = new WeakMap();
+let synthNoiseBuffer = null;
+function makeReverbImpulse(ctx, seconds) {
+  const len = Math.max(1, Math.floor(ctx.sampleRate * seconds));
+  const buf = ctx.createBuffer(2, len, ctx.sampleRate);
+  for (let ch = 0; ch < 2; ch++) {
+    const d = buf.getChannelData(ch);
+    for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 3);
+  }
+  return buf;
+}
+function makeDriveCurve(amount) {
+  const k = amount * 60;
+  const n = 1024;
+  const curve = new Float32Array(n);
+  for (let i = 0; i < n; i++) {
+    const x = (i / (n - 1)) * 2 - 1;
+    curve[i] = k === 0 ? x : ((1 + k) * x) / (1 + k * Math.abs(x));
+  }
+  return curve;
+}
+function getSynthBus(ctx) {
+  let bus = synthBuses.get(ctx);
+  if (bus) return bus;
+  const p = synthPatch;
+  const input = ctx.createGain();
+  const drive = ctx.createWaveShaper();
+  drive.curve = makeDriveCurve(p.drive);
+  drive.oversample = "2x";
+  const driveComp = ctx.createGain();
+  driveComp.gain.value = 1 / (1 + p.drive * 1.5);
+  const eqLow = ctx.createBiquadFilter(); eqLow.type = "lowshelf"; eqLow.frequency.value = 220; eqLow.gain.value = p.eqLow;
+  const eqMid = ctx.createBiquadFilter(); eqMid.type = "peaking"; eqMid.frequency.value = 1100; eqMid.Q.value = 0.8; eqMid.gain.value = p.eqMid;
+  const eqHigh = ctx.createBiquadFilter(); eqHigh.type = "highshelf"; eqHigh.frequency.value = 4200; eqHigh.gain.value = p.eqHigh;
+  input.connect(drive); drive.connect(driveComp); driveComp.connect(eqLow); eqLow.connect(eqMid); eqMid.connect(eqHigh);
+
+  const sum = ctx.createGain();
+  eqHigh.connect(sum); // dry
+
+  const delay = ctx.createDelay(2);
+  delay.delayTime.value = p.delayTime;
+  const fb = ctx.createGain(); fb.gain.value = p.delayFb;
+  const delayTone = ctx.createBiquadFilter(); delayTone.type = "lowpass"; delayTone.frequency.value = 4500;
+  const delayWet = ctx.createGain(); delayWet.gain.value = p.delayMix * 0.7;
+  eqHigh.connect(delay); delay.connect(delayTone); delayTone.connect(fb); fb.connect(delay);
+  delayTone.connect(delayWet); delayWet.connect(sum);
+
+  const reverb = ctx.createConvolver();
+  reverb.buffer = makeReverbImpulse(ctx, p.revSize);
+  const revWet = ctx.createGain(); revWet.gain.value = p.revMix * 0.9;
+  eqHigh.connect(reverb); reverb.connect(revWet); revWet.connect(sum);
+
+  const master = ctx.createGain(); master.gain.value = p.volume;
+  const limiter = ctx.createDynamicsCompressor();
+  limiter.threshold.value = -6; limiter.ratio.value = 12; limiter.attack.value = 0.003; limiter.release.value = 0.2;
+  const analyser = ctx.createAnalyser(); analyser.fftSize = 2048;
+  sum.connect(master); master.connect(limiter); limiter.connect(analyser); analyser.connect(ctx.destination);
+
+  bus = { ctx, input, drive, driveComp, eqLow, eqMid, eqHigh, delay, fb, delayWet, reverb, revWet, master, analyser, revSizeApplied: p.revSize };
+  synthBuses.set(ctx, bus);
+  return bus;
+}
+
+// ---- voices ----
+const activeSynthVoices = new Set();
+const SYNTH_MAX_VOICES = 10;
+const WAVE_MAP = { sawtooth: "sawtooth", square: "square", triangle: "triangle", sine: "sine" };
+
+function createSynthVoice(ctx, freq, when) {
+  const p = synthPatch;
+  const bus = getSynthBus(ctx);
+
+  // voice stealing keeps weak phones from overloading
+  const sounding = Array.from(activeSynthVoices).filter((v) => !v.isReleased());
+  if (sounding.length >= SYNTH_MAX_VOICES) sounding[0].release(ctx.currentTime, 0.02);
+  const all = Array.from(activeSynthVoices);
+  if (all.length >= SYNTH_MAX_VOICES + 6) all[0].kill();
+
+  const out = ctx.createGain();          // release stage
+  out.gain.setValueAtTime(1, when);
+  const amp = ctx.createGain();          // amp ADSR
+  const trem = ctx.createGain();         // LFO amp target
+  trem.gain.setValueAtTime(1, when);
+  const filter = ctx.createBiquadFilter();
+  filter.type = p.filterType;
+  filter.Q.setValueAtTime(p.res, when);
+  const mix = ctx.createGain();
+  mix.gain.setValueAtTime(0.5, when);
+  mix.connect(filter); filter.connect(amp); amp.connect(trem); trem.connect(out); out.connect(bus.input);
+
+  const srcs = [];
+  const osc = (wave, octave, detune, level) => {
+    const o = ctx.createOscillator();
+    o.type = WAVE_MAP[wave] || "sawtooth";
+    o.frequency.setValueAtTime(freq * Math.pow(2, octave), when);
+    o.detune.setValueAtTime(detune, when);
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(level, when);
+    o.connect(g); g.connect(mix);
+    srcs.push(o);
+    return { o, g };
+  };
+  const o1 = osc(p.osc1Wave, p.osc1Oct, 0, 1 - p.oscMix);
+  const o2 = osc(p.osc2Wave, p.osc2Oct, p.osc2Detune, p.oscMix);
+  const s1 = osc("sine", p.osc1Oct - 1, 0, p.sub * 0.8);
+  let noiseGain = null;
+  if (p.noise > 0) {
+    if (!synthNoiseBuffer || synthNoiseBuffer.sampleRate !== ctx.sampleRate) {
+      synthNoiseBuffer = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate);
+      const d = synthNoiseBuffer.getChannelData(0);
+      for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+    }
+    const n = ctx.createBufferSource();
+    n.buffer = synthNoiseBuffer; n.loop = true;
+    noiseGain = ctx.createGain(); noiseGain.gain.setValueAtTime(p.noise * 0.5, when);
+    n.connect(noiseGain); noiseGain.connect(mix);
+    srcs.push(n);
+  }
+
+  // amp envelope
+  const peak = 0.42;
+  amp.gain.setValueAtTime(0.0001, when);
+  amp.gain.linearRampToValueAtTime(peak, when + p.aA);
+  amp.gain.setTargetAtTime(Math.max(0.0001, peak * p.aS), when + p.aA, Math.max(0.005, p.aD / 3));
+
+  // filter envelope (on top of the cutoff)
+  const base = p.cutoff;
+  const top = Math.min(20000, base * Math.pow(2, p.envAmt * 6));
+  const sus = base + (top - base) * p.fS;
+  filter.frequency.setValueAtTime(base, when);
+  filter.frequency.linearRampToValueAtTime(top, when + p.fA);
+  filter.frequency.setTargetAtTime(sus, when + p.fA, Math.max(0.005, p.fD / 3));
+
+  // LFO
+  const lfo = ctx.createOscillator();
+  lfo.type = "sine";
+  lfo.frequency.setValueAtTime(p.lfoRate, when);
+  const lfoGain = ctx.createGain();
+  lfo.connect(lfoGain);
+  const applyLfoRouting = () => {
+    try { lfoGain.disconnect(); } catch (e) {}
+    const d = synthPatch.lfoDepth;
+    if (synthPatch.lfoTarget === "filter") {
+      lfoGain.gain.setValueAtTime(d * 2400, ctx.currentTime);
+      lfoGain.connect(filter.detune);
+    } else if (synthPatch.lfoTarget === "amp") {
+      lfoGain.gain.setValueAtTime(d * 0.5, ctx.currentTime);
+      lfoGain.connect(trem.gain);
+    } else {
+      lfoGain.gain.setValueAtTime(d * 60, ctx.currentTime);
+      [o1.o, o2.o, s1.o].forEach((o) => lfoGain.connect(o.detune));
+    }
+  };
+  lfoGain.gain.setValueAtTime(0, when);
+  applyLfoRouting();
+  srcs.push(lfo);
+
+  srcs.forEach((s) => s.start(when));
+
+  let released = false;
+  const voice = {
+    freq,
+    isReleased() { return released; },
+    kill() {
+      const now = ctx.currentTime;
+      out.gain.cancelScheduledValues(now);
+      out.gain.setTargetAtTime(0.0001, now, 0.005);
+      srcs.forEach((s) => { try { s.stop(now + 0.05); } catch (e) {} });
+      released = true;
+      activeSynthVoices.delete(voice);
+    },
+    release(t, fastTau) {
+      if (released) return;
+      released = true;
+      const at = Math.max(ctx.currentTime, t);
+      const tau = fastTau || Math.max(0.005, synthPatch.aR / 4);
+      out.gain.setTargetAtTime(0.0001, at, tau);
+      const stopAt = at + tau * 8 + 0.05;
+      srcs.forEach((s) => { try { s.stop(stopAt); } catch (e) {} });
+      setTimeout(() => activeSynthVoices.delete(voice), Math.max(0, (stopAt - ctx.currentTime) * 1000) + 50);
+    },
+    // live knob changes while a note is sounding
+    update(key) {
+      const now = ctx.currentTime;
+      const q = synthPatch;
+      if (key === "cutoff" || key === "envAmt" || key === "fS") {
+        const b = q.cutoff, tp = Math.min(20000, b * Math.pow(2, q.envAmt * 6));
+        filter.frequency.cancelScheduledValues(now);
+        filter.frequency.setTargetAtTime(b + (tp - b) * q.fS, now, 0.02);
+      } else if (key === "res") filter.Q.setTargetAtTime(q.res, now, 0.02);
+      else if (key === "filterType") filter.type = q.filterType;
+      else if (key === "oscMix") { o1.g.gain.setTargetAtTime(1 - q.oscMix, now, 0.02); o2.g.gain.setTargetAtTime(q.oscMix, now, 0.02); }
+      else if (key === "sub") s1.g.gain.setTargetAtTime(q.sub * 0.8, now, 0.02);
+      else if (key === "noise" && noiseGain) noiseGain.gain.setTargetAtTime(q.noise * 0.5, now, 0.02);
+      else if (key === "osc2Detune") o2.o.detune.setTargetAtTime(q.osc2Detune, now, 0.02);
+      else if (key === "osc1Wave") o1.o.type = WAVE_MAP[q.osc1Wave];
+      else if (key === "osc2Wave") o2.o.type = WAVE_MAP[q.osc2Wave];
+      else if (key === "osc1Oct") { o1.o.frequency.setTargetAtTime(freq * Math.pow(2, q.osc1Oct), now, 0.01); s1.o.frequency.setTargetAtTime(freq * Math.pow(2, q.osc1Oct - 1), now, 0.01); }
+      else if (key === "osc2Oct") o2.o.frequency.setTargetAtTime(freq * Math.pow(2, q.osc2Oct), now, 0.01);
+      else if (key === "aS" && !released) amp.gain.setTargetAtTime(Math.max(0.0001, peak * q.aS), now, 0.03);
+      else if (key === "lfoRate") lfo.frequency.setTargetAtTime(q.lfoRate, now, 0.02);
+      else if (key === "lfoDepth" || key === "lfoTarget") applyLfoRouting();
+    }
+  };
+  activeSynthVoices.add(voice);
+  return voice;
+}
+
+function setSynthParam(key, value, { fromPreset = false } = {}) {
+  const def = SYNTH_PARAMS[key];
+  if (!def) return;
+  if (def.type) synthPatch[key] = value;
+  else {
+    let v = Math.max(def.min, Math.min(def.max, Number(value)));
+    if (def.step) v = Math.round(v / def.step) * def.step;
+    synthPatch[key] = v;
+  }
+  if (!fromPreset) { synthPresetId = "custom"; updateSynthPresetDOM(); }
+  // shared bus params
+  const ctx = getAudioCtxIfAny();
+  const bus = ctx ? synthBuses.get(ctx) : null;
+  if (bus) {
+    const now = ctx.currentTime, v = synthPatch[key];
+    if (key === "drive") { bus.drive.curve = makeDriveCurve(v); bus.driveComp.gain.setTargetAtTime(1 / (1 + v * 1.5), now, 0.02); }
+    else if (key === "eqLow") bus.eqLow.gain.setTargetAtTime(v, now, 0.02);
+    else if (key === "eqMid") bus.eqMid.gain.setTargetAtTime(v, now, 0.02);
+    else if (key === "eqHigh") bus.eqHigh.gain.setTargetAtTime(v, now, 0.02);
+    else if (key === "delayTime") bus.delay.delayTime.setTargetAtTime(v, now, 0.05);
+    else if (key === "delayFb") bus.fb.gain.setTargetAtTime(v, now, 0.02);
+    else if (key === "delayMix") bus.delayWet.gain.setTargetAtTime(v * 0.7, now, 0.02);
+    else if (key === "revMix") bus.revWet.gain.setTargetAtTime(v * 0.9, now, 0.02);
+    else if (key === "volume") bus.master.gain.setTargetAtTime(v, now, 0.02);
+    else if (key === "revSize") {
+      clearTimeout(bus.revTimer);
+      bus.revTimer = setTimeout(() => { if (Math.abs(bus.revSizeApplied - synthPatch.revSize) > 0.01) { bus.reverb.buffer = makeReverbImpulse(ctx, synthPatch.revSize); bus.revSizeApplied = synthPatch.revSize; } }, 180);
+    }
+  }
+  activeSynthVoices.forEach((vc) => vc.update(key));
+  updateSynthControlDOM(key);
+  saveSynthPatchSoon();
+}
+
+function applySynthPreset(id) {
+  const preset = SYNTH_PRESETS[id];
+  if (!preset) return;
+  const next = Object.assign(synthDefaults(), preset);
+  Object.keys(next).forEach((k) => setSynthParam(k, next[k], { fromPreset: true }));
+  synthPresetId = id;
+  updateSynthPresetDOM();
+  saveSynthPatchSoon();
+}
+
+// ---- UI ----
+function synthNorm(key, v) {
+  const d = SYNTH_PARAMS[key];
+  if (d.curve === "log") return Math.log(v / d.min) / Math.log(d.max / d.min);
+  return (v - d.min) / (d.max - d.min);
+}
+function synthDenorm(key, n) {
+  const d = SYNTH_PARAMS[key];
+  n = Math.max(0, Math.min(1, n));
+  if (d.curve === "log") return d.min * Math.pow(d.max / d.min, n);
+  return d.min + n * (d.max - d.min);
+}
+function renderSynthKnob(key, label) {
+  const v = synthPatch[key];
+  const n = synthNorm(key, v);
+  return `<div class="sk" data-param="${key}" role="slider" tabindex="0" aria-label="${label}" aria-valuetext="${escapeHtml(SYNTH_PARAMS[key].fmt(v))}">
+      <div class="sk-dial" style="--n:${n.toFixed(4)}"><span class="sk-ind"></span></div>
+      <div class="sk-label">${label}</div>
+      <div class="sk-val">${escapeHtml(SYNTH_PARAMS[key].fmt(v))}</div>
+    </div>`;
+}
+function renderSynthChoice(key, options) {
+  return `<div class="synth-choice" data-param="${key}">` + options.map(([val, txt, title]) =>
+    `<button type="button" class="synth-choice-btn ${synthPatch[key] === val ? "active" : ""}" data-action="synth-set" data-param="${key}" data-value="${val}" title="${title || val}">${txt}</button>`
+  ).join("") + `</div>`;
+}
+const WAVE_OPTS = [["sawtooth", "⩘", "Saw"], ["square", "⊓", "Square"], ["triangle", "△", "Triangle"], ["sine", "∿", "Sine"]];
+function renderSynthPanelHtml() {
+  const presetBtns = Object.keys(SYNTH_PRESETS).map((id) =>
+    `<button type="button" class="synth-preset-btn ${synthPresetId === id ? "active" : ""}" data-action="synth-preset" data-preset="${id}">${escapeHtml(PRESET_NAMES[id] || id)}</button>`
+  ).join("");
+  return `
+    <div class="synth-panel" dir="ltr">
+      <div class="synth-top">
+        <div class="synth-brand">MUSICHER <b>SY-1</b></div>
+        <canvas class="synth-scope" width="320" height="56" aria-hidden="true"></canvas>
+        <div class="synth-presets">${presetBtns}</div>
+      </div>
+      <div class="synth-sections">
+        <section class="synth-sec"><h4>OSC 1</h4>${renderSynthChoice("osc1Wave", WAVE_OPTS)}<div class="sk-row">${renderSynthKnob("osc1Oct", "OCT")}${renderSynthKnob("sub", "SUB")}${renderSynthKnob("noise", "NOISE")}</div></section>
+        <section class="synth-sec"><h4>OSC 2</h4>${renderSynthChoice("osc2Wave", WAVE_OPTS)}<div class="sk-row">${renderSynthKnob("osc2Oct", "OCT")}${renderSynthKnob("osc2Detune", "DETUNE")}${renderSynthKnob("oscMix", "MIX")}</div></section>
+        <section class="synth-sec synth-sec-filter"><h4>FILTER</h4>${renderSynthChoice("filterType", [["lowpass", "LP", "Low-pass"], ["bandpass", "BP", "Band-pass"], ["highpass", "HP", "High-pass"]])}<div class="sk-row">${renderSynthKnob("cutoff", "CUTOFF")}${renderSynthKnob("res", "RESO")}${renderSynthKnob("envAmt", "ENV")}</div><div class="sk-row sk-row-small">${renderSynthKnob("fA", "A")}${renderSynthKnob("fD", "D")}${renderSynthKnob("fS", "S")}</div></section>
+        <section class="synth-sec"><h4>AMP ENV</h4><div class="sk-row">${renderSynthKnob("aA", "ATTACK")}${renderSynthKnob("aD", "DECAY")}</div><div class="sk-row">${renderSynthKnob("aS", "SUSTAIN")}${renderSynthKnob("aR", "RELEASE")}</div></section>
+        <section class="synth-sec"><h4>LFO</h4>${renderSynthChoice("lfoTarget", [["pitch", "PITCH"], ["filter", "FILTER"], ["amp", "AMP"]])}<div class="sk-row">${renderSynthKnob("lfoRate", "RATE")}${renderSynthKnob("lfoDepth", "DEPTH")}</div></section>
+        <section class="synth-sec"><h4>DRIVE · EQ</h4><div class="sk-row">${renderSynthKnob("drive", "DRIVE")}${renderSynthKnob("eqLow", "LOW")}</div><div class="sk-row">${renderSynthKnob("eqMid", "MID")}${renderSynthKnob("eqHigh", "HIGH")}</div></section>
+        <section class="synth-sec"><h4>DELAY</h4><div class="sk-row">${renderSynthKnob("delayTime", "TIME")}${renderSynthKnob("delayFb", "FDBK")}${renderSynthKnob("delayMix", "MIX")}</div></section>
+        <section class="synth-sec"><h4>REVERB · OUT</h4><div class="sk-row">${renderSynthKnob("revSize", "SIZE")}${renderSynthKnob("revMix", "MIX")}${renderSynthKnob("volume", "VOL")}</div></section>
+      </div>
+      <div class="synth-hint">Drag a knob up/down (or scroll / arrow keys) · double-click to reset · play with mouse, touch or keys A W S E D F T G Y H U J K · Z/X = octave</div>
+    </div>`;
+}
+
+function updateSynthControlDOM(key) {
+  const v = synthPatch[key];
+  const def = SYNTH_PARAMS[key];
+  if (def.type) {
+    document.querySelectorAll(`.synth-choice-btn[data-param="${key}"]`).forEach((b) => b.classList.toggle("active", b.getAttribute("data-value") === v));
+    return;
+  }
+  document.querySelectorAll(`.sk[data-param="${key}"]`).forEach((el) => {
+    const dial = el.querySelector(".sk-dial");
+    if (dial) dial.style.setProperty("--n", synthNorm(key, v).toFixed(4));
+    const val = el.querySelector(".sk-val");
+    if (val) val.textContent = def.fmt(v);
+    el.setAttribute("aria-valuetext", def.fmt(v));
+  });
+}
+function updateSynthPresetDOM() {
+  document.querySelectorAll(".synth-preset-btn").forEach((b) => b.classList.toggle("active", b.getAttribute("data-preset") === synthPresetId));
+}
+// knob dragging (pointer), wheel, keyboard, double-click to reset
+let synthDrag = null;
+document.addEventListener("pointerdown", (e) => {
+  const knob = e.target.closest && e.target.closest(".sk");
+  if (!knob) return;
+  e.preventDefault();
+  unlockAudio();
+  const key = knob.getAttribute("data-param");
+  synthDrag = { key, startY: e.clientY, startX: e.clientX, startN: synthNorm(key, synthPatch[key]), id: e.pointerId, el: knob };
+  knob.classList.add("dragging");
+  try { knob.setPointerCapture(e.pointerId); } catch (err) {}
+});
+document.addEventListener("pointermove", (e) => {
+  if (!synthDrag || e.pointerId !== synthDrag.id) return;
+  e.preventDefault();
+  const dy = synthDrag.startY - e.clientY;
+  const dx = e.clientX - synthDrag.startX;
+  const sens = e.shiftKey ? 700 : 220;
+  setSynthParam(synthDrag.key, synthDenorm(synthDrag.key, synthDrag.startN + (dy + dx * 0.5) / sens));
+});
+const endSynthDrag = (e) => {
+  if (!synthDrag || (e && e.pointerId !== synthDrag.id)) return;
+  synthDrag.el.classList.remove("dragging");
+  synthDrag = null;
+};
+document.addEventListener("pointerup", endSynthDrag);
+document.addEventListener("pointercancel", endSynthDrag);
+document.addEventListener("dblclick", (e) => {
+  const knob = e.target.closest && e.target.closest(".sk");
+  if (!knob) return;
+  const key = knob.getAttribute("data-param");
+  setSynthParam(key, SYNTH_PARAMS[key].def);
+});
+document.addEventListener("wheel", (e) => {
+  const knob = e.target.closest && e.target.closest(".sk");
+  if (!knob) return;
+  e.preventDefault();
+  const key = knob.getAttribute("data-param");
+  setSynthParam(key, synthDenorm(key, synthNorm(key, synthPatch[key]) - Math.sign(e.deltaY) * 0.03));
+}, { passive: false });
+document.addEventListener("keydown", (e) => {
+  const knob = e.target.closest && e.target.closest(".sk");
+  if (!knob) return;
+  const dir = { ArrowUp: 1, ArrowRight: 1, ArrowDown: -1, ArrowLeft: -1 }[e.key];
+  if (!dir) return;
+  e.preventDefault();
+  e.stopPropagation();
+  const key = knob.getAttribute("data-param");
+  const d = SYNTH_PARAMS[key];
+  const next = d.step ? synthPatch[key] + dir * d.step : synthDenorm(key, synthNorm(key, synthPatch[key]) + dir * 0.02);
+  setSynthParam(key, next);
+}, true);
+
+// oscilloscope
+let synthScopeRaf = null;
+function startSynthScope() {
+  if (synthScopeRaf) return;
+  const data = new Uint8Array(2048);
+  const draw = () => {
+    const canvas = document.querySelector(".synth-panel:not([hidden]) .synth-scope");
+    if (!canvas) { synthScopeRaf = null; return; }
+    const g = canvas.getContext("2d");
+    const w = canvas.width, h = canvas.height;
+    g.clearRect(0, 0, w, h);
+    g.strokeStyle = "rgba(242,179,61,0.18)";
+    g.beginPath(); g.moveTo(0, h / 2); g.lineTo(w, h / 2); g.stroke();
+    const bus = getAudioCtxIfAny() ? synthBuses.get(getAudioCtxIfAny()) : null;
+    if (bus) {
+      bus.analyser.getByteTimeDomainData(data);
+      let start = 0;
+      for (let i = 1; i < 1024; i++) { if (data[i - 1] < 128 && data[i] >= 128) { start = i; break; } }
+      g.strokeStyle = "#F2B33D"; g.lineWidth = 2; g.shadowColor = "#F2B33D"; g.shadowBlur = 6;
+      g.beginPath();
+      for (let x = 0; x < w; x++) {
+        const v = data[start + Math.floor((x / w) * 1000)] / 128 - 1;
+        const y = h / 2 - v * (h / 2 - 3);
+        if (x === 0) g.moveTo(x, y); else g.lineTo(x, y);
+      }
+      g.stroke(); g.shadowBlur = 0;
+    }
+    synthScopeRaf = requestAnimationFrame(draw);
+  };
+  synthScopeRaf = requestAnimationFrame(draw);
+}
+
+// ---- note helpers ----
+const NOTE_NAMES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+function midiToFreq(m) { return 440 * Math.pow(2, (m - 69) / 12); }
+function midiToName(m) { return NOTE_NAMES[m % 12] + (Math.floor(m / 12) - 1); }
+
+// ---- held notes: noteOn / noteOff ----
+const heldVoices = new Map(); // midi -> voice
+function noteOn(midi) {
+  unlockAudio();
+  const ctx = getAudioCtx();
+  if (!ctx) return;
+  const prev = heldVoices.get(midi);
+  if (prev) prev.release(ctx.currentTime);
+  heldVoices.set(midi, createSynthVoice(ctx, midiToFreq(midi), ctx.currentTime));
+  const el = document.querySelector(`.key[data-midi="${midi}"]`);
+  if (el) el.classList.add("is-pressed");
+  startSynthScope();
+}
+function noteOff(midi) {
+  const v = heldVoices.get(midi);
+  if (v) { heldVoices.delete(midi); v.release(getAudioCtx().currentTime); }
+  const el = document.querySelector(`.key[data-midi="${midi}"]`);
+  if (el) el.classList.remove("is-pressed");
+}
+function allNotesOff() { Array.from(heldVoices.keys()).forEach(noteOff); }
+window.addEventListener("blur", allNotesOff);
+document.addEventListener("visibilitychange", () => { if (document.hidden) allNotesOff(); });
+
+// ---- on-screen keyboard (2 octaves, shiftable) ----
+let baseMidi = 48; // C3
+function renderKeyboard() {
+  const kb = document.getElementById("kb");
+  const whites = [];
+  const blacks = [];
+  for (let m = baseMidi; m <= baseMidi + 24; m++) (NOTE_NAMES[m % 12].includes("#") ? blacks : whites).push(m);
+  kb.style.setProperty("--whites", whites.length);
+  kb.innerHTML = whites.map((m) => `<div class="key" data-midi="${m}">${m % 12 === 0 ? midiToName(m) : ""}</div>`).join("") +
+    blacks.map((m) => {
+      const leftWhite = whites.indexOf(m - 1);
+      const left = ((leftWhite + 1) / whites.length) * 100;
+      return `<div class="key black" data-midi="${m}" style="left:calc(${left}% - (100% / ${whites.length} * 0.31))"></div>`;
+    }).join("");
+  document.getElementById("kb-range").textContent = midiToName(baseMidi) + " – " + midiToName(baseMidi + 24);
+}
+function shiftOctave(d) {
+  const next = Math.max(24, Math.min(84, baseMidi + d * 12));
+  if (next === baseMidi) return;
+  allNotesOff(); baseMidi = next; renderKeyboard();
+}
+document.getElementById("oct-down").addEventListener("click", () => shiftOctave(-1));
+document.getElementById("oct-up").addEventListener("click", () => shiftOctave(1));
+document.getElementById("sy1-start").addEventListener("click", unlockAudio);
+
+// pointer (mouse + touch + pen), with glide between keys while held
+const pointerNotes = new Map(); // pointerId -> midi
+const kbEl = document.getElementById("kb");
+function keyAt(x, y) {
+  // geometry hit-test (black keys first, they sit on top); works during pointer capture
+  const keys = Array.from(kbEl.querySelectorAll(".key.black")).concat(Array.from(kbEl.querySelectorAll(".key:not(.black)")));
+  for (const k of keys) {
+    const r = k.getBoundingClientRect();
+    if (x >= r.left && x < r.right && y >= r.top && y < r.bottom) return Number(k.dataset.midi);
+  }
+  return null;
+}
+kbEl.addEventListener("pointerdown", (e) => {
+  e.preventDefault();
+  try { kbEl.setPointerCapture(e.pointerId); } catch (err) {}
+  const m = keyAt(e.clientX, e.clientY);
+  if (m == null) return;
+  pointerNotes.set(e.pointerId, m); noteOn(m);
+});
+kbEl.addEventListener("pointermove", (e) => {
+  if (!pointerNotes.has(e.pointerId)) return;
+  const m = keyAt(e.clientX, e.clientY);
+  const prev = pointerNotes.get(e.pointerId);
+  if (m != null && m !== prev) { noteOff(prev); pointerNotes.set(e.pointerId, m); noteOn(m); }
+});
+const endPointer = (e) => { const m = pointerNotes.get(e.pointerId); if (m != null) { pointerNotes.delete(e.pointerId); noteOff(m); } };
+kbEl.addEventListener("pointerup", endPointer);
+kbEl.addEventListener("pointercancel", endPointer);
+kbEl.addEventListener("lostpointercapture", endPointer);
+
+// computer keyboard
+const KEYMAP = { a: 0, w: 1, s: 2, e: 3, d: 4, f: 5, t: 6, g: 7, y: 8, h: 9, u: 10, j: 11, k: 12, o: 13, l: 14, p: 15, ";": 16 };
+const downKeys = new Map();
+document.addEventListener("keydown", (e) => {
+  if (e.repeat || e.metaKey || e.ctrlKey || e.altKey) return;
+  if (e.target.closest && e.target.closest(".sk, input, textarea")) return;
+  const k = e.key.toLowerCase();
+  if (k === "z") return shiftOctave(-1);
+  if (k === "x") return shiftOctave(1);
+  if (k in KEYMAP && !downKeys.has(k)) { const m = baseMidi + KEYMAP[k]; downKeys.set(k, m); noteOn(m); }
+});
+document.addEventListener("keyup", (e) => {
+  const k = e.key.toLowerCase();
+  if (downKeys.has(k)) { noteOff(downKeys.get(k)); downKeys.delete(k); }
+});
+
+// panel buttons (wave/filter/LFO choices, presets)
+document.addEventListener("click", (e) => {
+  const btn = e.target.closest && e.target.closest("[data-action]");
+  if (!btn) return;
+  const a = btn.getAttribute("data-action");
+  if (a === "synth-set") setSynthParam(btn.getAttribute("data-param"), btn.getAttribute("data-value"));
+  else if (a === "synth-preset") { applySynthPreset(btn.getAttribute("data-preset")); noteOn(60); setTimeout(() => noteOff(60), 500); }
+});
+
+// boot
+document.getElementById("sy1-panel").innerHTML = renderSynthPanelHtml();
+renderKeyboard();
+startSynthScope();
+
+// tiny public API for embedding in other apps
+window.SY1 = { noteOn, noteOff, allNotesOff, setParam: setSynthParam, applyPreset: applySynthPreset, getPatch: () => ({ ...synthPatch }), PARAMS: SYNTH_PARAMS, PRESETS: SYNTH_PRESETS };
+</script>
+</body>
+</html>

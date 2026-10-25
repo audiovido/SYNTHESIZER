@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>SY-1 Synth</title>
+    <meta name="description" content="SY-1 standalone browser subtractive synthesizer built with Web Audio." />
+    <meta property="og:title" content="SY-1 Synth" />
+    <meta property="og:description" content="SY-1 standalone browser subtractive synthesizer built with Web Audio." />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+  </head>
+  <body>
+    <div class="sy1-shell">
+      <button type="button" class="sy1-start" id="sy1-start">▶ Tap to start audio</button>
+      <div id="sy1-panel"></div>
+      <div class="kb-bar">
+        <button type="button" class="kb-btn" id="oct-down">◀ Oct</button>
+        <span class="kb-range" id="kb-range"></span>
+        <button type="button" class="kb-btn" id="oct-up">Oct ▶</button>
+      </div>
+      <div class="kb" id="kb"></div>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
