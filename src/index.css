@@ -82,6 +82,16 @@
 
   --led-off: #2c2740;
   --led-off-edge: #4a4460;
+
+  /* Layout tokens (set by the responsive rules at the end, never by skins) */
+  --shell-pad: 16px;
+  --k: 40px;          /* knob diameter */
+  --k-small: 32px;    /* small knob diameter */
+  --sk-w: 54px;       /* knob column width */
+  --scope-h: 56px;
+  --kb-min: 120px;
+  --kb-max: clamp(200px, 32vh, 340px);
+  --sec-gap: 10px;
 }
 
 html, body {
@@ -93,12 +103,22 @@ html, body {
 }
 
 .sy1-shell {
-  max-width: 1040px;
+  max-width: 1200px;
   margin: 0 auto;
-  padding: 16px;
-  padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  padding: var(--shell-pad);
+  padding-bottom: calc(var(--shell-pad) + env(safe-area-inset-bottom, 0px));
   background: var(--shell-bg);
   color: var(--ink);
+  /* The whole instrument fits the screen: panel on top, keyboard takes the rest */
+  height: 100vh;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+#sy1-panel {
+  display: contents;
 }
 
 .sy1-start {
@@ -123,17 +143,35 @@ html, body {
 }
 
 /* keyboard */
-.kb-bar {
+/* Keyboard area: octave controls in a column beside the keys (wide screens)
+   or in a row above them (phone portrait). Takes the space the panel leaves. */
+.kb-area {
+  flex: 1 1 auto;
+  min-height: var(--kb-min);
+  max-height: var(--kb-max);
   display: flex;
-  align-items: center;
-  justify-content: space-between;
   gap: 8px;
-  margin: 12px 0 8px;
+  margin-top: 10px;
+}
+
+.kb-bar {
+  flex: none;
+  width: 78px;
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: stretch;
+  justify-content: center;
+  gap: 6px;
+}
+
+.kb-range {
+  text-align: center;
+  font-size: 0.78rem;
 }
 
 .kb-btn {
-  min-height: 44px;
-  padding: 0 14px;
+  min-height: 40px;
+  padding: 0 10px;
   border-radius: 10px;
   border: 1px solid var(--btn-border);
   background: var(--btn-bg);
@@ -151,7 +189,9 @@ html, body {
 .kb {
   position: relative;
   display: flex;
-  height: 190px;
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
   border-radius: 10px;
   overflow: hidden;
   border: 2px solid var(--key-line);
@@ -201,7 +241,11 @@ html, body {
 }
 
 .synth-panel {
-  margin: 4px 0 14px;
+  flex: 0 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  margin: 0;
   padding: 12px;
   border-radius: var(--panel-radius);
   background: var(--panel-bg);
@@ -212,6 +256,7 @@ html, body {
 }
 
 .synth-top {
+  flex: none;
   display: flex;
   align-items: center;
   gap: 12px;
@@ -235,7 +280,7 @@ html, body {
   flex: 1 1 180px;
   min-width: 140px;
   max-width: 100%;
-  height: 56px;
+  height: var(--scope-h);
   border-radius: 8px;
   background: var(--scope-bg);
   border: 1px solid var(--scope-border);
@@ -267,12 +312,13 @@ html, body {
 
 /* MIDI bar */
 .synth-midi-bar {
+  flex: 0 1 auto;
+  margin-left: auto;
   display: flex;
   align-items: center;
   flex-wrap: wrap;
   gap: 6px;
-  margin-bottom: 10px;
-  padding: 6px 8px;
+  padding: 4px 6px;
   border-radius: 8px;
   background: var(--sec-bg);
   border: 1px solid var(--sec-border);
@@ -348,7 +394,7 @@ html, body {
 
 /* Skin picker sits at the end of the MIDI bar */
 .synth-skin {
-  margin-left: auto;
+  margin-left: 6px;
   display: flex;
   align-items: center;
   gap: 6px;
@@ -358,9 +404,55 @@ html, body {
 }
 
 .synth-sections {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;          /* safety net only; layouts below are sized to fit */
+  overscroll-behavior: contain;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
-  gap: 10px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  align-content: start;
+  gap: var(--sec-gap);
+}
+
+/* Page tabs and the preset menu only appear on small screens */
+.synth-tabs,
+.synth-preset-select {
+  display: none;
+}
+
+.synth-tabs {
+  flex: none;
+  gap: 4px;
+  margin-bottom: 8px;
+  padding: 3px;
+  border-radius: 10px;
+  background: var(--sec-bg);
+  border: 1px solid var(--sec-border);
+}
+
+.synth-tab {
+  flex: 1;
+  min-height: 36px;
+  border-radius: 7px;
+  color: var(--ctl-ink);
+  font-size: 0.8rem;
+  font-weight: 800;
+  font-family: var(--font-head);
+  cursor: pointer;
+}
+
+.synth-tab.active {
+  background: var(--accent);
+  color: var(--accent-ink);
+  box-shadow: 0 0 10px var(--accent-glow-soft);
+}
+
+.synth-tab:focus-visible,
+.synth-preset-btn:focus-visible,
+.synth-choice-btn:focus-visible,
+.kb-btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 .synth-sec {
@@ -369,6 +461,16 @@ html, body {
   border-radius: var(--sec-radius);
   box-shadow: var(--sec-shadow);
   padding: 8px 8px 10px;
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  column-gap: 6px;
+}
+
+.synth-sec > h4,
+.synth-sec > .synth-choice {
+  flex: 1 1 100%;
 }
 
 .synth-sec h4 {
@@ -408,6 +510,7 @@ html, body {
 }
 
 .sk-row {
+  flex: 1 1 auto;
   display: flex;
   justify-content: space-around;
   gap: 4px;
@@ -417,7 +520,7 @@ html, body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  width: 54px;
+  width: var(--sk-w);
   cursor: ns-resize;
   touch-action: none;
   user-select: none;
@@ -428,8 +531,8 @@ html, body {
 .sk-dial {
   --n: 0.5;
   position: relative;
-  width: 40px;
-  height: 40px;
+  width: var(--k);
+  height: var(--k);
   border-radius: 50%;
   background: var(--knob-face);
   box-shadow: 0 2px 4px rgba(0,0,0,0.6), 0 0 0 3px var(--knob-gap), 0 0 0 4px var(--knob-edge);
@@ -441,8 +544,8 @@ html, body {
   inset: -6px;
   border-radius: 50%;
   background: conic-gradient(from 225deg, var(--knob-arc) calc(var(--n) * 270deg), var(--knob-track) 0 270deg, transparent 0);
-  -webkit-mask: radial-gradient(circle, transparent 23px, #000 24px);
-  mask: radial-gradient(circle, transparent 23px, #000 24px);
+  -webkit-mask: radial-gradient(closest-side, transparent calc(100% - 3px), #000 calc(100% - 2px));
+  mask: radial-gradient(closest-side, transparent calc(100% - 3px), #000 calc(100% - 2px));
   opacity: 0.9;
   filter: var(--knob-arc-filter);
 }
@@ -450,13 +553,13 @@ html, body {
 .sk-ind {
   position: absolute;
   left: 50%;
-  top: 4px;
+  top: calc(var(--k) * 0.1);
   width: 3px;
-  height: 13px;
+  height: calc(var(--k) * 0.325);
   margin-left: -1.5px;
   border-radius: 2px;
   background: var(--knob-ind);
-  transform-origin: 50% 16px;
+  transform-origin: 50% calc(var(--k) * 0.4);
   transform: rotate(calc(-135deg + var(--n) * 270deg));
   box-shadow: 0 0 4px var(--knob-ind-glow);
 }
@@ -510,42 +613,127 @@ html, body {
   min-height: 1em;
 }
 
-.sk-row-small .sk-dial {
-  width: 32px;
-  height: 32px;
-}
-
-.sk-row-small .sk-dial::before {
-  -webkit-mask: radial-gradient(circle, transparent 19px, #000 20px);
-  mask: radial-gradient(circle, transparent 19px, #000 20px);
-}
-
-.sk-row-small .sk-ind {
-  height: 10px;
-  transform-origin: 50% 12px;
+.sk-row-small {
+  --k: var(--k-small);
 }
 
 .synth-hint {
+  flex: none;
   margin-top: 8px;
   font-size: 0.74rem;
   color: var(--ink-faint);
   text-align: center;
 }
 
-@media (max-width: 480px) {
+/* ============================================================
+   Responsive layout. Goal: the whole instrument fits on screen
+   with no page scroll on phone, tablet and desktop.
+   - Large screens: all 8 sections at once (4 x 2).
+   - Small screens: sections become 4 pages with tabs; the
+     keyboard is always visible.
+   Sizes scale with height so short laptop screens still fit.
+   ============================================================ */
+
+/* Medium width (small laptops, tablets): sections in 4 columns, tighter */
+@media (max-width: 1100px) {
+  :root { --sk-w: 48px; --sec-gap: 8px; }
+}
+
+/* Short desktop / laptop screens: shrink knobs, scope and hint */
+@media (max-height: 860px) {
+  :root { --k: 36px; --k-small: 28px; --scope-h: 44px; }
+  .synth-hint { display: none; }
+}
+@media (max-height: 720px) {
+  :root { --k: 32px; --k-small: 26px; --scope-h: 36px; --kb-min: 100px; --shell-pad: 10px; }
+  .sk-label { margin-top: 3px; }
+}
+
+/* Small screens (phones, narrow windows, phone landscape): pages + tabs */
+@media (max-width: 760px), (max-height: 560px) and (orientation: landscape) {
+  :root { --shell-pad: 8px; --k: 38px; --k-small: 30px; --sk-w: 46px; --scope-h: 34px; --kb-min: 110px; --kb-max: 220px; }
+  .synth-panel { padding: 8px; }
+  .synth-hint { display: none; }
+
+  .synth-top { gap: 6px 8px; margin-bottom: 8px; }
+  .synth-brand { flex: none; font-size: 0.8rem; }
+  .synth-brand-maker { display: none; }
+  html[data-skin] .synth-brand { font-size: 0.82rem; letter-spacing: 0.06em; }
+  .synth-scope { flex: 1 1 auto; min-width: 60px; }
+  .synth-presets { display: none; }
+  .synth-preset-select { display: block; flex: 0 1 auto; max-width: 128px; min-height: 36px; }
+
+  .synth-midi-bar { flex: 1 1 100%; margin-left: 0; padding: 3px 6px; }
+  .synth-skin { margin-left: auto; font-size: 0; gap: 0; }
+  .synth-skin > select { max-width: 112px; }
+
+  .synth-tabs { display: flex; }
+
+  .synth-sections { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+  .synth-sec { display: none; }
+  .synth-panel[data-page="osc"] .synth-sec[data-page="osc"],
+  .synth-panel[data-page="filter"] .synth-sec[data-page="filter"],
+  .synth-panel[data-page="amp"] .synth-sec[data-page="amp"],
+  .synth-panel[data-page="fx"] .synth-sec[data-page="fx"] { display: flex; }
+
+  .kb-btn { min-height: 36px; }
+}
+
+/* Phone portrait: octave row above the keys; Effects page stacks
+   Delay and Reverb beside Drive/EQ so it fits without scrolling */
+@media (max-width: 760px) and (orientation: portrait) {
+  :root { --kb-min: 150px; --kb-max: 280px; }
+  .kb-area { flex-direction: column; gap: 6px; margin-top: 8px; }
+  .kb-bar { width: auto; flex-direction: row; justify-content: space-between; align-items: center; }
+  .kb-btn { min-width: 76px; }
+  .synth-panel[data-page="fx"] .synth-sections { grid-template-columns: 1fr 1fr; }
+  .synth-panel[data-page="fx"] .synth-sec:nth-child(6) { grid-row: span 2; }
+}
+
+/* Very narrow phones */
+@media (max-width: 370px) {
+  :root { --sk-w: 42px; }
+}
+
+/* Short phones held upright (small Androids, browsers with big toolbars) */
+@media (max-width: 760px) and (orientation: portrait) and (max-height: 640px) {
+  :root { --kb-min: 118px; --k: 32px; --k-small: 26px; --scope-h: 30px; }
+  .synth-tab { min-height: 32px; }
+  .synth-choice-btn { min-height: 28px; }
+  .synth-sec { padding: 6px 6px 7px; }
+  .sk-label { margin-top: 2px; }
+}
+
+/* Phone landscape and other very short screens: wider pages, compact keyboard */
+@media (max-height: 560px) and (orientation: landscape) {
+  :root { --k: 32px; --k-small: 26px; --scope-h: 28px; --kb-min: 84px; --kb-max: 150px; }
+  .synth-top { margin-bottom: 4px; flex-wrap: nowrap; }
+  .synth-brand { display: none; }
+  .synth-sec { padding: 5px 6px 6px; }
+  .synth-sec h4 { margin-bottom: 3px; }
+  .synth-choice { margin-bottom: 3px; }
+  .synth-choice-btn { min-height: 26px; }
+  .synth-midi-btn { min-height: 28px; }
+  .synth-midi-select { min-height: 28px; }
+  .synth-midi-bar { flex: 0 1 auto; margin-left: auto; padding: 2px 4px; }
+  .synth-skin > select { max-width: 110px; }
+  /* Tabs become a vertical rail beside the page */
   .synth-panel {
-    padding: 10px 8px;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+    column-gap: 6px;
   }
-  .synth-sections {
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-  }
-  .sk {
-    width: 46px;
-  }
-  .synth-skin {
-    margin-left: 0;
-  }
+  .synth-top { grid-column: 1 / -1; }
+  .synth-tabs { flex-direction: column; justify-content: flex-start; margin-bottom: 0; min-width: 84px; }
+  .synth-tab { flex: 0 0 auto; min-height: 34px; padding: 0 8px; }
+  .synth-panel[data-page="fx"] .synth-sections { grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr) minmax(0, 1fr); }
+  .synth-sections { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+  .sk-label { margin-top: 2px; }
+  .kb-area { margin-top: 6px; }
+  .kb-bar { width: 72px; }
+  .kb-btn { min-height: 32px; }
+  .kb-range { font-size: 0.7rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {

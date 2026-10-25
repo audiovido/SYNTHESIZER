@@ -83,6 +83,63 @@ function renderDeviceOptions(): string {
   return html;
 }
 
+// Small screens show the panel as pages (tabs); large screens show every section.
+export const PAGES: { id: string; label: string }[] = [
+  { id: "osc", label: "Osc" },
+  { id: "filter", label: "Filter" },
+  { id: "amp", label: "Amp & LFO" },
+  { id: "fx", label: "Effects" }
+];
+const PAGE_KEY = "sy1_page";
+let currentPage = "osc";
+try {
+  const saved = localStorage.getItem(PAGE_KEY);
+  if (saved && PAGES.some((p) => p.id === saved)) currentPage = saved;
+} catch (e) {}
+
+export function setPanelPage(id: string): void {
+  if (!PAGES.some((p) => p.id === id)) return;
+  currentPage = id;
+  const panel = document.querySelector(".synth-panel") as HTMLElement | null;
+  if (panel) panel.setAttribute("data-page", id);
+  document.querySelectorAll(".synth-tab").forEach((t) => {
+    const on = t.getAttribute("data-page") === id;
+    t.classList.toggle("active", on);
+    t.setAttribute("aria-selected", on ? "true" : "false");
+  });
+  try {
+    localStorage.setItem(PAGE_KEY, id);
+  } catch (e) {}
+}
+
+function stepPanelPage(dir: number): void {
+  const i = PAGES.findIndex((p) => p.id === currentPage);
+  const next = PAGES[Math.max(0, Math.min(PAGES.length - 1, i + dir))];
+  if (next) setPanelPage(next.id);
+}
+
+function tabsVisible(): boolean {
+  const tabs = document.querySelector(".synth-tabs") as HTMLElement | null;
+  return !!tabs && getComputedStyle(tabs).display !== "none";
+}
+
+function renderPresetOptions(): string {
+  const cur = getSynthPresetId();
+  let html = Object.keys(SYNTH_PRESETS).map((id) =>
+    `<option value="${id}"${cur === id ? " selected" : ""}>${escapeHtml(PRESET_NAMES[id] || id)}</option>`
+  ).join("");
+  if (!SYNTH_PRESETS[cur]) html += `<option value="custom" selected disabled>Custom</option>`;
+  return html;
+}
+
+function previewPreset(presetId: string): void {
+  applySynthPreset(presetId);
+  // Use the C at the start of current visible range
+  const previewNote = getBaseMidi();
+  noteOn(previewNote);
+  setTimeout(() => noteOff(previewNote), 500);
+}
+
 export function renderSynthPanelHtml(): string {
   const currentPresetId = getSynthPresetId();
   const presetBtns = Object.keys(SYNTH_PRESETS).map((id) =>
@@ -92,29 +149,32 @@ export function renderSynthPanelHtml(): string {
   return `
     <div class="synth-panel" dir="ltr">
       <div class="synth-top">
-        <div class="synth-brand">MUSICHER <b>SY-1</b></div>
+        <div class="synth-brand"><span class="synth-brand-maker">MUSICHER </span><b>SY-1</b></div>
         <canvas class="synth-scope" width="320" height="56" aria-hidden="true"></canvas>
         <div class="synth-presets">${presetBtns}</div>
+        <select class="synth-midi-select synth-preset-select" id="preset-select" aria-label="Preset">${renderPresetOptions()}</select>
+        <div class="synth-midi-bar">
+          <button type="button" class="synth-midi-btn" id="midi-btn" data-action="midi-enable">MIDI</button>
+          <span class="midi-led" id="midi-led" title="MIDI Activity" aria-hidden="true"></span>
+          <select class="synth-midi-select" id="midi-device" aria-label="MIDI Input Device" hidden>${renderDeviceOptions()}</select>
+          <select class="synth-midi-select" id="midi-channel" aria-label="MIDI Channel" hidden>${renderChannelOptions()}</select>
+          <button type="button" class="synth-midi-btn" id="midi-learn-btn" data-action="midi-learn" title="Click LEARN, click a knob, then move a MIDI CC">LEARN</button>
+          <button type="button" class="synth-midi-btn synth-panic-btn" id="midi-panic-btn" data-action="synth-panic" title="Release all notes and reset sustain">PANIC</button>
+          <span class="synth-midi-msg" id="midi-msg" role="status" aria-live="polite"></span>
+          ${renderSkinPicker()}
+        </div>
       </div>
-      <div class="synth-midi-bar">
-        <button type="button" class="synth-midi-btn" id="midi-btn" data-action="midi-enable">MIDI</button>
-        <span class="midi-led" id="midi-led" title="MIDI Activity" aria-hidden="true"></span>
-        <select class="synth-midi-select" id="midi-device" aria-label="MIDI Input Device" hidden>${renderDeviceOptions()}</select>
-        <select class="synth-midi-select" id="midi-channel" aria-label="MIDI Channel" hidden>${renderChannelOptions()}</select>
-        <button type="button" class="synth-midi-btn" id="midi-learn-btn" data-action="midi-learn" title="Click LEARN, click a knob, then move a MIDI CC">LEARN</button>
-        <button type="button" class="synth-midi-btn synth-panic-btn" id="midi-panic-btn" data-action="synth-panic" title="Release all notes and reset sustain">PANIC</button>
-        <span class="synth-midi-msg" id="midi-msg" role="status" aria-live="polite"></span>
-        ${renderSkinPicker()}
-      </div>
+      <nav class="synth-tabs" role="tablist" aria-label="Panel pages">${PAGES.map((pg) =>
+        `<button type="button" class="synth-tab" role="tab" data-action="synth-page" data-page="${pg.id}">${pg.label}</button>`).join("")}</nav>
       <div class="synth-sections">
-        <section class="synth-sec"><h4>OSC 1</h4>${renderSynthChoice("osc1Wave", WAVE_OPTS)}<div class="sk-row">${renderSynthKnob("osc1Oct", "OCT")}${renderSynthKnob("sub", "SUB")}${renderSynthKnob("noise", "NOISE")}</div></section>
-        <section class="synth-sec"><h4>OSC 2</h4>${renderSynthChoice("osc2Wave", WAVE_OPTS)}<div class="sk-row">${renderSynthKnob("osc2Oct", "OCT")}${renderSynthKnob("osc2Detune", "DETUNE")}${renderSynthKnob("oscMix", "MIX")}</div></section>
-        <section class="synth-sec synth-sec-filter"><h4>FILTER</h4>${renderSynthChoice("filterType", [["lowpass", "LP", "Low-pass"], ["bandpass", "BP", "Band-pass"], ["highpass", "HP", "High-pass"]])}<div class="sk-row">${renderSynthKnob("cutoff", "CUTOFF")}${renderSynthKnob("res", "RESO")}${renderSynthKnob("envAmt", "ENV")}</div><div class="sk-row sk-row-small">${renderSynthKnob("fA", "A")}${renderSynthKnob("fD", "D")}${renderSynthKnob("fS", "S")}</div></section>
-        <section class="synth-sec"><h4>AMP ENV</h4><div class="sk-row">${renderSynthKnob("aA", "ATTACK")}${renderSynthKnob("aD", "DECAY")}${renderSynthKnob("velSens", "VEL")}</div><div class="sk-row">${renderSynthKnob("aS", "SUSTAIN")}${renderSynthKnob("aR", "RELEASE")}</div></section>
-        <section class="synth-sec"><h4>LFO</h4>${renderSynthChoice("lfoTarget", [["pitch", "PITCH"], ["filter", "FILTER"], ["amp", "AMP"]])}<div class="sk-row">${renderSynthKnob("lfoRate", "RATE")}${renderSynthKnob("lfoDepth", "DEPTH")}${renderSynthKnob("bendRange", "BEND")}</div></section>
-        <section class="synth-sec"><h4>DRIVE · EQ</h4><div class="sk-row">${renderSynthKnob("drive", "DRIVE")}${renderSynthKnob("eqLow", "LOW")}</div><div class="sk-row">${renderSynthKnob("eqMid", "MID")}${renderSynthKnob("eqHigh", "HIGH")}</div></section>
-        <section class="synth-sec"><h4>DELAY</h4><div class="sk-row">${renderSynthKnob("delayTime", "TIME")}${renderSynthKnob("delayFb", "FDBK")}${renderSynthKnob("delayMix", "MIX")}</div></section>
-        <section class="synth-sec"><h4>REVERB · OUT</h4><div class="sk-row">${renderSynthKnob("revSize", "SIZE")}${renderSynthKnob("revMix", "MIX")}${renderSynthKnob("volume", "VOL")}</div></section>
+        <section data-page="osc" class="synth-sec"><h4>OSC 1</h4>${renderSynthChoice("osc1Wave", WAVE_OPTS)}<div class="sk-row">${renderSynthKnob("osc1Oct", "OCT")}${renderSynthKnob("sub", "SUB")}${renderSynthKnob("noise", "NOISE")}</div></section>
+        <section data-page="osc" class="synth-sec"><h4>OSC 2</h4>${renderSynthChoice("osc2Wave", WAVE_OPTS)}<div class="sk-row">${renderSynthKnob("osc2Oct", "OCT")}${renderSynthKnob("osc2Detune", "DETUNE")}${renderSynthKnob("oscMix", "MIX")}</div></section>
+        <section data-page="filter" class="synth-sec synth-sec-filter"><h4>FILTER</h4>${renderSynthChoice("filterType", [["lowpass", "LP", "Low-pass"], ["bandpass", "BP", "Band-pass"], ["highpass", "HP", "High-pass"]])}<div class="sk-row">${renderSynthKnob("cutoff", "CUTOFF")}${renderSynthKnob("res", "RESO")}${renderSynthKnob("envAmt", "ENV")}</div><div class="sk-row sk-row-small">${renderSynthKnob("fA", "A")}${renderSynthKnob("fD", "D")}${renderSynthKnob("fS", "S")}</div></section>
+        <section data-page="amp" class="synth-sec"><h4>AMP ENV</h4><div class="sk-row">${renderSynthKnob("aA", "ATTACK")}${renderSynthKnob("aD", "DECAY")}${renderSynthKnob("velSens", "VEL")}</div><div class="sk-row">${renderSynthKnob("aS", "SUSTAIN")}${renderSynthKnob("aR", "RELEASE")}</div></section>
+        <section data-page="amp" class="synth-sec"><h4>LFO</h4>${renderSynthChoice("lfoTarget", [["pitch", "PITCH"], ["filter", "FILTER"], ["amp", "AMP"]])}<div class="sk-row">${renderSynthKnob("lfoRate", "RATE")}${renderSynthKnob("lfoDepth", "DEPTH")}${renderSynthKnob("bendRange", "BEND")}</div></section>
+        <section data-page="fx" class="synth-sec"><h4>DRIVE · EQ</h4><div class="sk-row">${renderSynthKnob("drive", "DRIVE")}${renderSynthKnob("eqLow", "LOW")}</div><div class="sk-row">${renderSynthKnob("eqMid", "MID")}${renderSynthKnob("eqHigh", "HIGH")}</div></section>
+        <section data-page="fx" class="synth-sec"><h4>DELAY</h4><div class="sk-row">${renderSynthKnob("delayTime", "TIME")}${renderSynthKnob("delayFb", "FDBK")}${renderSynthKnob("delayMix", "MIX")}</div></section>
+        <section data-page="fx" class="synth-sec"><h4>REVERB · OUT</h4><div class="sk-row">${renderSynthKnob("revSize", "SIZE")}${renderSynthKnob("revMix", "MIX")}${renderSynthKnob("volume", "VOL")}</div></section>
       </div>
       <div class="synth-hint">Drag a knob up/down (or scroll / arrow keys) · double-click to reset · right-click (or long-press in LEARN) unmaps CC · keys A W S E D F T G Y H U J K · Z/X = octave</div>
     </div>`;
@@ -122,6 +182,8 @@ export function renderSynthPanelHtml(): string {
 
 export function updateSynthPresetDOM(): void {
   const currentPresetId = getSynthPresetId();
+  const sel = document.getElementById("preset-select") as HTMLSelectElement | null;
+  if (sel) sel.innerHTML = renderPresetOptions();
   document.querySelectorAll(".synth-preset-btn").forEach((b) => {
     b.classList.toggle("active", b.getAttribute("data-preset") === currentPresetId);
   });
@@ -230,13 +292,10 @@ export function initPanelInteractions(): void {
       }
     } else if (action === "synth-preset") {
       const presetId = btn.getAttribute("data-preset");
-      if (presetId) {
-        applySynthPreset(presetId);
-        // Use the C at the start of current visible range
-        const previewNote = getBaseMidi();
-        noteOn(previewNote);
-        setTimeout(() => noteOff(previewNote), 500);
-      }
+      if (presetId) previewPreset(presetId);
+    } else if (action === "synth-page") {
+      const page = btn.getAttribute("data-page");
+      if (page) setPanelPage(page);
     } else if (action === "midi-enable") {
       requestMidi();
     } else if (action === "midi-learn") {
@@ -247,5 +306,36 @@ export function initPanelInteractions(): void {
   });
 
   initSkinPicker();
+
+  const presetSel = document.getElementById("preset-select") as HTMLSelectElement | null;
+  if (presetSel) {
+    presetSel.addEventListener("change", () => {
+      if (SYNTH_PRESETS[presetSel.value]) previewPreset(presetSel.value);
+      presetSel.blur();
+    });
+  }
+
+  // Swipe left/right on empty panel space to change page (small screens only).
+  // Knobs, buttons and menus keep their own gestures.
+  const sections = document.querySelector(".synth-sections") as HTMLElement | null;
+  if (sections) {
+    let swipe: { x: number; y: number; id: number } | null = null;
+    sections.addEventListener("pointerdown", (e) => {
+      const t = e.target as HTMLElement;
+      if (!tabsVisible() || t.closest(".sk, button, select")) return;
+      swipe = { x: e.clientX, y: e.clientY, id: e.pointerId };
+    });
+    const endSwipe = (e: PointerEvent) => {
+      if (!swipe || e.pointerId !== swipe.id) return;
+      const dx = e.clientX - swipe.x;
+      const dy = e.clientY - swipe.y;
+      swipe = null;
+      if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) stepPanelPage(dx < 0 ? 1 : -1);
+    };
+    sections.addEventListener("pointerup", endSwipe);
+    sections.addEventListener("pointercancel", () => { swipe = null; });
+  }
+
+  setPanelPage(currentPage);
   updateMidiBarDOM();
 }

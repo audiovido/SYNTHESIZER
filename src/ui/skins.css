@@ -88,9 +88,11 @@
 [data-skin="sy1"] .synth-scope {
   order: -1;
   flex: 1 1 100%;
-  height: 72px;
   border-radius: 6px;
   box-shadow: inset 0 3px 10px rgba(0,0,0,0.9), 0 1px 0 rgba(255,255,255,0.06);
+}
+@media (max-width: 760px), (max-height: 560px) and (orientation: landscape) {
+  [data-skin="sy1"] .synth-scope { order: 0; flex: 1 1 auto; }
 }
 [data-skin="sy1"] .synth-brand { font-size: 0.95rem; color: #6e6e72; text-shadow: 0 1px 0 rgba(255,255,255,0.08); }
 [data-skin="sy1"] .synth-brand b { color: #cfcac2; }
@@ -191,10 +193,11 @@
 }
 [data-skin="isfahan"] .synth-brand { font-size: 1.1rem; letter-spacing: 0.08em; color: #f6ecd2; text-shadow: 0 1px 2px rgba(0,0,0,0.35); }
 [data-skin="isfahan"] .synth-brand b { color: #fff6da; }
-/* Khatam inlay strip under the tile band and above the keyboard */
-[data-skin="isfahan"] .synth-midi-bar { position: relative; margin-top: 16px; }
-[data-skin="isfahan"] .synth-midi-bar::before,
-[data-skin="isfahan"] .kb-bar::before {
+/* Khatam inlay strips: under the tile band and above the keyboard */
+[data-skin="isfahan"] .synth-top { position: relative; margin-bottom: 18px; }
+[data-skin="isfahan"] .kb-area { position: relative; padding-top: 12px; }
+[data-skin="isfahan"] .synth-top::after,
+[data-skin="isfahan"] .kb-area::before {
   content: "";
   position: absolute;
   left: 0;
@@ -203,10 +206,24 @@
   background: var(--khatam);
   border-top: 1px solid #c9a24a;
   border-bottom: 1px solid #c9a24a;
+  pointer-events: none;
 }
-[data-skin="isfahan"] .synth-midi-bar::before { top: -12px; }
-[data-skin="isfahan"] .kb-bar { position: relative; padding-top: 10px; }
-[data-skin="isfahan"] .kb-bar::before { top: -6px; }
+[data-skin="isfahan"] .synth-top::after { bottom: -13px; }
+[data-skin="isfahan"] .kb-area::before { top: 0; }
+[data-skin="isfahan"] .synth-midi-bar { background: rgba(15,47,102,0.55); }
+@media (max-width: 760px), (max-height: 560px) and (orientation: landscape) {
+  [data-skin="isfahan"] .synth-top { padding: 6px; margin-bottom: 14px; }
+  [data-skin="isfahan"] .synth-top::after { bottom: -11px; height: 5px; }
+  [data-skin="isfahan"] .kb-area { padding-top: 9px; }
+  [data-skin="isfahan"] .kb-area::before { height: 5px; }
+  [data-skin="isfahan"] .synth-sec h4 { font-size: 0.78rem; }
+}
+@media (max-width: 760px) and (orientation: portrait) and (max-height: 640px) {
+  [data-skin="isfahan"] .synth-top { padding: 4px; margin-bottom: 12px; }
+  [data-skin="isfahan"] .synth-top::after { bottom: -10px; }
+  [data-skin="isfahan"] .synth-sec h4 { font-size: 0.72rem; margin-bottom: 2px; }
+  [data-skin="isfahan"] .kb-area { padding-top: 7px; }
+}
 [data-skin="isfahan"] .synth-sec h4 {
   text-align: center;
   font-size: 0.86rem;
@@ -324,7 +341,7 @@
 [data-skin="tabriz"] .synth-choice-btn { border-radius: 3px; box-shadow: inset 0 -2px 0 rgba(0,0,0,0.35); }
 [data-skin="tabriz"] .synth-choice-btn.active { box-shadow: inset 0 2px 0 rgba(255,255,255,0.35), 0 0 8px rgba(240,138,60,0.45); }
 [data-skin="tabriz"] .synth-midi-bar { background: #0f0e0d; border-color: #2a2622; }
-@media (max-width: 480px) {
+@media (max-width: 760px) {
   [data-skin="tabriz"] .sy1-shell { border-width: 0 8px; padding-left: 10px; padding-right: 10px; }
 }
 
@@ -415,20 +432,11 @@
 /* Segmented arc meter: cut the value ring into small blocks */
 [data-skin="merv"] .sk-dial::before {
   -webkit-mask:
-    radial-gradient(circle, transparent 23px, #000 24px),
+    radial-gradient(closest-side, transparent calc(100% - 3px), #000 calc(100% - 2px)),
     repeating-conic-gradient(from 225deg, #000 0deg 8deg, transparent 8deg 11deg);
   -webkit-mask-composite: source-in;
   mask:
-    radial-gradient(circle, transparent 23px, #000 24px) intersect,
-    repeating-conic-gradient(from 225deg, #000 0deg 8deg, transparent 8deg 11deg);
-}
-[data-skin="merv"] .sk-row-small .sk-dial::before {
-  -webkit-mask:
-    radial-gradient(circle, transparent 19px, #000 20px),
-    repeating-conic-gradient(from 225deg, #000 0deg 8deg, transparent 8deg 11deg);
-  -webkit-mask-composite: source-in;
-  mask:
-    radial-gradient(circle, transparent 19px, #000 20px) intersect,
+    radial-gradient(closest-side, transparent calc(100% - 3px), #000 calc(100% - 2px)) intersect,
     repeating-conic-gradient(from 225deg, #000 0deg 8deg, transparent 8deg 11deg);
 }
 [data-skin="merv"] .synth-preset-btn,
