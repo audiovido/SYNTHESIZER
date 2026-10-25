@@ -30,11 +30,13 @@ import {
   noteOn,
   onParamChange,
   onPresetChange,
-  setSynthParam
+  setSynthParam,
+  switchEngine
 } from "../engine/synth";
 import { getBaseMidi } from "./keyboard";
 import { renderSynthKnob, updateMidiLearnDOM, updateSynthControlDOM } from "./knob";
 import { initSkinPicker, renderSkinPicker } from "./skins";
+import { getEngine, getHQState, onEngineChange } from "../engine/hq";
 
 const WAVE_OPTS: [string, string, string][] = [
   ["sawtooth", "⩘", "Saw"],
@@ -154,6 +156,7 @@ export function renderSynthPanelHtml(): string {
         <div class="synth-presets">${presetBtns}</div>
         <select class="synth-midi-select synth-preset-select" id="preset-select" aria-label="Preset">${renderPresetOptions()}</select>
         <div class="synth-midi-bar">
+          <button type="button" class="synth-midi-btn" id="engine-btn" data-action="engine-toggle" aria-pressed="false">HQ</button>
           <button type="button" class="synth-midi-btn" id="midi-btn" data-action="midi-enable">MIDI</button>
           <span class="midi-led" id="midi-led" title="MIDI Activity" aria-hidden="true"></span>
           <select class="synth-midi-select" id="midi-device" aria-label="MIDI Input Device" hidden>${renderDeviceOptions()}</select>
@@ -168,7 +171,7 @@ export function renderSynthPanelHtml(): string {
         `<button type="button" class="synth-tab" role="tab" data-action="synth-page" data-page="${pg.id}">${pg.label}</button>`).join("")}</nav>
       <div class="synth-sections">
         <section data-page="osc" class="synth-sec"><h4>OSC 1</h4>${renderSynthChoice("osc1Wave", WAVE_OPTS)}<div class="sk-row">${renderSynthKnob("osc1Oct", "OCT")}${renderSynthKnob("sub", "SUB")}${renderSynthKnob("noise", "NOISE")}</div></section>
-        <section data-page="osc" class="synth-sec"><h4>OSC 2</h4>${renderSynthChoice("osc2Wave", WAVE_OPTS)}<div class="sk-row">${renderSynthKnob("osc2Oct", "OCT")}${renderSynthKnob("osc2Detune", "DETUNE")}${renderSynthKnob("oscMix", "MIX")}</div></section>
+        <section data-page="osc" class="synth-sec"><h4>OSC 2</h4>${renderSynthChoice("osc2Wave", WAVE_OPTS)}<div class="sk-row">${renderSynthKnob("osc2Oct", "OCT")}${renderSynthKnob("osc2Detune", "DETUNE")}${renderSynthKnob("oscMix", "MIX")}</div><div class="sk-caption">UNISON</div><div class="sk-row sk-row-small">${renderSynthKnob("unison", "VOICES")}${renderSynthKnob("uniDetune", "SPREAD")}${renderSynthKnob("uniWidth", "WIDTH")}</div></section>
         <section data-page="filter" class="synth-sec synth-sec-filter"><h4>FILTER</h4>${renderSynthChoice("filterType", [["lowpass", "LP", "Low-pass"], ["bandpass", "BP", "Band-pass"], ["highpass", "HP", "High-pass"]])}<div class="sk-row">${renderSynthKnob("cutoff", "CUTOFF")}${renderSynthKnob("res", "RESO")}${renderSynthKnob("envAmt", "ENV")}</div><div class="sk-row sk-row-small">${renderSynthKnob("fA", "A")}${renderSynthKnob("fD", "D")}${renderSynthKnob("fS", "S")}</div></section>
         <section data-page="amp" class="synth-sec"><h4>AMP ENV</h4><div class="sk-row">${renderSynthKnob("aA", "ATTACK")}${renderSynthKnob("aD", "DECAY")}${renderSynthKnob("velSens", "VEL")}</div><div class="sk-row">${renderSynthKnob("aS", "SUSTAIN")}${renderSynthKnob("aR", "RELEASE")}</div></section>
         <section data-page="amp" class="synth-sec"><h4>LFO</h4>${renderSynthChoice("lfoTarget", [["pitch", "PITCH"], ["filter", "FILTER"], ["amp", "AMP"]])}<div class="sk-row">${renderSynthKnob("lfoRate", "RATE")}${renderSynthKnob("lfoDepth", "DEPTH")}${renderSynthKnob("bendRange", "BEND")}</div></section>
@@ -237,6 +240,22 @@ function updateMidiBarDOM(): void {
   updateMidiLearnDOM();
 }
 
+function updateEngineDOM(): void {
+  const btn = document.getElementById("engine-btn");
+  if (!btn) return;
+  const wantHQ = getEngine() === "hq";
+  const st = getHQState();
+  const failed = st === "failed";
+  btn.classList.toggle("active", wantHQ && !failed);
+  btn.classList.toggle("is-unavailable", failed);
+  btn.setAttribute("aria-pressed", wantHQ && !failed ? "true" : "false");
+  btn.title = failed
+    ? "HQ engine is not available in this browser. Playing with the Classic engine."
+    : wantHQ
+      ? "HQ engine on (anti-aliased oscillators, unison). Click to use the Classic engine."
+      : "Classic engine on (unison is ignored). Click to use the HQ engine.";
+}
+
 export function initPanelInteractions(): void {
   onParamChange((key) => {
     updateSynthControlDOM(key);
@@ -296,6 +315,8 @@ export function initPanelInteractions(): void {
     } else if (action === "synth-page") {
       const page = btn.getAttribute("data-page");
       if (page) setPanelPage(page);
+    } else if (action === "engine-toggle") {
+      switchEngine(getEngine() === "hq" ? "classic" : "hq");
     } else if (action === "midi-enable") {
       requestMidi();
     } else if (action === "midi-learn") {
@@ -336,6 +357,8 @@ export function initPanelInteractions(): void {
     sections.addEventListener("pointercancel", () => { swipe = null; });
   }
 
+  onEngineChange(updateEngineDOM);
+  updateEngineDOM();
   setPanelPage(currentPage);
   updateMidiBarDOM();
 }

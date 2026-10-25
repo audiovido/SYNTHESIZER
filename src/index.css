@@ -617,6 +617,23 @@ html, body {
   --k: var(--k-small);
 }
 
+.sk-caption {
+  flex: 1 1 100%;
+  margin-top: 6px;
+  text-align: center;
+  font-size: 0.58rem;
+  letter-spacing: 0.16em;
+  font-weight: 800;
+  color: var(--label-ink);
+  opacity: 0.75;
+  font-family: var(--font-head);
+}
+
+.synth-midi-btn.is-unavailable {
+  text-decoration: line-through;
+  opacity: 0.6;
+}
+
 .synth-hint {
   flex: none;
   margin-top: 8px;
@@ -702,6 +719,7 @@ html, body {
   .synth-choice-btn { min-height: 28px; }
   .synth-sec { padding: 6px 6px 7px; }
   .sk-label { margin-top: 2px; }
+  .sk-caption { margin-top: 2px; }
 }
 
 /* Phone landscape and other very short screens: wider pages, compact keyboard */
@@ -728,6 +746,9 @@ html, body {
   .synth-tabs { flex-direction: column; justify-content: flex-start; margin-bottom: 0; min-width: 84px; }
   .synth-tab { flex: 0 0 auto; min-height: 34px; padding: 0 8px; }
   .synth-panel[data-page="fx"] .synth-sections { grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr) minmax(0, 1fr); }
+  :root { --sk-w: 40px; }
+  .sk-row { gap: 2px; }
+  .sk-caption { display: none; }
   .synth-sections { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
   .sk-label { margin-top: 2px; }
   .kb-area { margin-top: 6px; }

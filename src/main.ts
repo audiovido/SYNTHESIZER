@@ -5,7 +5,7 @@
 import "./index.css";
 import "./ui/skins.css";
 import { initSkin } from "./ui/skins";
-import { unlockAudio } from "./engine/bus";
+import { getEngine, getHQState } from "./engine/hq";
 import { requestMidi } from "./engine/midi";
 import { SYNTH_PARAMS } from "./engine/params";
 import { SYNTH_PRESETS } from "./engine/presets";
@@ -15,6 +15,7 @@ import {
   getSynthPatch,
   noteOff,
   noteOn,
+  prepareAudio,
   setModWheel,
   setPitchBend,
   setSustainPedal,
@@ -35,7 +36,7 @@ function initApp(): void {
 
   const startBtn = document.getElementById("sy1-start");
   if (startBtn) {
-    startBtn.addEventListener("click", unlockAudio);
+    startBtn.addEventListener("click", prepareAudio);
   }
 
   renderKeyboard();
@@ -56,6 +57,7 @@ function initApp(): void {
     setSustainPedal,
     requestMidi,
     getPatch: () => ({ ...getSynthPatch() }),
+    getEngine: () => ({ engine: getEngine(), hq: getHQState() }),
     PARAMS: SYNTH_PARAMS,
     PRESETS: SYNTH_PRESETS
   };

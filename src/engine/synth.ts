@@ -5,6 +5,7 @@
 import { getAudioCtx, getAudioCtxIfAny, getSynthBus, makeDriveCurve, makeReverbImpulse, unlockAudio } from "./bus";
 import { SYNTH_PARAMS, SynthPatch, synthDefaults } from "./params";
 import { SYNTH_PRESETS } from "./presets";
+import { createHQVoice, EngineId, hqPost, initHQ, setEngine, useHQ } from "./hq";
 import {
   activeSynthVoices,
   createSynthVoice,
@@ -130,6 +131,7 @@ export function setSynthParam(
   }
 
   activeSynthVoices.forEach((vc) => vc.update(key));
+  hqPost({ t: "param", key, value: synthPatch[key] });
   paramChangeListeners.forEach((cb) => cb(key, synthPatch[key]));
   saveSynthPatchSoon();
 }
@@ -146,6 +148,7 @@ export function applySynthPreset(id: string): void {
 
 export function setPitchBend(norm: number): void {
   setVoicePitchBend(norm);
+  hqPost({ t: "bend", v: getVoicePitchBend() });
 }
 
 export function getPitchBend(): number {
@@ -154,6 +157,20 @@ export function getPitchBend(): number {
 
 export function setModWheel(norm: number): void {
   setVoiceModWheel(norm);
+  hqPost({ t: "mod", v: getVoiceModWheel() });
+}
+
+/** Unlock audio and start loading the HQ engine. Call on any user gesture. */
+export function prepareAudio(): void {
+  unlockAudio();
+  const ctx = getAudioCtx();
+  if (ctx) initHQ(ctx, getSynthBus(ctx, synthPatch).input, () => synthPatch);
+}
+
+/** Switch engines (releases every note first so nothing hangs). */
+export function switchEngine(id: EngineId): void {
+  allNotesOff();
+  setEngine(id);
 }
 
 export function getModWheel(): number {
@@ -196,7 +213,7 @@ export function getSustainPedal(): boolean {
 }
 
 export function noteOn(midi: number, velocity = 1): void {
-  unlockAudio();
+  prepareAudio();
   const ctx = getAudioCtx();
   if (!ctx) return;
 
@@ -205,7 +222,10 @@ export function noteOn(midi: number, velocity = 1): void {
 
   const prev = heldVoices.get(midi);
   if (prev) prev.release(ctx.currentTime);
-  heldVoices.set(midi, createSynthVoice(ctx, midiToFreq(midi), ctx.currentTime, synthPatch, velocity));
+  heldVoices.set(
+    midi,
+    useHQ() ? createHQVoice(midi, velocity) : createSynthVoice(ctx, midiToFreq(midi), ctx.currentTime, synthPatch, velocity)
+  );
 
   const el = document.querySelector(`.key[data-midi="${midi}"]`);
   if (el) el.classList.add("is-pressed");
@@ -229,6 +249,8 @@ export function allNotesOff(): void {
   sustainedNotes.clear();
   downKeys.clear();
   setVoicePitchBend(0);
+  hqPost({ t: "bend", v: 0 });
+  hqPost({ t: "alloff" });
   const midis = Array.from(heldVoices.keys());
   midis.forEach((m) => releaseVoiceNow(m));
   document.querySelectorAll(".key.is-pressed").forEach((el) => el.classList.remove("is-pressed"));

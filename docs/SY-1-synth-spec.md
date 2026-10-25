@@ -160,3 +160,32 @@ FIRST TASK
 ```
 
 After that works, add features one at a time from section 11, each with its own prompt.
+
+## 13. HQ engine (added October 2026)
+
+Two engines play the same patch through the same FX bus. A top-bar **HQ** button switches between them (saved in localStorage, default HQ).
+
+- **Classic:** the original Web Audio node voice (`src/engine/voice.ts`).
+- **HQ:** one AudioWorklet (`src/engine/worklet/sy1-processor.ts`) that renders every voice, stereo. Loaded on the first user gesture; until it is ready, or if the browser can't run it, notes play on Classic.
+
+HQ adds:
+- **Unison:** VOICES 1–7, SPREAD 0–100 cents, WIDTH 0–1. Equal-power stereo, level-normalized by 1/√N. Classic ignores these.
+- **Smoother filter modulation:** TPT state-variable filter with coefficients updated every 4 samples. The filter envelope follows live knob moves instead of being cancelled.
+- **Fewer audio nodes per voice:** one worklet instead of about 12 nodes per voice.
+
+Measured against an exact Web Audio replica of the Classic voice (offline rendering in Chrome):
+
+| Check | Result |
+|---|---|
+| Loudness, 6 patches (Init, Acid, Bells, Pluck/Tri, BP, HP) | within ±0.1 dB |
+| Brightness (spectral centroid) | identical |
+| Aliasing, saw at C7 | −40.7 dB (native OscillatorNode: −40.6, naive saw: −13.6) |
+| Pitch, C4 | 261.63 Hz |
+| Velocity 0.2 vs 1.0, VEL 60 % | 0.52 (expected 0.52) |
+| Resonance 18 + full filter-envelope sweep | stable, no NaN |
+| CPU, 10 notes × unison 7 | about 10 % of real time on a desktop CPU |
+
+Lessons learned:
+9. **Web Audio's oscillators are already band-limited.** A PolyBLEP saw measured worse (−33 dB). HQ therefore uses mip-mapped wavetables (half-octave steps, 4096 samples).
+10. **Lowpass and highpass `Q` in Web Audio is in dB, bandpass `Q` is linear.** HQ maps RESO the same way, so presets sound the same on both engines.
+11. **Match Web Audio's wave phase** (the Fourier sine series), or detuned oscillators beat differently and levels drift by up to about 3 dB.

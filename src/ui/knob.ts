@@ -2,7 +2,6 @@
  * SY-1 UI — Knob Component & Drag/Wheel/Keyboard/MIDI-Learn Interaction
  */
 
-import { unlockAudio } from "../engine/bus";
 import {
   getLearnTargetParam,
   getParamMappedCc,
@@ -12,7 +11,7 @@ import {
   selectLearnParam
 } from "../engine/midi";
 import { escapeHtml, SYNTH_PARAMS, synthDenorm, synthNorm } from "../engine/params";
-import { getSynthPatch, setSynthParam } from "../engine/synth";
+import { getSynthPatch, prepareAudio, setSynthParam } from "../engine/synth";
 
 export function renderSynthKnob(key: string, label: string): string {
   const patch = getSynthPatch();
@@ -141,7 +140,7 @@ export function initKnobInteractions(): void {
     const knob = (e.target as HTMLElement)?.closest?.(".sk") as HTMLElement | null;
     if (!knob) return;
     e.preventDefault();
-    unlockAudio();
+    prepareAudio();
     const key = knob.getAttribute("data-param");
     if (!key) return;
 
