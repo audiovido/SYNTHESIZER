@@ -19,8 +19,15 @@
           <button type="button" class="kb-btn" id="oct-down" aria-label="Octave down">Oct −</button>
           <span class="kb-range" id="kb-range"></span>
           <button type="button" class="kb-btn" id="oct-up" aria-label="Octave up">Oct +</button>
+          <button type="button" class="kb-btn kb-hold" id="kb-hold" aria-pressed="false" title="Hold: notes keep sounding after you let go">HOLD</button>
         </div>
-        <div class="kb" id="kb"></div>
+        <div class="kb-main">
+          <div class="kb-wheels">
+            <div class="kb-wheel" data-wheel="bend" role="slider" aria-label="Pitch bend" aria-valuemin="-1" aria-valuemax="1" aria-valuenow="0" style="--v:0.5"><span class="kb-wheel-thumb"></span><span class="kb-wheel-label">PB</span></div>
+            <div class="kb-wheel" data-wheel="mod" role="slider" aria-label="Modulation" aria-valuemin="0" aria-valuemax="1" aria-valuenow="0" style="--v:0"><span class="kb-wheel-thumb"></span><span class="kb-wheel-label">MOD</span></div>
+          </div>
+          <div class="kb" id="kb"></div>
+        </div>
       </div>
     </div>
     <script type="module" src="/src/main.ts"></script>

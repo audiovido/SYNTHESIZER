@@ -170,7 +170,7 @@ html, body {
 }
 
 .kb-btn {
-  min-height: 40px;
+  min-height: 34px;
   padding: 0 10px;
   border-radius: 10px;
   border: 1px solid var(--btn-border);
@@ -205,6 +205,8 @@ html, body {
   position: relative;
   flex: 1 1 0;
   border-right: 1px solid var(--key-line);
+  border-radius: 0 0 5px 5px;
+  box-shadow: inset 0 -4px 0 rgba(0,0,0,0.08);
   background: var(--key-white);
   display: flex;
   align-items: flex-end;
@@ -219,8 +221,8 @@ html, body {
 .key.black {
   position: absolute;
   top: 0;
-  width: calc(100% / var(--whites) * 0.62);
-  height: 60%;
+  width: calc(100% / var(--whites) * 0.58);
+  height: 63%;
   z-index: 2;
   border: 1px solid var(--key-line);
   border-radius: 0 0 6px 6px;
@@ -665,12 +667,13 @@ html, body {
   .sk-label { margin-top: 3px; }
   .synth-choice-btn { min-height: 28px; }
   .synth-param-select { min-height: 28px; }
+  .kb-btn { min-height: 30px; }
   .synth-sec { padding: 6px 7px 7px; }
   .synth-choice, .synth-param-select-wrap { margin-bottom: 4px; }
 }
 
 /* Small screens (phones, narrow windows, phone landscape): pages + tabs */
-@media (max-width: 760px), (max-height: 560px) and (orientation: landscape) {
+@media (max-width: 760px), (max-height: 560px) and (orientation: landscape), (pointer: coarse) and (min-width: 761px) and (max-height: 900px) and (orientation: landscape) {
   :root { --shell-pad: 8px; --k: 38px; --k-small: 30px; --sk-w: 46px; --scope-h: 34px; --kb-min: 110px; --kb-max: 220px; }
   .synth-panel { padding: 8px; }
   .synth-hint { display: none; }
@@ -768,7 +771,9 @@ html, body {
   .synth-sections { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
   .sk-label { margin-top: 2px; }
   .kb-area { margin-top: 6px; }
-  .kb-bar { width: 72px; }
+  .kb-bar { width: 72px; gap: 4px; }
+  .kb-range { display: none; }
+  .kb-wheel { width: 22px; }
   .kb-btn { min-height: 32px; }
   .kb-range { font-size: 0.7rem; }
 }
@@ -1092,4 +1097,101 @@ html, body {
   .drum-play { min-height: 30px; }
   .drum-transport { margin-bottom: 4px; }
   .drum-voices { margin-bottom: 4px; }
+}
+
+/* ============================================================
+   Keyboard extras: HOLD, pitch bend and mod wheels
+   ============================================================ */
+.kb-main {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  gap: 6px;
+}
+
+.kb-wheels {
+  flex: none;
+  display: flex;
+  gap: 5px;
+}
+
+.kb-wheel {
+  position: relative;
+  width: 30px;
+  border-radius: 8px;
+  border: 1px solid var(--btn-border);
+  background: var(--ctl-bg);
+  box-shadow: inset 0 2px 6px rgba(0,0,0,0.35);
+  touch-action: none;
+  cursor: ns-resize;
+  overflow: hidden;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.kb-wheel[data-wheel="bend"]::before {
+  content: "";
+  position: absolute;
+  left: 4px;
+  right: 4px;
+  top: 50%;
+  height: 1px;
+  background: var(--ink-faint);
+  opacity: 0.6;
+}
+
+.kb-wheel[data-wheel="mod"] {
+  background:
+    linear-gradient(to top, var(--accent-glow-soft) calc(var(--v) * 100%), transparent 0),
+    var(--ctl-bg);
+}
+
+.kb-wheel-thumb {
+  position: absolute;
+  left: 3px;
+  right: 3px;
+  height: 20%;
+  bottom: calc(var(--v) * 80%);
+  border-radius: 5px;
+  background: var(--btn-bg);
+  border: 1px solid var(--btn-border);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.25);
+}
+
+.kb-wheel-label {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 3px;
+  text-align: center;
+  font-size: 0.5rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: var(--ink-dim);
+  pointer-events: none;
+}
+
+.kb-hold.active {
+  background: var(--accent);
+  color: var(--accent-ink);
+  border-color: var(--accent);
+  box-shadow: 0 0 10px var(--accent-glow-soft);
+}
+
+.kb-area.is-drums .kb-wheels {
+  display: none;
+}
+
+@media (max-width: 760px) and (orientation: portrait) {
+  .kb-wheel { width: 24px; }
+  .kb-btn { min-width: 64px; }
+}
+
+/* Touch tablets: bigger, more piano-like keys */
+@media (pointer: coarse) and (min-width: 761px) {
+  :root { --kb-min: 210px; --kb-max: 360px; }
+  .kb-wheel { width: 36px; }
+  .kb-btn { min-height: 44px; }
+  .key { font-size: 0.8rem; padding-bottom: 12px; }
 }

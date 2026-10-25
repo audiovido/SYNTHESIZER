@@ -132,7 +132,7 @@ export function setSynthParam(
     synthPatch[key] = v;
   }
 
-  if (!fromPreset && !internal) {
+  if (!fromPreset && !internal && key !== "hold") {
     synthPresetId = "custom";
     presetChangeListeners.forEach((cb) => cb(synthPresetId));
   }

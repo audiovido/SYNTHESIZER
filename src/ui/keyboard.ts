@@ -2,7 +2,7 @@
  * SY-1 UI — On-Screen Keyboard & Computer Keyboard Handling
  */
 
-import { allNotesOff, downKeys, getMachine, midiToName, noteOff, noteOn, NOTE_NAMES } from "../engine/synth";
+import { allNotesOff, downKeys, getMachine, getSynthPatch, midiToName, noteOff, noteOn, NOTE_NAMES, onParamChange, prepareAudio, setModWheel, setPitchBend, setSynthParam } from "../engine/synth";
 import { DRUM_LABELS, DRUM_NOTES, DRUM_VOICES } from "../engine/drums";
 
 /** Computer keys for the 8 drum pads (home row). */
@@ -21,6 +21,7 @@ export function getBaseMidi(): number {
 export function renderKeyboard(): void {
   const kb = document.getElementById("kb");
   if (!kb) return;
+  syncHold();
   const area = kb.closest(".kb-area");
   const drums = getMachine().kind === "drums";
   if (area) area.classList.toggle("is-drums", drums);
@@ -46,13 +47,56 @@ export function renderKeyboard(): void {
     blacks.map((m) => {
       const leftWhite = whites.indexOf(m - 1);
       const left = ((leftWhite + 1) / whites.length) * 100;
-      return `<div class="key black" data-midi="${m}" style="left:calc(${left}% - (100% / ${whites.length} * 0.31))"></div>`;
+      return `<div class="key black" data-midi="${m}" style="left:calc(${left}% - (100% / ${whites.length} * 0.29))"></div>`;
     }).join("");
 
   const rangeEl = document.getElementById("kb-range");
   if (rangeEl) {
     rangeEl.textContent = midiToName(baseMidi) + " – " + midiToName(baseMidi + 24);
   }
+}
+
+function syncHold(): void {
+  const btn = document.getElementById("kb-hold");
+  if (!btn) return;
+  const on = getSynthPatch().hold === "on";
+  btn.classList.toggle("active", on);
+  btn.setAttribute("aria-pressed", on ? "true" : "false");
+}
+
+/** Pitch bend (springs back to centre) and mod wheel (stays), beside the keys. */
+function initWheels(): void {
+  document.querySelectorAll<HTMLElement>(".kb-wheel").forEach((el) => {
+    const bend = el.dataset.wheel === "bend";
+    let id: number | null = null;
+    const show = (n: number) => {
+      el.style.setProperty("--v", n.toFixed(3));
+      el.setAttribute("aria-valuenow", (bend ? n * 2 - 1 : n).toFixed(2));
+    };
+    const apply = (e: PointerEvent) => {
+      const r = el.getBoundingClientRect();
+      const n = Math.max(0, Math.min(1, 1 - (e.clientY - r.top) / r.height));
+      show(n);
+      if (bend) setPitchBend(n * 2 - 1);
+      else setModWheel(n);
+    };
+    el.addEventListener("pointerdown", (e) => {
+      e.preventDefault();
+      id = e.pointerId;
+      try { el.setPointerCapture(id); } catch (err) {}
+      prepareAudio();
+      apply(e);
+    });
+    el.addEventListener("pointermove", (e) => { if (e.pointerId === id) apply(e); });
+    const end = (e: PointerEvent) => {
+      if (e.pointerId !== id) return;
+      id = null;
+      if (bend) { show(0.5); setPitchBend(0); }
+    };
+    el.addEventListener("pointerup", end);
+    el.addEventListener("pointercancel", end);
+    el.addEventListener("lostpointercapture", end);
+  });
 }
 
 export function shiftOctave(d: number): void {
@@ -88,6 +132,10 @@ export function initKeyboardInteractions(): void {
 
   if (octDownBtn) octDownBtn.addEventListener("click", () => shiftOctave(-1));
   if (octUpBtn) octUpBtn.addEventListener("click", () => shiftOctave(1));
+  const holdBtn = document.getElementById("kb-hold");
+  if (holdBtn) holdBtn.addEventListener("click", () => setSynthParam("hold", getSynthPatch().hold === "on" ? "off" : "on"));
+  onParamChange((k) => { if (k === "hold") syncHold(); });
+  initWheels();
 
   // Pointer tracking for mouse + touch multi-touch with glide
   const pointerNotes = new Map<number, number>(); // pointerId -> midi
