@@ -20,6 +20,10 @@ export interface SynthFXBus {
   master: GainNode;
   limiter: DynamicsCompressorNode;
   analyser: AnalyserNode;
+  chorusWet: GainNode;
+  chorusLfo: OscillatorNode;
+  chorusDepthL: GainNode;
+  chorusDepthR: GainNode;
   revSizeApplied: number;
   revTimer?: ReturnType<typeof setTimeout>;
 }
@@ -141,6 +145,34 @@ export function getSynthBus(ctx: AudioContext, synthPatch: Record<string, any>):
   delayTone.connect(delayWet);
   delayWet.connect(sum);
 
+  // Stereo chorus: two short modulated delays, LFO in opposite phase on L and R
+  const chorusIn = ctx.createGain();
+  eqHigh.connect(chorusIn);
+  const dl = ctx.createDelay(0.05);
+  const dr = ctx.createDelay(0.05);
+  dl.delayTime.value = 0.012;
+  dr.delayTime.value = 0.012;
+  chorusIn.connect(dl);
+  chorusIn.connect(dr);
+  const chorusLfo = ctx.createOscillator();
+  chorusLfo.type = "triangle";
+  chorusLfo.frequency.value = p.chorusRate ?? 0.6;
+  const chorusDepthL = ctx.createGain();
+  const chorusDepthR = ctx.createGain();
+  chorusDepthL.gain.value = 0.004 * (p.chorusDepth ?? 0.5);
+  chorusDepthR.gain.value = -0.004 * (p.chorusDepth ?? 0.5);
+  chorusLfo.connect(chorusDepthL);
+  chorusLfo.connect(chorusDepthR);
+  chorusDepthL.connect(dl.delayTime);
+  chorusDepthR.connect(dr.delayTime);
+  chorusLfo.start();
+  const chorusMerge = ctx.createChannelMerger(2);
+  dl.connect(chorusMerge, 0, 0);
+  dr.connect(chorusMerge, 0, 1);
+  const chorusWet = ctx.createGain();
+  chorusWet.gain.value = (p.chorusMix ?? 0) * 0.9;
+  chorusMerge.connect(chorusWet);
+
   const reverb = ctx.createConvolver();
   reverb.buffer = makeReverbImpulse(ctx, p.revSize);
   const revWet = ctx.createGain();
@@ -162,6 +194,7 @@ export function getSynthBus(ctx: AudioContext, synthPatch: Record<string, any>):
   const analyser = ctx.createAnalyser();
   analyser.fftSize = 2048;
 
+  chorusWet.connect(sum);
   sum.connect(master);
   master.connect(limiter);
   limiter.connect(analyser);
@@ -185,6 +218,10 @@ export function getSynthBus(ctx: AudioContext, synthPatch: Record<string, any>):
     master,
     limiter,
     analyser,
+    chorusWet,
+    chorusLfo,
+    chorusDepthL,
+    chorusDepthR,
     revSizeApplied: p.revSize
   };
 

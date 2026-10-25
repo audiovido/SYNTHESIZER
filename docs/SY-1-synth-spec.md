@@ -189,3 +189,26 @@ Lessons learned:
 9. **Web Audio's oscillators are already band-limited.** A PolyBLEP saw measured worse (−33 dB). HQ therefore uses mip-mapped wavetables (half-octave steps, 4096 samples).
 10. **Lowpass and highpass `Q` in Web Audio is in dB, bandpass `Q` is linear.** HQ maps RESO the same way, so presets sound the same on both engines.
 11. **Match Web Audio's wave phase** (the Fourier sine series), or detuned oscillators beat differently and levels drift by up to about 3 dB.
+
+## 14. Machines (added October 2026)
+
+SY-1 is now a family of instruments. The machine menu (top-left) switches between them. Each machine has its own panel layout, skin, preset bank and saved patch. All machines share the engines (HQ/Classic), FX bus, MIDI and tempo.
+
+| Machine | Role | Signature | Presets |
+|---|---|---|---|
+| SY-1 | All-rounder | Full panel | 16 |
+| Yazd | Pads & atmospheres | Chorus, LFO shapes, HOLD | 16 |
+| Tabriz | Mono leads & bass | Mono, legato glide, last-note priority, 24 dB filter | 16 |
+| Baku | Arpeggios | Tempo-synced arp: up, down, up/down, random, as played; octaves, gate, swing, latch | 16 |
+| Merv | Wobble & bass | Tempo-synced LFO (1/1 to 1/32, triplets), 5 shapes incl. S&H | 14 |
+| Isfahan | Persian lead | Dastgah/maqam tunings, scoop, delayed vibrato, tahrir (hit a key hard) | 14 |
+| Bam | Drones & textures | HOLD, noise, S&H motion | 12 |
+| Kerman | Drum machine | 8 synthesized voices, 16/12-step sequencer, 8 patterns, accents, swing | 12 kits × 4 patterns |
+
+Machine definitions live in `src/machines/*.ts`. Each defines its sections, pages, a `base` patch shared by every preset, and its presets. The panel is rendered from this data, so a new machine is one new file plus one line in `src/machines/index.ts`.
+
+**Tunings** (`TUNINGS` in `params.ts`): offsets in cents per pitch class from the tonic. Koron and the Arabic half-flat are −50 cents (Vaziri-style starting points; verify by ear and adjust). Tunings and ornaments are applied by the HQ engine.
+
+**Timing:** the arpeggiator and drum sequencer schedule notes 120 ms ahead on the audio clock. The HQ processor plays events sample-accurately using a preallocated event queue.
+
+**QA:** all 104 synth presets were rendered offline (no NaN, peak ≤ 1.0 before the limiter, none silent). All 8 machines were checked on 10 viewports, every page, with no page scroll.

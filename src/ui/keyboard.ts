@@ -2,7 +2,15 @@
  * SY-1 UI — On-Screen Keyboard & Computer Keyboard Handling
  */
 
-import { allNotesOff, downKeys, midiToName, noteOff, noteOn, NOTE_NAMES } from "../engine/synth";
+import { allNotesOff, downKeys, getMachine, midiToName, noteOff, noteOn, NOTE_NAMES } from "../engine/synth";
+import { DRUM_LABELS, DRUM_NOTES, DRUM_VOICES } from "../engine/drums";
+
+/** Computer keys for the 8 drum pads (home row). */
+const DRUM_KEYMAP: Record<string, number> = {
+  a: DRUM_NOTES.kick, s: DRUM_NOTES.snare, d: DRUM_NOTES.clap, f: DRUM_NOTES.ch,
+  g: DRUM_NOTES.oh, h: DRUM_NOTES.tom, j: DRUM_NOTES.rim, k: DRUM_NOTES.bell
+};
+const DRUM_KEY_LETTERS = ["A", "S", "D", "F", "G", "H", "J", "K"];
 
 let baseMidi = 48; // C3
 
@@ -13,6 +21,18 @@ export function getBaseMidi(): number {
 export function renderKeyboard(): void {
   const kb = document.getElementById("kb");
   if (!kb) return;
+  const area = kb.closest(".kb-area");
+  const drums = getMachine().kind === "drums";
+  if (area) area.classList.toggle("is-drums", drums);
+  kb.classList.toggle("is-pads", drums);
+  if (drums) {
+    // the drum machine plays 8 pads instead of a keyboard
+    kb.style.removeProperty("--whites");
+    kb.innerHTML = DRUM_VOICES.map((v, i) =>
+      `<div class="key pad" data-midi="${DRUM_NOTES[v]}"><span class="pad-name">${DRUM_LABELS[v]}</span><span class="pad-key">${DRUM_KEY_LETTERS[i]}</span></div>`
+    ).join("");
+    return;
+  }
 
   const whites: number[] = [];
   const blacks: number[] = [];
@@ -116,15 +136,22 @@ export function initKeyboardInteractions(): void {
     if (target?.closest?.(".sk, input, textarea, select")) return;
 
     const k = e.key.toLowerCase();
-    if (k === "z") {
+    if (k === "z" && getMachine().kind !== "drums") {
       shiftOctave(-1);
       return;
     }
-    if (k === "x") {
+    if (k === "x" && getMachine().kind !== "drums") {
       shiftOctave(1);
       return;
     }
 
+    if (getMachine().kind === "drums") {
+      if (k in DRUM_KEYMAP && !downKeys.has(k)) {
+        downKeys.set(k, DRUM_KEYMAP[k]);
+        noteOn(DRUM_KEYMAP[k], 0.9);
+      }
+      return;
+    }
     if (k in KEYMAP && !downKeys.has(k)) {
       const m = baseMidi + KEYMAP[k];
       downKeys.set(k, m);

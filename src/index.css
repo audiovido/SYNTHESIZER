@@ -414,9 +414,8 @@ html, body {
   gap: var(--sec-gap);
 }
 
-/* Page tabs and the preset menu only appear on small screens */
-.synth-tabs,
-.synth-preset-select {
+/* Page tabs only appear on small screens */
+.synth-tabs {
   display: none;
 }
 
@@ -664,6 +663,10 @@ html, body {
 @media (max-height: 720px) {
   :root { --k: 32px; --k-small: 26px; --scope-h: 36px; --kb-min: 100px; --shell-pad: 10px; }
   .sk-label { margin-top: 3px; }
+  .synth-choice-btn { min-height: 28px; }
+  .synth-param-select { min-height: 28px; }
+  .synth-sec { padding: 6px 7px 7px; }
+  .synth-choice, .synth-param-select-wrap { margin-bottom: 4px; }
 }
 
 /* Small screens (phones, narrow windows, phone landscape): pages + tabs */
@@ -677,8 +680,8 @@ html, body {
   .synth-brand-maker { display: none; }
   html[data-skin] .synth-brand { font-size: 0.82rem; letter-spacing: 0.06em; }
   .synth-scope { flex: 1 1 auto; min-width: 60px; }
-  .synth-presets { display: none; }
-  .synth-preset-select { display: block; flex: 0 1 auto; max-width: 128px; min-height: 36px; }
+  .synth-preset-nav { flex: 1 1 auto; min-width: 0; }
+  .synth-preset-select { max-width: none; }
 
   .synth-midi-bar { flex: 1 1 100%; margin-left: 0; padding: 3px 6px; }
   .synth-skin { margin-left: auto; font-size: 0; gap: 0; }
@@ -688,10 +691,7 @@ html, body {
 
   .synth-sections { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
   .synth-sec { display: none; }
-  .synth-panel[data-page="osc"] .synth-sec[data-page="osc"],
-  .synth-panel[data-page="filter"] .synth-sec[data-page="filter"],
-  .synth-panel[data-page="amp"] .synth-sec[data-page="amp"],
-  .synth-panel[data-page="fx"] .synth-sec[data-page="fx"] { display: flex; }
+  .synth-sec.is-on-page { display: flex; }
 
   .kb-btn { min-height: 36px; }
 }
@@ -703,8 +703,9 @@ html, body {
   .kb-area { flex-direction: column; gap: 6px; margin-top: 8px; }
   .kb-bar { width: auto; flex-direction: row; justify-content: space-between; align-items: center; }
   .kb-btn { min-width: 76px; }
-  .synth-panel[data-page="fx"] .synth-sections { grid-template-columns: 1fr 1fr; }
-  .synth-panel[data-page="fx"] .synth-sec:nth-child(6) { grid-row: span 2; }
+  .synth-panel[data-count="3"] .synth-sections { grid-template-columns: 1fr 1fr; }
+  .synth-panel[data-count="3"] .synth-sec.is-page-first:not(.sec-wide) { grid-row: span 2; }
+  .synth-sec.sec-wide { grid-column: 1 / -1; }
 }
 
 /* Very narrow phones */
@@ -714,7 +715,12 @@ html, body {
 
 /* Short phones held upright (small Androids, browsers with big toolbars) */
 @media (max-width: 760px) and (orientation: portrait) and (max-height: 640px) {
-  :root { --kb-min: 118px; --k: 32px; --k-small: 26px; --scope-h: 30px; }
+  :root { --kb-min: 112px; --k: 30px; --k-small: 24px; --scope-h: 28px; }
+  .sk-caption { display: none; }
+  .synth-sec h4 { margin-bottom: 3px; }
+  .synth-choice { margin-bottom: 4px; }
+  .synth-param-select-wrap { margin-bottom: 4px; }
+  .synth-param-select { min-height: 28px; }
   .synth-tab { min-height: 32px; }
   .synth-choice-btn { min-height: 28px; }
   .synth-sec { padding: 6px 6px 7px; }
@@ -745,7 +751,17 @@ html, body {
   .synth-top { grid-column: 1 / -1; }
   .synth-tabs { flex-direction: column; justify-content: flex-start; margin-bottom: 0; min-width: 84px; }
   .synth-tab { flex: 0 0 auto; min-height: 34px; padding: 0 8px; }
-  .synth-panel[data-page="fx"] .synth-sections { grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr) minmax(0, 1fr); }
+  .synth-sections { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); }
+  .synth-tabs { overflow-y: auto; min-height: 0; }
+  /* button rows share a line when the section is wide enough */
+  .synth-sec { align-items: center; }
+  .synth-preset-select { width: 128px; }
+  .synth-scope { min-width: 24px; }
+  .synth-midi-bar { flex-wrap: nowrap; }
+  .synth-sec > .synth-choice,
+  .synth-sec > .synth-param-select-wrap { flex: 1 1 40%; min-width: 0; }
+  .synth-sec > .synth-toggles { flex: 0 1 auto; }
+  .synth-param-select-wrap > span { display: none; }
   :root { --sk-w: 40px; }
   .sk-row { gap: 2px; }
   .sk-caption { display: none; }
@@ -759,4 +775,321 @@ html, body {
 
 @media (prefers-reduced-motion: reduce) {
   .midi-led { transition: none; }
+}
+
+
+/* ============================================================
+   Machines: top bar, preset browser, tempo, toggles, menus
+   ============================================================ */
+.synth-brand {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  min-width: 0;
+}
+
+.synth-machine-select {
+  appearance: none;
+  -webkit-appearance: none;
+  max-width: 100%;
+  padding: 2px 22px 2px 6px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  background:
+    linear-gradient(45deg, transparent 50%, currentColor 50%) right 10px center / 5px 5px no-repeat,
+    linear-gradient(135deg, currentColor 50%, transparent 50%) right 5px center / 5px 5px no-repeat;
+  color: var(--accent);
+  font-family: var(--font-head);
+  font-weight: 800;
+  font-size: 0.95rem;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+}
+
+.synth-machine-select:hover,
+.synth-machine-select:focus-visible {
+  border-color: var(--btn-border);
+  outline: none;
+}
+
+.synth-machine-select option {
+  background: var(--panel-bg);
+  color: var(--ink);
+}
+
+.synth-preset-nav {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: 0 1 auto;
+  min-width: 0;
+}
+
+.synth-preset-nav .synth-midi-btn {
+  min-width: 30px;
+  padding: 2px 6px;
+}
+
+.synth-preset-select {
+  min-height: 32px;
+  min-width: 0;
+  width: 190px;
+  max-width: 100%;
+}
+
+.synth-tempo {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.synth-tempo .synth-midi-btn {
+  padding: 2px 7px;
+}
+
+.synth-tempo-val {
+  min-width: 34px;
+  text-align: center;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+  font-size: 0.8rem;
+}
+
+.synth-tempo-val::after {
+  content: " BPM";
+  font-size: 0.55rem;
+  color: var(--ink-dim);
+  letter-spacing: 0.08em;
+}
+
+.synth-param-select-wrap {
+  flex: 1 1 100%;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: var(--label-ink);
+}
+
+.synth-param-select-wrap > span {
+  flex: none;
+}
+
+.synth-param-select {
+  flex: 1 1 auto;
+  max-width: none;
+  min-height: 32px;
+}
+
+.synth-toggles .synth-choice-btn {
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+}
+
+/* ============================================================
+   Drum machine (Kerman)
+   ============================================================ */
+.synth-sec-custom > .synth-custom {
+  flex: 1 1 100%;
+  min-width: 0;
+}
+
+.drum-transport {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.drum-play {
+  flex: none;
+  min-width: 84px;
+  min-height: 36px;
+  padding: 0 12px;
+  border-radius: 8px;
+  border: 1px solid var(--btn-border);
+  background: var(--ctl-bg);
+  color: var(--ctl-ink);
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.drum-play.active {
+  background: var(--accent);
+  color: var(--accent-ink);
+  border-color: var(--accent);
+  box-shadow: 0 0 10px var(--accent-glow-soft);
+}
+
+.drum-slots {
+  flex: 1 1 auto;
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  gap: 3px;
+}
+
+.drum-slot,
+.drum-voice-btn {
+  min-height: 32px;
+  padding: 0;
+  border-radius: 6px;
+  border: 1px solid var(--btn-border);
+  background: var(--ctl-bg);
+  color: var(--ctl-ink);
+  font-size: 0.72rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.drum-slot.active,
+.drum-voice-btn.active {
+  background: var(--choice-active-bg);
+  color: var(--choice-active-ink);
+  border-color: var(--accent);
+  box-shadow: 0 0 8px var(--accent-glow-soft);
+}
+
+.drum-transport-2 .drum-len {
+  flex: 0 0 auto;
+  margin: 0;
+}
+
+.drum-transport-2 .drum-len .synth-choice-btn {
+  min-width: 40px;
+}
+
+.drum-transport-2 > .synth-choice-btn {
+  flex: 1 1 auto;
+}
+
+.drum-voices {
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  gap: 3px;
+  margin-bottom: 6px;
+}
+
+.drum-steps {
+  display: grid;
+  grid-template-columns: repeat(var(--len), minmax(0, 1fr));
+  gap: 4px;
+}
+
+.drum-step {
+  height: 38px;
+  border-radius: 6px;
+  border: 1px solid var(--btn-border);
+  background: var(--ctl-bg);
+  cursor: pointer;
+  transition: background-color 60ms;
+}
+
+.drum-step.beat {
+  border-color: var(--ink-faint);
+}
+
+.drum-step.on {
+  background: var(--accent);
+  border-color: var(--accent);
+  opacity: 0.7;
+}
+
+.drum-step.accent {
+  opacity: 1;
+  box-shadow: 0 0 10px var(--accent-glow);
+}
+
+.drum-step.playing {
+  outline: 2px solid var(--ink);
+  outline-offset: -2px;
+}
+
+.drum-voice-name {
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  color: var(--label-ink);
+  margin-bottom: 4px;
+}
+
+/* Pads replace the keyboard on the drum machine */
+.kb-area.is-drums .kb-bar {
+  display: none;
+}
+
+.kb.is-pads {
+  gap: 6px;
+  border: 0;
+  overflow: visible;
+}
+
+.kb.is-pads .key.pad {
+  flex: 1 1 0;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 0;
+  border: 1px solid var(--sec-border);
+  border-radius: 10px;
+  background: var(--sec-bg);
+  box-shadow: var(--sec-shadow);
+  color: var(--label-ink);
+}
+
+.pad-name {
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+}
+
+.pad-key {
+  font-size: 0.6rem;
+  color: var(--ink-faint);
+}
+
+/* Wide sections on large screens (drum steps, pattern) */
+@media (min-width: 761px) and (min-height: 561px) {
+  .sec-span-2 { grid-column: span 2; }
+  .sec-span-3 { grid-column: span 3; }
+  .sec-span-4 { grid-column: 1 / -1; }
+}
+
+@media (max-width: 760px), (max-height: 560px) and (orientation: landscape) {
+  .synth-machine-select { font-size: 0.85rem; padding-right: 18px; max-width: 150px; text-overflow: ellipsis; }
+  .drum-steps { grid-template-columns: repeat(calc(var(--len) / 2), minmax(0, 1fr)); }
+  .drum-step { height: 34px; }
+  .drum-voices { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .drum-slot, .drum-voice-btn { min-height: 30px; }
+  .kb.is-pads { flex-wrap: wrap; gap: 4px; }
+  .kb.is-pads .key.pad { flex: 1 1 calc(25% - 4px); }
+}
+
+@media (max-width: 760px) {
+  .synth-tempo [data-action="tempo-tap"] { display: none; }
+  .synth-tempo-val { cursor: pointer; }
+  .synth-tempo-val::after { content: ""; }
+}
+
+@media (max-height: 560px) and (orientation: landscape) {
+  .drum-steps { grid-template-columns: repeat(var(--len), minmax(0, 1fr)); gap: 3px; }
+  .drum-step { height: 28px; }
+  .drum-voices { grid-template-columns: repeat(8, minmax(0, 1fr)); }
+  .drum-voice-btn, .drum-slot { min-height: 26px; font-size: 0.62rem; }
+  .drum-play { min-height: 28px; min-width: 64px; }
+  .drum-transport { margin-bottom: 4px; }
+}
+
+/* Drum machine on short phones: smaller pads and step buttons */
+@media (max-width: 760px) and (orientation: portrait) and (max-height: 700px) {
+  .kb.is-pads .key.pad { min-height: 0; }
+  .kb-area.is-drums { --kb-min: 88px; }
+  .drum-step { height: 28px; }
+  .drum-slot, .drum-voice-btn { min-height: 26px; }
+  .drum-play { min-height: 30px; }
+  .drum-transport { margin-bottom: 4px; }
+  .drum-voices { margin-bottom: 4px; }
 }

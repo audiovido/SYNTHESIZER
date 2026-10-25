@@ -11,6 +11,8 @@ export interface SynthVoice {
   kill(): void;
   release(t: number, fastTau?: number): void;
   update(key: string): void;
+  /** Legato: move this voice to a new pitch (Hz) over glide seconds, at time t. */
+  retune?(freqHz: number, glide: number, t: number): void;
 }
 
 export const activeSynthVoices = new Set<SynthVoice>();
@@ -49,7 +51,9 @@ export function createSynthVoice(
   freq: number,
   when: number,
   synthPatch: SynthPatch,
-  velocity = 1
+  velocity = 1,
+  fromHz = 0,
+  glide = 0
 ): SynthVoice {
   const p = synthPatch;
   const bus = getSynthBus(ctx, synthPatch);
@@ -70,7 +74,7 @@ export function createSynthVoice(
   const trem = ctx.createGain();         // LFO amp target
   trem.gain.setValueAtTime(1, when);
   const filter = ctx.createBiquadFilter();
-  filter.type = p.filterType;
+  filter.type = p.filterType === "lp24" ? "lowpass" : p.filterType;
   filter.Q.setValueAtTime(p.res, when);
   const mix = ctx.createGain();
   mix.gain.setValueAtTime(0.5, when);
@@ -85,7 +89,12 @@ export function createSynthVoice(
   const osc = (wave: string, octave: number, detune: number, level: number) => {
     const o = ctx.createOscillator();
     o.type = WAVE_MAP[wave] || "sawtooth";
-    o.frequency.setValueAtTime(freq * Math.pow(2, octave), when);
+    if (fromHz > 0 && glide > 0.004) {
+      o.frequency.setValueAtTime(fromHz * Math.pow(2, octave), when);
+      o.frequency.setTargetAtTime(freq * Math.pow(2, octave), when, glide / 3);
+    } else {
+      o.frequency.setValueAtTime(freq * Math.pow(2, octave), when);
+    }
     o.detune.setValueAtTime(detune, when);
     const g = ctx.createGain();
     g.gain.setValueAtTime(level, when);
@@ -129,7 +138,8 @@ export function createSynthVoice(
 
   // LFO
   const lfo = ctx.createOscillator();
-  lfo.type = "sine";
+  const LFO_TYPES: Record<string, OscillatorType> = { sine: "sine", triangle: "triangle", square: "square", sawtooth: "sawtooth", sh: "square" };
+  lfo.type = LFO_TYPES[p.lfoShape] || "sine";
   lfo.frequency.setValueAtTime(p.lfoRate, when);
   const lfoGain = ctx.createGain();
   lfo.connect(lfoGain);
@@ -183,6 +193,15 @@ export function createSynthVoice(
       });
       setTimeout(() => activeSynthVoices.delete(voice), Math.max(0, (stopAt - ctx.currentTime) * 1000) + 50);
     },
+    retune(freqHz, glideT, at) {
+      const t0 = Math.max(ctx.currentTime, at);
+      const tau = Math.max(0.002, glideT / 3);
+      const q = synthPatch;
+      o1.o.frequency.setTargetAtTime(freqHz * Math.pow(2, q.osc1Oct), t0, tau);
+      o2.o.frequency.setTargetAtTime(freqHz * Math.pow(2, q.osc2Oct), t0, tau);
+      s1.o.frequency.setTargetAtTime(freqHz * Math.pow(2, q.osc1Oct - 1), t0, tau);
+      voice.freq = freqHz;
+    },
     update(key) {
       const now = ctx.currentTime;
       const q = synthPatch;
@@ -194,7 +213,7 @@ export function createSynthVoice(
       } else if (key === "res") {
         filter.Q.setTargetAtTime(q.res, now, 0.02);
       } else if (key === "filterType") {
-        filter.type = q.filterType;
+        filter.type = q.filterType === "lp24" ? "lowpass" : q.filterType;
       } else if (key === "oscMix") {
         o1.g.gain.setTargetAtTime(1 - q.oscMix, now, 0.02);
         o2.g.gain.setTargetAtTime(q.oscMix, now, 0.02);
@@ -221,6 +240,8 @@ export function createSynthVoice(
         const curVelSens = q.velSens ?? 0.6;
         const curPeak = 0.42 * (1 - curVelSens + curVelSens * vel);
         amp.gain.setTargetAtTime(Math.max(0.0001, curPeak * q.aS), now, 0.03);
+      } else if (key === "lfoShape") {
+        lfo.type = LFO_TYPES[q.lfoShape] || "sine";
       } else if (key === "lfoRate") {
         lfo.frequency.setTargetAtTime(q.lfoRate, now, 0.02);
       } else if (key === "lfoDepth" || key === "lfoTarget" || key === "modWheel") {

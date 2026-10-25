@@ -38,8 +38,16 @@ export function updateSynthControlDOM(key: string): void {
   if (!def) return;
 
   if (def.type) {
-    document.querySelectorAll(`.synth-choice-btn[data-param="${key}"]`).forEach((b) => {
+    document.querySelectorAll(`.synth-choice-btn[data-param="${key}"][data-value]`).forEach((b) => {
       b.classList.toggle("active", b.getAttribute("data-value") === String(v));
+    });
+    document.querySelectorAll(`.synth-toggle-btn[data-param="${key}"]`).forEach((b) => {
+      const on = b.getAttribute("data-on") === String(v);
+      b.classList.toggle("active", on);
+      b.setAttribute("aria-pressed", on ? "true" : "false");
+    });
+    document.querySelectorAll<HTMLSelectElement>(`select.synth-param-select[data-param="${key}"]`).forEach((sel) => {
+      sel.value = String(v);
     });
     return;
   }

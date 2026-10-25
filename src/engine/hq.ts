@@ -89,12 +89,12 @@ export function hqPost(msg: Record<string, unknown>): void {
 }
 
 /** A handle with the same shape as a Classic voice, so note logic stays shared. */
-export function createHQVoice(midi: number, velocity: number): SynthVoice {
+export function createHQVoice(midi: number, cents: number, velocity: number, at = 0, fromHz = 0, glide = 0): SynthVoice {
   const id = nextId++;
-  hqPost({ t: "on", id, midi, vel: velocity });
+  hqPost({ t: "on", id, midi, cents, vel: velocity, at, from: fromHz, glide });
   let released = false;
-  return {
-    freq: 440 * Math.pow(2, (midi - 69) / 12),
+  const voice: SynthVoice = {
+    freq: 440 * Math.pow(2, (midi - 69) / 12 + cents / 1200),
     isReleased() {
       return released;
     },
@@ -103,13 +103,21 @@ export function createHQVoice(midi: number, velocity: number): SynthVoice {
       released = true;
       hqPost({ t: "kill", id });
     },
-    release() {
+    release(t?: number, fastTau?: number) {
       if (released) return;
       released = true;
-      hqPost({ t: "off", id });
+      hqPost({ t: fastTau ? "kill" : "off", id, at: t || 0 });
+    },
+    retune(freqHz: number, glideT: number, t: number) {
+      // the processor works in MIDI + cents; convert the target frequency
+      const m = 69 + 12 * Math.log2(freqHz / 440);
+      const base = Math.round(m);
+      hqPost({ t: "glide", id, midi: base, cents: (m - base) * 100, glide: glideT, at: t });
+      voice.freq = freqHz;
     },
     update() {
       // HQ receives parameter changes globally (see setSynthParam)
     }
   };
+  return voice;
 }
