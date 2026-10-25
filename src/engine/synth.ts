@@ -218,7 +218,11 @@ export function applySynthPreset(id: string): void {
   const preset = findPreset(id);
   if (!preset) return;
   releaseEverything();
-  applyPatchObject(Object.assign(synthDefaults(), machine.base, preset.patch));
+  const next = Object.assign(synthDefaults(), machine.base, preset.patch);
+  if (machine.kind === "synth" && machine.base.arpOn === undefined && preset.patch.arpOn === undefined) {
+    ["arpOn", "arpMode", "arpRate", "arpOct", "arpGate", "arpSwing"].forEach((k) => (next[k] = synthPatch[k]));
+  }
+  applyPatchObject(next);
   if (machine.kind === "drums" && preset.patterns) {
     loadBank(preset.patterns);
   }

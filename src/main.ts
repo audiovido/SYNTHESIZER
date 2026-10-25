@@ -30,6 +30,7 @@ import { initKeyboardInteractions, renderKeyboard } from "./ui/keyboard";
 import { initKnobInteractions } from "./ui/knob";
 import { initPanelInteractions, renderPanel, selectDrumVoiceForNote } from "./ui/panel";
 import { startSynthScope } from "./ui/scope";
+import { initArpPanel } from "./ui/arp-panel";
 
 function initApp(): void {
   // skin and keyboard follow the machine
@@ -38,6 +39,7 @@ function initApp(): void {
     renderKeyboard();
   });
   initPanelInteractions();
+  initArpPanel();
   initMachine();          // loads the remembered machine and its patch
   applySkin(getMachine().skin);
   renderPanel();

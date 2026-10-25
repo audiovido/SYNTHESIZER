@@ -80,7 +80,7 @@ export function renderSynthChoice(key: string, options: [string, string, string?
     `<span class="sk-dot"></span></div>`;
 }
 
-function renderControl(c: ControlDef): string {
+export function renderControl(c: ControlDef): string {
   const patch = getSynthPatch();
   if (c.kind === "choice") return renderSynthChoice(c.key, c.options);
   if (c.kind === "toggles") {
@@ -263,7 +263,7 @@ export function renderSynthPanelHtml(): string {
         <button type="button" class="synth-midi-btn" data-action="tempo-down" aria-label="Slower">−</button>
         <button type="button" class="synth-tempo-val" id="tempo-val" data-action="tempo-tap" title="Tempo (BPM). Tap in time to set it.">${getTempo()}</button>
         <button type="button" class="synth-midi-btn" data-action="tempo-up" aria-label="Faster">+</button>
-        <button type="button" class="synth-midi-btn" data-action="tempo-tap" title="Tap in time to set the tempo">TAP</button>
+        <button type="button" class="synth-midi-btn tempo-tap-btn" data-action="tempo-tap" title="Tap in time to set the tempo">TAP</button>
       </div>`
     : "";
   return `
@@ -407,8 +407,7 @@ export function initPanelInteractions(): void {
   onEngineChange(updateEngineDOM);
   onMachineChange(() => renderPanel());
   onTempoChange((bpm) => {
-    const el = document.getElementById("tempo-val");
-    if (el) el.textContent = String(bpm);
+    document.querySelectorAll(".synth-tempo-val").forEach((el) => (el.textContent = String(bpm)));
   });
   onDrumChange(() => {
     refreshCustom("drum-transport");

@@ -714,6 +714,10 @@ html, body {
 /* Very narrow phones */
 @media (max-width: 370px) {
   :root { --sk-w: 42px; }
+  .synth-midi-bar { gap: 4px; padding: 3px 4px; }
+  .synth-midi-btn { padding: 2px 6px; font-size: 0.66rem; letter-spacing: 0.02em; }
+  .synth-tempo .synth-midi-btn { padding: 2px 5px; }
+  .synth-tempo-val { min-width: 28px; }
 }
 
 /* Short phones held upright (small Androids, browsers with big toolbars) */
@@ -1074,7 +1078,7 @@ html, body {
 }
 
 @media (max-width: 760px) {
-  .synth-tempo [data-action="tempo-tap"] { display: none; }
+  .synth-tempo .tempo-tap-btn { display: none; }
   .synth-tempo-val { cursor: pointer; }
   .synth-tempo-val::after { content: ""; }
 }
@@ -1179,7 +1183,8 @@ html, body {
   box-shadow: 0 0 10px var(--accent-glow-soft);
 }
 
-.kb-area.is-drums .kb-wheels {
+.kb-area.is-drums .kb-wheels,
+.kb-area.is-drums .kb-perf {
   display: none;
 }
 
@@ -1194,4 +1199,88 @@ html, body {
   .kb-wheel { width: 36px; }
   .kb-btn { min-height: 44px; }
   .key { font-size: 0.8rem; padding-bottom: 12px; }
+}
+
+/* ============================================================
+   HOLD + ARP pair, arpeggiator panel
+   ============================================================ */
+.kb-perf {
+  display: flex;
+  gap: 4px;
+}
+
+.kb-perf .kb-btn {
+  flex: 1 1 0;
+  min-width: 0;
+  padding: 0 4px;
+  font-size: 0.72rem;
+}
+
+.kb-arp.is-open {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.synth-panel {
+  position: relative;
+}
+
+.arp-pop {
+  position: absolute;
+  z-index: 6;
+  left: 8px;
+  right: 8px;
+  bottom: 8px;
+  max-height: calc(100% - 16px);
+  overflow-y: auto;
+  border-radius: var(--sec-radius);
+  border: 1px solid var(--accent);
+  background: var(--page-bg);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5), 0 0 14px var(--accent-glow-soft);
+}
+
+.arp-pop-inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding: 10px;
+  background: var(--sec-bg);
+}
+
+.arp-pop-head {
+  flex: 1 1 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.arp-pop-head h4 {
+  flex: 1 1 auto;
+  margin: 0;
+  font-size: 0.72rem;
+  letter-spacing: 0.16em;
+  font-weight: 800;
+  color: var(--label-ink);
+  font-family: var(--font-head);
+}
+
+.arp-pop-inner > .synth-choice {
+  flex: 1 1 260px;
+  margin: 0;
+}
+
+.arp-pop-inner > .sk-row {
+  flex: 1 1 100%;
+}
+
+.arp-pop .synth-tempo-val::after {
+  content: " BPM";
+  font-size: 0.55rem;
+  color: var(--ink-dim);
+}
+
+@media (max-height: 560px) and (orientation: landscape) {
+  .kb-perf { gap: 2px; }
+  .kb-perf .kb-btn { font-size: 0.56rem; padding: 0 1px; letter-spacing: 0; }
 }
