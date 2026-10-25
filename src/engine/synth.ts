@@ -5,7 +5,15 @@
 import { getAudioCtx, getAudioCtxIfAny, getSynthBus, makeDriveCurve, makeReverbImpulse, unlockAudio } from "./bus";
 import { SYNTH_PARAMS, SynthPatch, synthDefaults } from "./params";
 import { SYNTH_PRESETS } from "./presets";
-import { activeSynthVoices, createSynthVoice, SynthVoice } from "./voice";
+import {
+  activeSynthVoices,
+  createSynthVoice,
+  getVoiceModWheel,
+  getVoicePitchBend,
+  setVoiceModWheel,
+  setVoicePitchBend,
+  SynthVoice
+} from "./voice";
 
 export const NOTE_NAMES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
 
@@ -136,23 +144,31 @@ export function applySynthPreset(id: string): void {
   saveSynthPatchSoon();
 }
 
-// Held note tracking
-const heldVoices = new Map<number, SynthVoice>(); // midi -> voice
-export const downKeys = new Map<string, number>();  // computer key string -> midi
-
-export function noteOn(midi: number): void {
-  unlockAudio();
-  const ctx = getAudioCtx();
-  if (!ctx) return;
-  const prev = heldVoices.get(midi);
-  if (prev) prev.release(ctx.currentTime);
-  heldVoices.set(midi, createSynthVoice(ctx, midiToFreq(midi), ctx.currentTime, synthPatch));
-
-  const el = document.querySelector(`.key[data-midi="${midi}"]`);
-  if (el) el.classList.add("is-pressed");
+export function setPitchBend(norm: number): void {
+  setVoicePitchBend(norm);
 }
 
-export function noteOff(midi: number): void {
+export function getPitchBend(): number {
+  return getVoicePitchBend();
+}
+
+export function setModWheel(norm: number): void {
+  setVoiceModWheel(norm);
+}
+
+export function getModWheel(): number {
+  return getVoiceModWheel();
+}
+
+// Held note & sustain pedal tracking
+const heldVoices = new Map<number, SynthVoice>(); // midi -> voice
+const physicallyHeld = new Set<number>();         // midi notes currently held down
+const sustainedNotes = new Set<number>();         // midi notes kept alive by sustain pedal
+let sustainPedal = false;
+
+export const downKeys = new Map<string, number>();  // computer key string -> midi
+
+function releaseVoiceNow(midi: number): void {
   const v = heldVoices.get(midi);
   if (v) {
     heldVoices.delete(midi);
@@ -163,9 +179,57 @@ export function noteOff(midi: number): void {
   if (el) el.classList.remove("is-pressed");
 }
 
-// BUG FIX 2c: Clear downKeys in allNotesOff so no stale computer key mappings remain when changing octave or window blur
+export function setSustainPedal(down: boolean): void {
+  sustainPedal = down;
+  if (!down) {
+    sustainedNotes.forEach((m) => {
+      if (!physicallyHeld.has(m)) {
+        releaseVoiceNow(m);
+      }
+    });
+    sustainedNotes.clear();
+  }
+}
+
+export function getSustainPedal(): boolean {
+  return sustainPedal;
+}
+
+export function noteOn(midi: number, velocity = 1): void {
+  unlockAudio();
+  const ctx = getAudioCtx();
+  if (!ctx) return;
+
+  physicallyHeld.add(midi);
+  sustainedNotes.delete(midi);
+
+  const prev = heldVoices.get(midi);
+  if (prev) prev.release(ctx.currentTime);
+  heldVoices.set(midi, createSynthVoice(ctx, midiToFreq(midi), ctx.currentTime, synthPatch, velocity));
+
+  const el = document.querySelector(`.key[data-midi="${midi}"]`);
+  if (el) el.classList.add("is-pressed");
+}
+
+export function noteOff(midi: number): void {
+  physicallyHeld.delete(midi);
+  if (sustainPedal) {
+    if (heldVoices.has(midi)) {
+      sustainedNotes.add(midi);
+    }
+    return;
+  }
+  releaseVoiceNow(midi);
+}
+
+// Clear downKeys, sustain-pedal state, and release all notes
 export function allNotesOff(): void {
+  sustainPedal = false;
+  physicallyHeld.clear();
+  sustainedNotes.clear();
   downKeys.clear();
+  setVoicePitchBend(0);
   const midis = Array.from(heldVoices.keys());
-  midis.forEach((m) => noteOff(m));
+  midis.forEach((m) => releaseVoiceNow(m));
+  document.querySelectorAll(".key.is-pressed").forEach((el) => el.classList.remove("is-pressed"));
 }

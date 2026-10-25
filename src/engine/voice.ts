@@ -23,11 +23,33 @@ const WAVE_MAP: Record<string, OscillatorType> = {
   sine: "sine"
 };
 
+let currentPitchBend = 0; // -1 to +1
+let currentModWheel = 0;  // 0 to 1
+
+export function getVoicePitchBend(): number {
+  return currentPitchBend;
+}
+
+export function setVoicePitchBend(norm: number): void {
+  currentPitchBend = Math.max(-1, Math.min(1, norm));
+  activeSynthVoices.forEach((vc) => vc.update("pitchBend"));
+}
+
+export function getVoiceModWheel(): number {
+  return currentModWheel;
+}
+
+export function setVoiceModWheel(norm: number): void {
+  currentModWheel = Math.max(0, Math.min(1, norm));
+  activeSynthVoices.forEach((vc) => vc.update("modWheel"));
+}
+
 export function createSynthVoice(
   ctx: AudioContext,
   freq: number,
   when: number,
-  synthPatch: SynthPatch
+  synthPatch: SynthPatch,
+  velocity = 1
 ): SynthVoice {
   const p = synthPatch;
   const bus = getSynthBus(ctx, synthPatch);
@@ -73,12 +95,12 @@ export function createSynthVoice(
     return { o, g };
   };
 
-  const o1 = osc(p.osc1Wave, p.osc1Oct, 0, 1 - p.oscMix);
-  const o2 = osc(p.osc2Wave, p.osc2Oct, p.osc2Detune, p.oscMix);
-  const s1 = osc("sine", p.osc1Oct - 1, 0, p.sub * 0.8);
+  const bendCents = currentPitchBend * (p.bendRange ?? 2) * 100;
+  const o1 = osc(p.osc1Wave, p.osc1Oct, bendCents, 1 - p.oscMix);
+  const o2 = osc(p.osc2Wave, p.osc2Oct, p.osc2Detune + bendCents, p.oscMix);
+  const s1 = osc("sine", p.osc1Oct - 1, bendCents, p.sub * 0.8);
 
-  // BUG FIX 2a: Always create noise source and noiseGain per voice (initial gain 0 when p.noise is 0).
-  // This allows live NOISE knob updates on notes that started when noise was 0.
+  // Always create noise source and noiseGain per voice (initial gain 0 when p.noise is 0).
   const noiseBuf = getSharedNoiseBuffer(ctx);
   const n = ctx.createBufferSource();
   n.buffer = noiseBuf;
@@ -89,8 +111,10 @@ export function createSynthVoice(
   noiseGain.connect(mix);
   srcs.push(n);
 
-  // amp envelope
-  const peak = 0.42;
+  // amp envelope with velocity sensitivity
+  const vel = Math.max(0, Math.min(1, velocity));
+  const velSens = p.velSens ?? 0.6;
+  const peak = 0.42 * (1 - velSens + velSens * vel);
   amp.gain.setValueAtTime(0.0001, when);
   amp.gain.linearRampToValueAtTime(peak, when + p.aA);
   amp.gain.setTargetAtTime(Math.max(0.0001, peak * p.aS), when + p.aA, Math.max(0.005, p.aD / 3));
@@ -112,7 +136,7 @@ export function createSynthVoice(
 
   const applyLfoRouting = () => {
     try { lfoGain.disconnect(); } catch (e) {}
-    const d = synthPatch.lfoDepth;
+    const d = Math.min(1, synthPatch.lfoDepth + currentModWheel);
     if (synthPatch.lfoTarget === "filter") {
       lfoGain.gain.setValueAtTime(d * 2400, ctx.currentTime);
       lfoGain.connect(filter.detune);
@@ -178,8 +202,12 @@ export function createSynthVoice(
         s1.g.gain.setTargetAtTime(q.sub * 0.8, now, 0.02);
       } else if (key === "noise") {
         noiseGain.gain.setTargetAtTime(q.noise * 0.5, now, 0.02);
-      } else if (key === "osc2Detune") {
-        o2.o.detune.setTargetAtTime(q.osc2Detune, now, 0.02);
+      } else if (key === "osc2Detune" || key === "bendRange" || key === "pitchBend") {
+        const tau = key === "pitchBend" ? 0.005 : 0.02;
+        const bc = currentPitchBend * (q.bendRange ?? 2) * 100;
+        o1.o.detune.setTargetAtTime(bc, now, tau);
+        o2.o.detune.setTargetAtTime(q.osc2Detune + bc, now, tau);
+        s1.o.detune.setTargetAtTime(bc, now, tau);
       } else if (key === "osc1Wave") {
         o1.o.type = WAVE_MAP[q.osc1Wave] || "sawtooth";
       } else if (key === "osc2Wave") {
@@ -189,11 +217,13 @@ export function createSynthVoice(
         s1.o.frequency.setTargetAtTime(freq * Math.pow(2, q.osc1Oct - 1), now, 0.01);
       } else if (key === "osc2Oct") {
         o2.o.frequency.setTargetAtTime(freq * Math.pow(2, q.osc2Oct), now, 0.01);
-      } else if (key === "aS" && !released) {
-        amp.gain.setTargetAtTime(Math.max(0.0001, peak * q.aS), now, 0.03);
+      } else if ((key === "aS" || key === "velSens") && !released) {
+        const curVelSens = q.velSens ?? 0.6;
+        const curPeak = 0.42 * (1 - curVelSens + curVelSens * vel);
+        amp.gain.setTargetAtTime(Math.max(0.0001, curPeak * q.aS), now, 0.03);
       } else if (key === "lfoRate") {
         lfo.frequency.setTargetAtTime(q.lfoRate, now, 0.02);
-      } else if (key === "lfoDepth" || key === "lfoTarget") {
+      } else if (key === "lfoDepth" || key === "lfoTarget" || key === "modWheel") {
         applyLfoRouting();
       }
     }

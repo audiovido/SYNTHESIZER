@@ -14,6 +14,12 @@ export interface ParamDef {
 
 export type SynthPatch = Record<string, any>;
 
+export const PARAM_CHOICES: Record<string, string[]> = {
+  wave: ["sawtooth", "square", "triangle", "sine"],
+  filter: ["lowpass", "bandpass", "highpass"],
+  lfo: ["pitch", "filter", "amp"]
+};
+
 export function fmtSec(v: number): string {
   return v < 1 ? Math.round(v * 1000) + "ms" : v.toFixed(2) + "s";
 }
@@ -52,9 +58,11 @@ export const SYNTH_PARAMS: Record<string, ParamDef> = {
   aD:         { min: 0.01, max: 4, curve: "log", def: 0.3, fmt: fmtSec },
   aS:         { min: 0, max: 1, def: 0.75, fmt: (v) => Math.round(v * 100) + "%" },
   aR:         { min: 0.01, max: 6, curve: "log", def: 0.35, fmt: fmtSec },
+  velSens:    { min: 0, max: 1, def: 0.6, fmt: (v) => Math.round(v * 100) + "%" },
   lfoRate:    { min: 0.05, max: 20, curve: "log", def: 5, fmt: (v) => v.toFixed(v < 1 ? 2 : 1) + "Hz" },
   lfoDepth:   { min: 0, max: 1, def: 0, fmt: (v) => Math.round(v * 100) + "%" },
   lfoTarget:  { type: "lfo", def: "pitch" },
+  bendRange:  { min: 0, max: 12, step: 1, def: 2, fmt: (v) => v + "st" },
   drive:      { min: 0, max: 1, def: 0, fmt: (v) => Math.round(v * 100) + "%" },
   eqLow:      { min: -12, max: 12, def: 0, fmt: fmtDb },
   eqMid:      { min: -12, max: 12, def: 0, fmt: fmtDb },

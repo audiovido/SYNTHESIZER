@@ -4,7 +4,7 @@
 
 import "./index.css";
 import { unlockAudio } from "./engine/bus";
-
+import { requestMidi } from "./engine/midi";
 import { SYNTH_PARAMS } from "./engine/params";
 import { SYNTH_PRESETS } from "./engine/presets";
 import {
@@ -13,6 +13,9 @@ import {
   getSynthPatch,
   noteOff,
   noteOn,
+  setModWheel,
+  setPitchBend,
+  setSustainPedal,
   setSynthParam
 } from "./engine/synth";
 
@@ -45,6 +48,10 @@ function initApp(): void {
     allNotesOff,
     setParam: setSynthParam,
     applyPreset: applySynthPreset,
+    setPitchBend,
+    setModWheel,
+    setSustainPedal,
+    requestMidi,
     getPatch: () => ({ ...getSynthPatch() }),
     PARAMS: SYNTH_PARAMS,
     PRESETS: SYNTH_PRESETS
