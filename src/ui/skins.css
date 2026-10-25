@@ -1,0 +1,444 @@
+/* ============================================================
+   SY-1 skins. Each block redefines the tokens from index.css,
+   then adds a few material details. Selectors are scoped to
+   [data-skin="..."] on <html>. No image files: every texture
+   is a CSS gradient or an inline SVG data URI.
+   "classic" has no block: it is the token defaults.
+   ============================================================ */
+
+
+/* ------------------------------------------------------------
+   SY-1 AMBER — premium dark hardware (flagship)
+   Brushed charcoal metal, recessed sections, knurled black
+   knobs with glowing amber rings, wide amber scope on top.
+   ------------------------------------------------------------ */
+[data-skin="sy1"] {
+  --kb-btn-ink: #1d1d1f;
+  --midi-btn-ink: #c9c4bb;
+  --font-ui: "Helvetica Neue", "Inter", "Segoe UI", Roboto, Arial, sans-serif;
+  --font-head: var(--font-ui);
+
+  --page-bg: #0c0c0d;
+  --ink: #e9e5de;
+  --ink-dim: #9a968f;
+  --ink-faint: #77736d;
+
+  --accent: #ffa62b;
+  --accent-2: #e07f12;
+  --accent-ink: #1a1206;
+  --accent-glow: rgba(255,166,43,0.75);
+  --accent-glow-soft: rgba(255,166,43,0.35);
+
+  --shell-bg:
+    repeating-linear-gradient(90deg, rgba(255,255,255,0.022) 0 1px, transparent 1px 3px),
+    linear-gradient(180deg, #2b2b2e 0%, #1b1b1d 100%);
+
+  --panel-bg:
+    repeating-linear-gradient(90deg, rgba(255,255,255,0.018) 0 1px, transparent 1px 4px),
+    linear-gradient(180deg, #252528 0%, #1c1c1e 100%);
+  --panel-border: #39393d;
+  --panel-radius: 12px;
+  --panel-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 14px 30px rgba(0,0,0,0.55);
+
+  --sec-bg: linear-gradient(180deg, #19191b 0%, #151517 100%);
+  --sec-border: #0b0b0c;
+  --sec-radius: 8px;
+  --sec-shadow: inset 0 2px 6px rgba(0,0,0,0.75), inset 0 -1px 0 rgba(255,255,255,0.05), 0 1px 0 rgba(255,255,255,0.06);
+  --sec-head: #d3cfc7;
+
+  --btn-bg: linear-gradient(180deg, #d9d9db 0%, #a7a7ab 100%);
+  --btn-ink: #1d1d1f;
+  --btn-border: #5b5b60;
+  --ctl-bg: linear-gradient(180deg, #2a2a2d 0%, #1f1f22 100%);
+  --ctl-ink: #b8b3aa;
+  --choice-active-bg: linear-gradient(180deg, #3a2a12 0%, #2a1e0c 100%);
+  --choice-active-ink: #ffb54d;
+
+  --scope-bg: radial-gradient(ellipse at 50% 50%, #1d1309 0%, #0b0805 75%);
+  --scope-border: #3f3f43;
+  --scope-line: #ffa62b;
+  --scope-grid: rgba(255,166,43,0.16);
+
+  --knob-face:
+    radial-gradient(circle at 40% 30%, rgba(255,255,255,0.22) 0%, rgba(255,255,255,0) 50%),
+    radial-gradient(circle, #1f1f22 0 45%, transparent 46%),
+    repeating-conic-gradient(#141416 0deg 5deg, #2c2c30 5deg 10deg);
+  --knob-gap: #111113;
+  --knob-edge: #3a3a3e;
+  --knob-arc: #ffa62b;
+  --knob-track: rgba(255,166,43,0.12);
+  --knob-arc-filter: drop-shadow(0 0 3px rgba(255,166,43,0.85));
+  --knob-ind: #ffd08a;
+  --knob-ind-glow: rgba(255,166,43,0.9);
+  --label-ink: #e2a04a;
+  --value-ink: #d7d2ca;
+
+  --key-white: linear-gradient(180deg, #ffffff 0%, #f1f1f1 80%, #d9d9d9 100%);
+  --key-white-ink: #6d6d72;
+  --key-black: linear-gradient(180deg, #0a0a0b 0%, #2a2a2e 92%, #3a3a3e 100%);
+  --key-black-ink: #8d8d92;
+  --key-line: #0a0a0b;
+  --key-pressed: linear-gradient(180deg, #ffc56b 0%, #ff9a1f 100%);
+  --key-pressed-ink: #1a1206;
+
+  --led-off: #3a2a14;
+  --led-off-edge: #5a4320;
+}
+/* Wide scope across the top, title and presets underneath */
+[data-skin="sy1"] .synth-scope {
+  order: -1;
+  flex: 1 1 100%;
+  height: 72px;
+  border-radius: 6px;
+  box-shadow: inset 0 3px 10px rgba(0,0,0,0.9), 0 1px 0 rgba(255,255,255,0.06);
+}
+[data-skin="sy1"] .synth-brand { font-size: 0.95rem; color: #6e6e72; text-shadow: 0 1px 0 rgba(255,255,255,0.08); }
+[data-skin="sy1"] .synth-brand b { color: #cfcac2; }
+[data-skin="sy1"] .synth-preset-btn {
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.7), 0 2px 3px rgba(0,0,0,0.6);
+  border-radius: 5px;
+}
+[data-skin="sy1"] .synth-preset-btn.active {
+  background: linear-gradient(180deg, #ffd08a 0%, #ffa62b 100%);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.6), 0 0 12px rgba(255,166,43,0.6);
+}
+[data-skin="sy1"] .synth-sec h4 { letter-spacing: 0.12em; }
+[data-skin="sy1"] .kb { border-color: #0a0a0b; box-shadow: 0 -3px 0 #ffa62b33, 0 10px 24px rgba(0,0,0,0.6); }
+
+
+/* ------------------------------------------------------------
+   ISFAHAN — Persian lapis, turquoise tile and gold
+   Girih star lattice, gold-engraved knobs, khatam inlay strips.
+   ------------------------------------------------------------ */
+[data-skin="isfahan"] {
+  --kb-btn-ink: #2a1c05;
+  --midi-btn-ink: #e9d9a8;
+  --girih: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48'%3E%3Cg fill='none' stroke='%23e2c374' stroke-opacity='.2' stroke-width='1'%3E%3Crect x='12' y='12' width='24' height='24'/%3E%3Crect x='12' y='12' width='24' height='24' transform='rotate(45 24 24)'/%3E%3Ccircle cx='24' cy='24' r='5'/%3E%3Cpath d='M0 24h7M41 24h7M24 0v7M24 41v7M0 0l7 7M48 0l-7 7M0 48l7-7M48 48l-7-7'/%3E%3C/g%3E%3C/svg%3E");
+  --khatam: repeating-linear-gradient(45deg, #d9b45a 0 3px, #2a1a08 3px 5px, #f1e4c4 5px 7px, #8a5a24 7px 9px);
+
+  --font-ui: "Gill Sans", "Gill Sans MT", "Optima", "Candara", "Segoe UI", sans-serif;
+  --font-head: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+
+  --page-bg: #081430;
+  --ink: #f3e8cc;
+  --ink-dim: #d7c592;
+  --ink-faint: #a9b4cf;
+
+  --accent: #e2c374;
+  --accent-2: #b98a2e;
+  --accent-ink: #231705;
+  --accent-glow: rgba(226,195,116,0.75);
+  --accent-glow-soft: rgba(226,195,116,0.35);
+
+  --shell-bg: var(--girih) 0 0 / 48px 48px, linear-gradient(180deg, #16357a 0%, #0f2659 100%);
+
+  --panel-bg: var(--girih) 0 0 / 48px 48px, linear-gradient(180deg, #17408a 0%, #123272 100%);
+  --panel-border: #c9a24a;
+  --panel-radius: 8px;
+  --panel-shadow: inset 0 0 0 3px #123272, inset 0 0 0 4px rgba(226,195,116,0.55), 0 12px 30px rgba(0,0,0,0.5);
+
+  --sec-bg: linear-gradient(180deg, #1d4f99 0%, #18438a 100%);
+  --sec-border: #c9a24a;
+  --sec-radius: 6px;
+  --sec-shadow: inset 0 0 0 3px #1b4891, inset 0 0 0 4px rgba(226,195,116,0.45), 0 2px 6px rgba(0,0,0,0.35);
+  --sec-head: #f6ecd2;
+
+  --btn-bg: linear-gradient(180deg, #f3dc98 0%, #d1a74b 55%, #a97b25 100%);
+  --btn-ink: #2a1c05;
+  --btn-border: #7a5718;
+  --ctl-bg: linear-gradient(180deg, #123a7a 0%, #0f3069 100%);
+  --ctl-ink: #e9d9a8;
+  --choice-active-bg: linear-gradient(180deg, #f3dc98 0%, #c99a3a 100%);
+  --choice-active-ink: #231705;
+
+  --scope-bg: radial-gradient(ellipse at 50% 40%, #0f4a55 0%, #072a33 80%);
+  --scope-border: #c9a24a;
+  --scope-line: #8ff5ea;
+  --scope-grid: rgba(143,245,234,0.16);
+
+  --knob-face:
+    radial-gradient(circle at 38% 30%, rgba(255,250,225,0.85) 0%, rgba(255,250,225,0) 35%),
+    repeating-conic-gradient(rgba(90,58,10,0.38) 0deg 3deg, transparent 3deg 15deg),
+    radial-gradient(circle, #f0d68a 0%, #d3a94e 45%, #9c7124 80%, #6e4c14 100%);
+  --knob-gap: #0f2f66;
+  --knob-edge: #c9a24a;
+  --knob-arc: #7fe9df;
+  --knob-track: rgba(127,233,223,0.14);
+  --knob-arc-filter: drop-shadow(0 0 2px rgba(127,233,223,0.6));
+  --knob-ind: #3a2706;
+  --knob-ind-glow: rgba(0,0,0,0);
+  --label-ink: #f3e8cc;
+  --value-ink: #bfe9e4;
+
+  --key-white: linear-gradient(180deg, #fbf6ea 0%, #ece2c8 100%);
+  --key-white-ink: #8a6a2a;
+  --key-black: linear-gradient(180deg, #120c06 0%, #2d2216 90%, #c9a24a 100%);
+  --key-black-ink: #c9a24a;
+  --key-line: #6e4c14;
+  --key-pressed: linear-gradient(180deg, #a6fff5 0%, #3fc7bb 100%);
+  --key-pressed-ink: #06302c;
+
+  --led-off: #0b2550;
+  --led-off-edge: #c9a24a;
+}
+/* Turquoise tile band behind the title, scope and presets */
+[data-skin="isfahan"] .synth-top {
+  padding: 10px;
+  border-radius: 6px;
+  background: var(--girih) 0 0 / 48px 48px, linear-gradient(180deg, #2fb2c2 0%, #1d8fa1 100%);
+  border: 1px solid #c9a24a;
+  box-shadow: inset 0 0 0 3px #26a1b2, inset 0 0 0 4px rgba(246,236,210,0.5);
+}
+[data-skin="isfahan"] .synth-brand { font-size: 1.1rem; letter-spacing: 0.08em; color: #f6ecd2; text-shadow: 0 1px 2px rgba(0,0,0,0.35); }
+[data-skin="isfahan"] .synth-brand b { color: #fff6da; }
+/* Khatam inlay strip under the tile band and above the keyboard */
+[data-skin="isfahan"] .synth-midi-bar { position: relative; margin-top: 16px; }
+[data-skin="isfahan"] .synth-midi-bar::before,
+[data-skin="isfahan"] .kb-bar::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 6px;
+  background: var(--khatam);
+  border-top: 1px solid #c9a24a;
+  border-bottom: 1px solid #c9a24a;
+}
+[data-skin="isfahan"] .synth-midi-bar::before { top: -12px; }
+[data-skin="isfahan"] .kb-bar { position: relative; padding-top: 10px; }
+[data-skin="isfahan"] .kb-bar::before { top: -6px; }
+[data-skin="isfahan"] .synth-sec h4 {
+  text-align: center;
+  font-size: 0.86rem;
+  letter-spacing: 0.1em;
+  font-weight: 600;
+}
+[data-skin="isfahan"] .synth-preset-btn { border-radius: 4px; box-shadow: inset 0 1px 0 rgba(255,255,255,0.6), 0 2px 3px rgba(0,0,0,0.4); }
+[data-skin="isfahan"] .synth-preset-btn.active {
+  background: linear-gradient(180deg, #b9fff7 0%, #4fd3c6 100%);
+  border-color: #f6ecd2;
+  color: #06302c;
+  box-shadow: 0 0 12px rgba(127,233,223,0.7);
+}
+[data-skin="isfahan"] .synth-choice-btn { border-radius: 4px; }
+[data-skin="isfahan"] .kb { border-width: 3px; box-shadow: 0 0 0 1px #c9a24a; }
+
+
+/* ------------------------------------------------------------
+   TABRIZ — 1970s analog monosynth
+   Matte black panel, walnut cheeks, cream header bands,
+   aluminum knobs, orange rocker switches, green CRT scope.
+   ------------------------------------------------------------ */
+[data-skin="tabriz"] {
+  --kb-btn-ink: #1d1a14;
+  --midi-btn-ink: #e8dcc0;
+  --walnut: repeating-linear-gradient(178deg, #5b3419 0 3px, #6e4121 3px 7px, #4f2c14 7px 9px, #7a4a26 9px 14px, #603819 14px 18px);
+
+  --font-ui: "Helvetica Neue", "Arial Narrow", Arial, sans-serif;
+  --font-head: "Helvetica Neue", "Arial Narrow", Arial, sans-serif;
+
+  --page-bg: #120d09;
+  --ink: #ece2c8;
+  --ink-dim: #b8ac8e;
+  --ink-faint: #8f8571;
+
+  --accent: #f08a3c;
+  --accent-2: #c2591c;
+  --accent-ink: #1a0e06;
+  --accent-glow: rgba(240,138,60,0.7);
+  --accent-glow-soft: rgba(240,138,60,0.3);
+
+  --shell-bg: linear-gradient(180deg, #171615 0%, #0f0e0d 100%);
+
+  --panel-bg: linear-gradient(180deg, #161514 0%, #121110 100%);
+  --panel-border: #050505;
+  --panel-radius: 4px;
+  --panel-shadow: inset 0 1px 0 rgba(255,255,255,0.04), 0 10px 24px rgba(0,0,0,0.6);
+
+  --sec-bg: #141312;
+  --sec-border: #e8dcc0;
+  --sec-radius: 6px;
+  --sec-shadow: none;
+  --sec-head: #171615;
+
+  --btn-bg: linear-gradient(180deg, #f3e9cf 0%, #d9caa2 100%);
+  --btn-ink: #1d1a14;
+  --btn-border: #8f8166;
+  --ctl-bg: linear-gradient(180deg, #4a3526 0%, #33241a 100%);
+  --ctl-ink: #e8dcc0;
+  --choice-active-bg: linear-gradient(180deg, #ffa25a 0%, #e0712a 60%, #b8521a 100%);
+  --choice-active-ink: #1a0e06;
+
+  --scope-bg: radial-gradient(ellipse at 50% 50%, #12361d 0%, #06170c 80%);
+  --scope-border: #2c2c2c;
+  --scope-line: #74ff98;
+  --scope-grid: rgba(116,255,152,0.18);
+
+  --knob-face:
+    radial-gradient(circle at 36% 28%, #ffffff 0%, rgba(255,255,255,0) 30%),
+    repeating-conic-gradient(rgba(0,0,0,0.06) 0deg 2deg, rgba(255,255,255,0.06) 2deg 4deg),
+    radial-gradient(circle, #e9e9e9 0%, #c3c3c3 45%, #8c8c8c 85%, #5f5f5f 100%);
+  --knob-gap: #0a0a0a;
+  --knob-edge: #2d2d2d;
+  --knob-arc: rgba(232,220,192,0.7);
+  --knob-track: rgba(232,220,192,0.12);
+  --knob-arc-filter: none;
+  --knob-ind: #111111;
+  --knob-ind-glow: rgba(0,0,0,0);
+  --label-ink: #e8dcc0;
+  --value-ink: #b8ac8e;
+
+  --key-white: linear-gradient(180deg, #fbfaf6 0%, #ecebe5 85%, #d6d4cc 100%);
+  --key-white-ink: #7a756a;
+  --key-black: linear-gradient(180deg, #050505 0%, #1d1d1d 90%, #333 100%);
+  --key-black-ink: #8a8a8a;
+  --key-line: #0b0b0b;
+  --key-pressed: linear-gradient(180deg, #ffbf85 0%, #f08a3c 100%);
+  --key-pressed-ink: #1a0e06;
+
+  --led-off: #3a2214;
+  --led-off-edge: #5a3a24;
+}
+/* Walnut cheeks on both sides of the instrument */
+[data-skin="tabriz"] .sy1-shell {
+  border-style: solid;
+  border-width: 0 18px;
+  border-image: var(--walnut) 1;
+  box-shadow: inset 8px 0 12px rgba(0,0,0,0.5), inset -8px 0 12px rgba(0,0,0,0.5);
+}
+/* Cream header bands, centred, like silkscreened panel strips */
+[data-skin="tabriz"] .synth-sec { padding-top: 0; overflow: hidden; }
+[data-skin="tabriz"] .synth-sec h4 {
+  margin: 0 -8px 8px;
+  padding: 3px 8px;
+  background: linear-gradient(180deg, #efe4c8 0%, #ddd0ad 100%);
+  text-align: center;
+  font-size: 0.74rem;
+  letter-spacing: 0.06em;
+}
+[data-skin="tabriz"] .synth-brand { font-family: "Rockwell", "Clarendon", "Georgia", serif; font-size: 1.2rem; letter-spacing: 0.02em; color: #e8dcc0; }
+[data-skin="tabriz"] .synth-brand b { color: #e8dcc0; }
+[data-skin="tabriz"] .synth-scope { border-width: 3px; box-shadow: inset 0 0 14px rgba(0,0,0,0.9), 0 0 0 1px #000; }
+[data-skin="tabriz"] .synth-preset-btn { border-radius: 3px; box-shadow: 0 3px 0 #6e6450, 0 4px 4px rgba(0,0,0,0.5); }
+[data-skin="tabriz"] .synth-preset-btn.active { transform: translateY(2px); box-shadow: 0 1px 0 #8a4a1c, 0 0 10px rgba(240,138,60,0.5); }
+[data-skin="tabriz"] .synth-choice-btn { border-radius: 3px; box-shadow: inset 0 -2px 0 rgba(0,0,0,0.35); }
+[data-skin="tabriz"] .synth-choice-btn.active { box-shadow: inset 0 2px 0 rgba(255,255,255,0.35), 0 0 8px rgba(240,138,60,0.45); }
+[data-skin="tabriz"] .synth-midi-bar { background: #0f0e0d; border-color: #2a2622; }
+@media (max-width: 480px) {
+  [data-skin="tabriz"] .sy1-shell { border-width: 0 8px; padding-left: 10px; padding-right: 10px; }
+}
+
+
+/* ------------------------------------------------------------
+   MERV — cyberpunk HUD
+   Cut-corner line panels, electric yellow and cyan, segmented
+   arc meters, scanline scope, wireframe keyboard.
+   ------------------------------------------------------------ */
+[data-skin="merv"] {
+  --cut: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
+  --cut-sm: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+
+  --font-ui: "Eurostile", "Bank Gothic", "DIN Condensed", "Bahnschrift", "Arial Narrow", sans-serif;
+  --font-head: var(--font-ui);
+
+  --page-bg: #04060a;
+  --ink: #d8fbff;
+  --ink-dim: #4fd9ec;
+  --ink-faint: #3c8794;
+
+  --accent: #f7e53a;
+  --accent-2: #d1bf12;
+  --accent-ink: #050608;
+  --accent-glow: rgba(247,229,58,0.75);
+  --accent-glow-soft: rgba(247,229,58,0.3);
+
+  --shell-bg:
+    linear-gradient(rgba(57,232,255,0.045) 1px, transparent 1px) 0 0 / 22px 22px,
+    linear-gradient(90deg, rgba(57,232,255,0.045) 1px, transparent 1px) 0 0 / 22px 22px,
+    #05080c;
+
+  --panel-bg: linear-gradient(180deg, rgba(8,18,26,0.92) 0%, rgba(4,10,15,0.92) 100%);
+  --panel-border: rgba(57,232,255,0.55);
+  --panel-radius: 0;
+  --panel-shadow: 0 0 22px rgba(57,232,255,0.12);
+
+  --sec-bg: linear-gradient(180deg, rgba(10,24,32,0.85) 0%, rgba(5,12,17,0.85) 100%);
+  --sec-border: rgba(247,229,58,0.7);
+  --sec-radius: 0;
+  --sec-shadow: inset 0 0 18px rgba(247,229,58,0.06);
+  --sec-head: #39e8ff;
+
+  --btn-bg: rgba(5,12,17,0.9);
+  --btn-ink: #f7e53a;
+  --btn-border: rgba(247,229,58,0.8);
+  --ctl-bg: rgba(5,14,20,0.9);
+  --ctl-ink: #39e8ff;
+  --choice-active-bg: rgba(57,232,255,0.18);
+  --choice-active-ink: #b9f7ff;
+
+  --scope-bg:
+    repeating-linear-gradient(0deg, rgba(0,0,0,0.35) 0 1px, transparent 1px 3px),
+    radial-gradient(ellipse at 50% 50%, #06303a 0%, #020c10 80%);
+  --scope-border: rgba(57,232,255,0.7);
+  --scope-line: #5ff3c8;
+  --scope-grid: rgba(57,232,255,0.2);
+
+  --knob-face: radial-gradient(circle, #0c1820 0 55%, #071016 56% 100%);
+  --knob-gap: #04080b;
+  --knob-edge: rgba(57,232,255,0.35);
+  --knob-arc: #f7e53a;
+  --knob-track: rgba(57,232,255,0.16);
+  --knob-arc-filter: drop-shadow(0 0 3px rgba(247,229,58,0.8));
+  --knob-ind: #f7e53a;
+  --knob-ind-glow: rgba(247,229,58,0.9);
+  --label-ink: #f7e53a;
+  --value-ink: #7fefff;
+
+  --key-white: linear-gradient(180deg, #06121a 0%, #0a1c26 100%);
+  --key-white-ink: #39e8ff;
+  --key-black: linear-gradient(180deg, #0b0d06 0%, #1a1c0a 100%);
+  --key-black-ink: #f7e53a;
+  --key-line: rgba(57,232,255,0.6);
+  --key-pressed: linear-gradient(180deg, #fff59a 0%, #f7e53a 100%);
+  --key-pressed-ink: #050608;
+
+  --led-off: #0b1c22;
+  --led-off-edge: rgba(57,232,255,0.5);
+}
+[data-skin="merv"] .synth-panel { clip-path: var(--cut); }
+[data-skin="merv"] .synth-sec { clip-path: var(--cut-sm); }
+[data-skin="merv"] .synth-sec h4,
+[data-skin="merv"] .synth-brand { text-shadow: 0 0 8px rgba(57,232,255,0.7); }
+[data-skin="merv"] .synth-brand { font-size: 1.05rem; letter-spacing: 0.2em; color: #39e8ff; }
+[data-skin="merv"] .synth-brand b { color: #39e8ff; }
+[data-skin="merv"] .sk-label { text-shadow: 0 0 6px rgba(247,229,58,0.5); }
+/* Segmented arc meter: cut the value ring into small blocks */
+[data-skin="merv"] .sk-dial::before {
+  -webkit-mask:
+    radial-gradient(circle, transparent 23px, #000 24px),
+    repeating-conic-gradient(from 225deg, #000 0deg 8deg, transparent 8deg 11deg);
+  -webkit-mask-composite: source-in;
+  mask:
+    radial-gradient(circle, transparent 23px, #000 24px) intersect,
+    repeating-conic-gradient(from 225deg, #000 0deg 8deg, transparent 8deg 11deg);
+}
+[data-skin="merv"] .sk-row-small .sk-dial::before {
+  -webkit-mask:
+    radial-gradient(circle, transparent 19px, #000 20px),
+    repeating-conic-gradient(from 225deg, #000 0deg 8deg, transparent 8deg 11deg);
+  -webkit-mask-composite: source-in;
+  mask:
+    radial-gradient(circle, transparent 19px, #000 20px) intersect,
+    repeating-conic-gradient(from 225deg, #000 0deg 8deg, transparent 8deg 11deg);
+}
+[data-skin="merv"] .synth-preset-btn,
+[data-skin="merv"] .synth-midi-btn,
+[data-skin="merv"] .synth-choice-btn,
+[data-skin="merv"] .kb-btn { border-radius: 0; clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px); }
+[data-skin="merv"] .synth-preset-btn:nth-child(even) { color: #39e8ff; border-color: rgba(57,232,255,0.8); }
+[data-skin="merv"] .synth-preset-btn.active { background: #f7e53a; color: #050608; border-color: #f7e53a; }
+[data-skin="merv"] .synth-choice-btn.active { border-color: #39e8ff; box-shadow: inset 0 0 10px rgba(57,232,255,0.4); }
+[data-skin="merv"] .kb { border-radius: 0; border-width: 1px; box-shadow: 0 0 18px rgba(57,232,255,0.15); }
+[data-skin="merv"] .key { border-right-color: rgba(57,232,255,0.45); }
+[data-skin="merv"] .key.black { border-color: rgba(247,229,58,0.75); border-radius: 0; }
+[data-skin="merv"] .key.is-pressed { box-shadow: 0 0 18px rgba(247,229,58,0.8); }

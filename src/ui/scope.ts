@@ -4,8 +4,11 @@
 
 import { getAudioCtxIfAny, getSynthBus } from "../engine/bus";
 import { getSynthPatch } from "../engine/synth";
+import { onSkinChange, readScopeColors } from "./skins";
 
 let synthScopeRaf: number | null = null;
+let scopeColors: { line: string; grid: string } | null = null;
+onSkinChange(() => { scopeColors = null; });
 
 export function startSynthScope(): void {
   if (synthScopeRaf !== null) return;
@@ -25,10 +28,11 @@ export function startSynthScope(): void {
       return;
     }
 
+    if (!scopeColors) scopeColors = readScopeColors();
     const w = canvas.width;
     const h = canvas.height;
     g.clearRect(0, 0, w, h);
-    g.strokeStyle = "rgba(242,179,61,0.18)";
+    g.strokeStyle = scopeColors.grid;
     g.beginPath();
     g.moveTo(0, h / 2);
     g.lineTo(w, h / 2);
@@ -47,9 +51,9 @@ export function startSynthScope(): void {
         }
       }
 
-      g.strokeStyle = "#F2B33D";
+      g.strokeStyle = scopeColors.line;
       g.lineWidth = 2;
-      g.shadowColor = "#F2B33D";
+      g.shadowColor = scopeColors.line;
       g.shadowBlur = 6;
       g.beginPath();
 

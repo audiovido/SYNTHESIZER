@@ -34,6 +34,7 @@ import {
 } from "../engine/synth";
 import { getBaseMidi } from "./keyboard";
 import { renderSynthKnob, updateMidiLearnDOM, updateSynthControlDOM } from "./knob";
+import { initSkinPicker, renderSkinPicker } from "./skins";
 
 const WAVE_OPTS: [string, string, string][] = [
   ["sawtooth", "⩘", "Saw"],
@@ -103,6 +104,7 @@ export function renderSynthPanelHtml(): string {
         <button type="button" class="synth-midi-btn" id="midi-learn-btn" data-action="midi-learn" title="Click LEARN, click a knob, then move a MIDI CC">LEARN</button>
         <button type="button" class="synth-midi-btn synth-panic-btn" id="midi-panic-btn" data-action="synth-panic" title="Release all notes and reset sustain">PANIC</button>
         <span class="synth-midi-msg" id="midi-msg" role="status" aria-live="polite"></span>
+        ${renderSkinPicker()}
       </div>
       <div class="synth-sections">
         <section class="synth-sec"><h4>OSC 1</h4>${renderSynthChoice("osc1Wave", WAVE_OPTS)}<div class="sk-row">${renderSynthKnob("osc1Oct", "OCT")}${renderSynthKnob("sub", "SUB")}${renderSynthKnob("noise", "NOISE")}</div></section>
@@ -244,5 +246,6 @@ export function initPanelInteractions(): void {
     }
   });
 
+  initSkinPicker();
   updateMidiBarDOM();
 }

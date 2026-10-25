@@ -13,21 +13,82 @@
   [hidden]:where(:not([hidden="until-found"])) { display: none !important; }
 }
 
+/* ============================================================
+   Design tokens. These defaults are the "Classic" skin.
+   Every skin in skins.css only redefines tokens (plus a few
+   material details), so layout and behaviour never change.
+   ============================================================ */
 :root {
-  --bg: #0b0a10;
-  --ink: #ECE6DA;
-  --accent: #F2B33D;
-}
+  --font-ui: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-head: var(--font-ui);
 
-* {
-  box-sizing: border-box;
+  --page-bg: #0b0a10;
+  --ink: #ECE6DA;
+  --ink-dim: #9b93b0;
+  --ink-faint: #8a83a0;
+
+  --accent: #F2B33D;
+  --accent-2: #e09a1a;
+  --accent-ink: #1F1A2E;
+  --accent-glow: rgba(242,179,61,0.7);
+  --accent-glow-soft: rgba(242,179,61,0.35);
+
+  --shell-bg: linear-gradient(180deg, #23202f 0%, #17141f 100%);
+
+  --panel-bg: #121019;
+  --panel-border: #3a3450;
+  --panel-radius: 14px;
+  --panel-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 8px 24px rgba(0,0,0,0.35);
+
+  --sec-bg: #1a1724;
+  --sec-border: #2c2740;
+  --sec-radius: 10px;
+  --sec-shadow: none;
+  --sec-head: #F2B33D;
+
+  --btn-bg: #1d1a27;
+  --btn-ink: #cfc8dd;
+  --btn-border: #3a3450;
+  --ctl-bg: #120f19;
+  --kb-btn-ink: var(--ink);
+  --midi-btn-ink: var(--btn-ink);
+  --ctl-ink: #b9b1cc;
+  --choice-active-bg: #2f2944;
+  --choice-active-ink: #F2B33D;
+
+  --scope-bg: #07060b;
+  --scope-border: #2c2740;
+  --scope-line: #F2B33D;
+  --scope-grid: rgba(242,179,61,0.18);
+
+  --knob-face: radial-gradient(circle at 35% 30%, #4a4460 0%, #25212f 60%, #17141f 100%);
+  --knob-gap: #120f19;
+  --knob-edge: #2c2740;
+  --knob-arc: #F2B33D;
+  --knob-track: transparent;
+  --knob-arc-filter: none;
+  --knob-ind: #F2B33D;
+  --knob-ind-glow: rgba(242,179,61,0.8);
+  --label-ink: #9b93b0;
+  --value-ink: #ECE6DA;
+
+  --key-white: linear-gradient(180deg, #e9e4d8 0%, #cfc8b8 100%);
+  --key-white-ink: #6b6478;
+  --key-black: linear-gradient(180deg, #0d0b12 0%, #2b2738 100%);
+  --key-black-ink: #9b93b0;
+  --key-line: #0d0b12;
+  --key-pressed: linear-gradient(180deg, #F2B33D 0%, #e09a1a 100%);
+  --key-pressed-ink: #1F1A2E;
+
+  --led-off: #2c2740;
+  --led-off-edge: #4a4460;
 }
 
 html, body {
   margin: 0;
-  background: var(--bg);
+  background: var(--page-bg);
   color: var(--ink);
-  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-family: var(--font-ui);
   overflow-x: clip;
 }
 
@@ -36,6 +97,8 @@ html, body {
   margin: 0 auto;
   padding: 16px;
   padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  background: var(--shell-bg);
+  color: var(--ink);
 }
 
 .sy1-start {
@@ -48,9 +111,9 @@ html, body {
   padding: 0 22px;
   box-shadow: 0 8px 24px rgba(0,0,0,0.5);
   border-radius: 10px;
-  border: 1px solid #3a3450;
-  background: #1d1a27;
-  color: var(--ink);
+  border: 1px solid var(--btn-border);
+  background: var(--btn-bg);
+  color: var(--kb-btn-ink);
   font-weight: 800;
   cursor: pointer;
 }
@@ -72,16 +135,16 @@ html, body {
   min-height: 44px;
   padding: 0 14px;
   border-radius: 10px;
-  border: 1px solid #3a3450;
-  background: #1d1a27;
-  color: var(--ink);
+  border: 1px solid var(--btn-border);
+  background: var(--btn-bg);
+  color: var(--kb-btn-ink);
   font-weight: 800;
   cursor: pointer;
 }
 
 .kb-range {
   font-weight: 800;
-  color: #9b93b0;
+  color: var(--ink-dim);
   font-variant-numeric: tabular-nums;
 }
 
@@ -91,7 +154,7 @@ html, body {
   height: 190px;
   border-radius: 10px;
   overflow: hidden;
-  border: 2px solid #0d0b12;
+  border: 2px solid var(--key-line);
   touch-action: none;
   user-select: none;
   -webkit-user-select: none;
@@ -101,15 +164,15 @@ html, body {
 .key {
   position: relative;
   flex: 1 1 0;
-  border-right: 1px solid #0d0b12;
-  background: linear-gradient(180deg, #e9e4d8 0%, #cfc8b8 100%);
+  border-right: 1px solid var(--key-line);
+  background: var(--key-white);
   display: flex;
   align-items: flex-end;
   justify-content: center;
   padding-bottom: 8px;
   font-size: 0.7rem;
   font-weight: 800;
-  color: #6b6478;
+  color: var(--key-white-ink);
   cursor: pointer;
 }
 
@@ -119,26 +182,20 @@ html, body {
   width: calc(100% / var(--whites) * 0.62);
   height: 60%;
   z-index: 2;
-  border: 1px solid #0d0b12;
+  border: 1px solid var(--key-line);
   border-radius: 0 0 6px 6px;
-  background: linear-gradient(180deg, #0d0b12 0%, #2b2738 100%);
-  color: #9b93b0;
+  background: var(--key-black);
+  color: var(--key-black-ink);
   flex: none;
 }
 
 .key.is-pressed {
-  background: linear-gradient(180deg, #F2B33D 0%, #e09a1a 100%) !important;
-  box-shadow: 0 0 14px rgba(242,179,61,0.7);
-  color: #1F1A2E;
+  background: var(--key-pressed) !important;
+  box-shadow: 0 0 14px var(--accent-glow);
+  color: var(--key-pressed-ink);
 }
 
-/* ---------- Synth Lab ---------- */
-.sy1-shell {
-  background: linear-gradient(180deg, #23202f 0%, #17141f 100%);
-  border-color: #0d0b12;
-  color: #ECE6DA;
-}
-
+/* ---------- Synth panel ---------- */
 .synth-panel[hidden] {
   display: none;
 }
@@ -146,12 +203,12 @@ html, body {
 .synth-panel {
   margin: 4px 0 14px;
   padding: 12px;
-  border-radius: 14px;
-  background: #121019;
-  border: 1px solid #3a3450;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 8px 24px rgba(0,0,0,0.35);
-  color: #ECE6DA;
-  font-family: ui-sans-serif, system-ui, sans-serif;
+  border-radius: var(--panel-radius);
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  box-shadow: var(--panel-shadow);
+  color: var(--ink);
+  font-family: var(--font-ui);
 }
 
 .synth-top {
@@ -166,11 +223,12 @@ html, body {
   font-weight: 800;
   letter-spacing: 0.14em;
   font-size: 0.8rem;
-  color: #9b93b0;
+  color: var(--ink-dim);
+  font-family: var(--font-head);
 }
 
 .synth-brand b {
-  color: #F2B33D;
+  color: var(--accent);
 }
 
 .synth-scope {
@@ -179,8 +237,8 @@ html, body {
   max-width: 100%;
   height: 56px;
   border-radius: 8px;
-  background: #07060b;
-  border: 1px solid #2c2740;
+  background: var(--scope-bg);
+  border: 1px solid var(--scope-border);
 }
 
 .synth-presets {
@@ -193,18 +251,18 @@ html, body {
   min-height: 34px;
   padding: 4px 10px;
   border-radius: 8px;
-  border: 1px solid #3a3450;
-  background: #1d1a27;
-  color: #cfc8dd;
+  border: 1px solid var(--btn-border);
+  background: var(--btn-bg);
+  color: var(--btn-ink);
   font-size: 0.78rem;
   font-weight: 700;
   cursor: pointer;
 }
 
 .synth-preset-btn.active {
-  background: #F2B33D;
-  color: #1F1A2E;
-  border-color: #F2B33D;
+  background: var(--accent);
+  color: var(--accent-ink);
+  border-color: var(--accent);
 }
 
 /* MIDI bar */
@@ -216,17 +274,17 @@ html, body {
   margin-bottom: 10px;
   padding: 6px 8px;
   border-radius: 8px;
-  background: #1a1724;
-  border: 1px solid #2c2740;
+  background: var(--sec-bg);
+  border: 1px solid var(--sec-border);
 }
 
 .synth-midi-btn {
   min-height: 30px;
   padding: 2px 10px;
   border-radius: 6px;
-  border: 1px solid #3a3450;
-  background: #120f19;
-  color: #cfc8dd;
+  border: 1px solid var(--btn-border);
+  background: var(--ctl-bg);
+  color: var(--midi-btn-ink);
   font-size: 0.72rem;
   font-weight: 800;
   letter-spacing: 0.06em;
@@ -234,9 +292,9 @@ html, body {
 }
 
 .synth-midi-btn.active {
-  background: #F2B33D;
-  color: #1F1A2E;
-  border-color: #F2B33D;
+  background: var(--accent);
+  color: var(--accent-ink);
+  border-color: var(--accent);
 }
 
 .synth-panic-btn:active {
@@ -250,11 +308,16 @@ html, body {
   max-width: 170px;
   padding: 2px 6px;
   border-radius: 6px;
-  border: 1px solid #3a3450;
-  background: #120f19;
-  color: #ECE6DA;
+  border: 1px solid var(--btn-border);
+  background: var(--ctl-bg);
+  color: var(--ink);
   font-size: 0.74rem;
   font-weight: 700;
+}
+
+.synth-midi-select option {
+  background: var(--panel-bg);
+  color: var(--ink);
 }
 
 .synth-midi-select[hidden] {
@@ -265,22 +328,33 @@ html, body {
   width: 9px;
   height: 9px;
   border-radius: 50%;
-  background: #2c2740;
-  border: 1px solid #4a4460;
+  background: var(--led-off);
+  border: 1px solid var(--led-off-edge);
   flex-shrink: 0;
   transition: background-color 60ms, box-shadow 60ms;
 }
 
 .midi-led.is-on {
-  background: #F2B33D;
-  border-color: #F2B33D;
-  box-shadow: 0 0 8px rgba(242,179,61,0.9);
+  background: var(--accent);
+  border-color: var(--accent);
+  box-shadow: 0 0 8px var(--accent-glow);
 }
 
 .synth-midi-msg {
   font-size: 0.72rem;
-  color: #F2B33D;
+  color: var(--accent);
   font-weight: 700;
+}
+
+/* Skin picker sits at the end of the MIDI bar */
+.synth-skin {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--ink-dim);
 }
 
 .synth-sections {
@@ -290,9 +364,10 @@ html, body {
 }
 
 .synth-sec {
-  background: #1a1724;
-  border: 1px solid #2c2740;
-  border-radius: 10px;
+  background: var(--sec-bg);
+  border: 1px solid var(--sec-border);
+  border-radius: var(--sec-radius);
+  box-shadow: var(--sec-shadow);
   padding: 8px 8px 10px;
 }
 
@@ -300,8 +375,9 @@ html, body {
   margin: 0 0 6px;
   font-size: 0.7rem;
   letter-spacing: 0.16em;
-  color: #F2B33D;
+  color: var(--sec-head);
   font-weight: 800;
+  font-family: var(--font-head);
 }
 
 .synth-choice {
@@ -315,9 +391,9 @@ html, body {
   flex: 1;
   min-height: 32px;
   border-radius: 6px;
-  border: 1px solid #3a3450;
-  background: #120f19;
-  color: #b9b1cc;
+  border: 1px solid var(--btn-border);
+  background: var(--ctl-bg);
+  color: var(--ctl-ink);
   font-size: 0.82rem;
   font-weight: 800;
   cursor: pointer;
@@ -325,10 +401,10 @@ html, body {
 }
 
 .synth-choice-btn.active {
-  background: #2f2944;
-  color: #F2B33D;
-  border-color: #F2B33D;
-  box-shadow: 0 0 8px rgba(242,179,61,0.35);
+  background: var(--choice-active-bg);
+  color: var(--choice-active-ink);
+  border-color: var(--accent);
+  box-shadow: 0 0 8px var(--accent-glow-soft);
 }
 
 .sk-row {
@@ -355,8 +431,8 @@ html, body {
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: radial-gradient(circle at 35% 30%, #4a4460 0%, #25212f 60%, #17141f 100%);
-  box-shadow: 0 2px 4px rgba(0,0,0,0.6), 0 0 0 3px #120f19, 0 0 0 4px #2c2740;
+  background: var(--knob-face);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.6), 0 0 0 3px var(--knob-gap), 0 0 0 4px var(--knob-edge);
 }
 
 .sk-dial::before {
@@ -364,10 +440,11 @@ html, body {
   position: absolute;
   inset: -6px;
   border-radius: 50%;
-  background: conic-gradient(from 225deg, #F2B33D calc(var(--n) * 270deg), transparent 0);
+  background: conic-gradient(from 225deg, var(--knob-arc) calc(var(--n) * 270deg), var(--knob-track) 0 270deg, transparent 0);
   -webkit-mask: radial-gradient(circle, transparent 23px, #000 24px);
   mask: radial-gradient(circle, transparent 23px, #000 24px);
   opacity: 0.9;
+  filter: var(--knob-arc-filter);
 }
 
 .sk-ind {
@@ -378,10 +455,10 @@ html, body {
   height: 13px;
   margin-left: -1.5px;
   border-radius: 2px;
-  background: #F2B33D;
+  background: var(--knob-ind);
   transform-origin: 50% 16px;
   transform: rotate(calc(-135deg + var(--n) * 270deg));
-  box-shadow: 0 0 4px rgba(242,179,61,0.8);
+  box-shadow: 0 0 4px var(--knob-ind-glow);
 }
 
 .sk-dot {
@@ -392,8 +469,8 @@ html, body {
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: #F2B33D;
-  box-shadow: 0 0 5px rgba(242,179,61,0.9);
+  background: var(--accent);
+  box-shadow: 0 0 5px var(--accent-glow);
   pointer-events: none;
 }
 
@@ -405,17 +482,17 @@ html, body {
 .sk.dragging .sk-dial,
 .sk:focus-visible .sk-dial,
 .sk.is-learning .sk-dial {
-  box-shadow: 0 0 0 3px #120f19, 0 0 0 5px #F2B33D;
+  box-shadow: 0 0 0 3px var(--knob-gap), 0 0 0 5px var(--accent);
 }
 
 .sk.is-learning .sk-dial {
-  box-shadow: 0 0 0 3px #120f19, 0 0 0 5px #F2B33D, 0 0 14px rgba(242,179,61,0.85);
+  box-shadow: 0 0 0 3px var(--knob-gap), 0 0 0 5px var(--accent), 0 0 14px var(--accent-glow);
 }
 
 .synth-choice.is-learning {
-  outline: 2px solid #F2B33D;
+  outline: 2px solid var(--accent);
   border-radius: 6px;
-  box-shadow: 0 0 12px rgba(242,179,61,0.7);
+  box-shadow: 0 0 12px var(--accent-glow);
 }
 
 .sk-label {
@@ -423,12 +500,12 @@ html, body {
   font-size: 0.62rem;
   letter-spacing: 0.08em;
   font-weight: 800;
-  color: #9b93b0;
+  color: var(--label-ink);
 }
 
 .sk-val {
   font-size: 0.66rem;
-  color: #ECE6DA;
+  color: var(--value-ink);
   font-variant-numeric: tabular-nums;
   min-height: 1em;
 }
@@ -451,7 +528,7 @@ html, body {
 .synth-hint {
   margin-top: 8px;
   font-size: 0.74rem;
-  color: #8a83a0;
+  color: var(--ink-faint);
   text-align: center;
 }
 
@@ -466,4 +543,11 @@ html, body {
   .sk {
     width: 46px;
   }
+  .synth-skin {
+    margin-left: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .midi-led { transition: none; }
 }

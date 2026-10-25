@@ -3,6 +3,8 @@
  */
 
 import "./index.css";
+import "./ui/skins.css";
+import { initSkin } from "./ui/skins";
 import { unlockAudio } from "./engine/bus";
 import { requestMidi } from "./engine/midi";
 import { SYNTH_PARAMS } from "./engine/params";
@@ -25,6 +27,7 @@ import { initPanelInteractions, renderSynthPanelHtml } from "./ui/panel";
 import { startSynthScope } from "./ui/scope";
 
 function initApp(): void {
+  initSkin();
   const panelContainer = document.getElementById("sy1-panel");
   if (panelContainer) {
     panelContainer.innerHTML = renderSynthPanelHtml();
