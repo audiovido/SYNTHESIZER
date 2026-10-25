@@ -2,5 +2,5 @@
   "name": "SY-1 Synth",
   "description": "SY-1 standalone browser subtractive synthesizer built with Web Audio.",
   "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+  "majorCapabilities": []
 }

@@ -23,7 +23,7 @@ export function renderSynthKnob(key: string, label: string): string {
   const mapped = isParamMapped(key);
   const cc = getParamMappedCc(key);
   const learning = isLearnMode() && getLearnTargetParam() === key;
-  const titleAttr = mapped ? ` title="Mapped to CC${cc} (right-click or long-press to unmap)"` : "";
+  const titleAttr = mapped ? ` title="Mapped to CC${cc} (right-click, or long-press in LEARN, to unmap)"` : "";
 
   return `<div class="sk${mapped ? " is-mapped" : ""}${learning ? " is-learning" : ""}" data-param="${key}" role="slider" tabindex="0" aria-label="${label}" aria-valuetext="${escapeHtml(fmtVal)}"${titleAttr}>
       <div class="sk-dial" style="--n:${n.toFixed(4)}"><span class="sk-ind"></span><span class="sk-dot"></span></div>
@@ -66,7 +66,7 @@ export function updateMidiLearnDOM(): void {
     el.classList.toggle("is-mapped", mapped);
     el.classList.toggle("is-learning", learningKey === key);
     if (mapped) {
-      el.setAttribute("title", `Mapped to CC${cc} (right-click or long-press to unmap)`);
+      el.setAttribute("title", `Mapped to CC${cc} (right-click, or long-press in LEARN, to unmap)`);
     } else {
       el.removeAttribute("title");
     }
@@ -82,8 +82,11 @@ let synthDrag: {
   el: HTMLElement;
 } | null = null;
 
+// Touch long-press removes a MIDI mapping, but only while LEARN mode is on.
+// In LEARN mode a short tap selects the control for mapping; holding it still unmaps it.
 let longPressTimer: ReturnType<typeof setTimeout> | null = null;
-let longPressStart: { x: number; y: number; id: number } | null = null;
+let longPressStart: { x: number; y: number; id: number; key: string } | null = null;
+let lastPointerType = "mouse";
 
 function clearLongPress(): void {
   if (longPressTimer) {
@@ -93,19 +96,36 @@ function clearLongPress(): void {
   longPressStart = null;
 }
 
+function learnPointerDown(e: PointerEvent, key: string): void {
+  e.preventDefault();
+  clearLongPress();
+  if (e.pointerType === "touch" && isParamMapped(key)) {
+    longPressStart = { x: e.clientX, y: e.clientY, id: e.pointerId, key };
+    longPressTimer = setTimeout(() => {
+      removeParamMapping(key);
+      clearLongPress();
+    }, 500);
+    return;
+  }
+  selectLearnParam(key);
+}
+
 export function initKnobInteractions(): void {
-  // Right-click removes MIDI mapping on mapped knob or choice group
+  // Right-click removes a MIDI mapping. A touch long-press also fires contextmenu on
+  // some phones: outside LEARN mode that must never unmap, so only block the menu.
   document.addEventListener("contextmenu", (e) => {
     const target = (e.target as HTMLElement)?.closest?.(".sk[data-param], .synth-choice[data-param]") as HTMLElement | null;
     if (!target) return;
     const key = target.getAttribute("data-param");
-    if (key && isParamMapped(key)) {
-      e.preventDefault();
-      removeParamMapping(key);
-    }
+    if (!key || !isParamMapped(key)) return;
+    e.preventDefault();
+    if (lastPointerType === "touch" && !isLearnMode()) return;
+    clearLongPress();
+    removeParamMapping(key);
   });
 
   document.addEventListener("pointerdown", (e) => {
+    lastPointerType = e.pointerType;
     // Allow right-click to be handled by contextmenu
     if (e.button === 2) return;
 
@@ -113,8 +133,7 @@ export function initKnobInteractions(): void {
     if (choiceEl && isLearnMode()) {
       const cKey = choiceEl.getAttribute("data-param");
       if (cKey) {
-        e.preventDefault();
-        selectLearnParam(cKey);
+        learnPointerDown(e, cKey);
         return;
       }
     }
@@ -126,24 +145,10 @@ export function initKnobInteractions(): void {
     const key = knob.getAttribute("data-param");
     if (!key) return;
 
-    // In MIDI Learn mode, clicking a knob selects it for mapping
+    // In MIDI Learn mode, tapping a knob selects it for mapping
     if (isLearnMode()) {
-      selectLearnParam(key);
+      learnPointerDown(e, key);
       return;
-    }
-
-    // Long-press on touch to remove mapping
-    clearLongPress();
-    if (e.pointerType === "touch" && isParamMapped(key)) {
-      longPressStart = { x: e.clientX, y: e.clientY, id: e.pointerId };
-      longPressTimer = setTimeout(() => {
-        removeParamMapping(key);
-        if (synthDrag && synthDrag.id === e.pointerId) {
-          synthDrag.el.classList.remove("dragging");
-          synthDrag = null;
-        }
-        clearLongPress();
-      }, 500);
     }
 
     synthDrag = {
@@ -175,6 +180,10 @@ export function initKnobInteractions(): void {
 
   const endSynthDrag = (e?: PointerEvent) => {
     if (longPressStart && (!e || e.pointerId === longPressStart.id)) {
+      // A short tap in LEARN mode (timer still pending) selects the control
+      if (e && e.type === "pointerup" && longPressTimer) {
+        selectLearnParam(longPressStart.key);
+      }
       clearLongPress();
     }
     if (!synthDrag || (e && e.pointerId !== synthDrag.id)) return;

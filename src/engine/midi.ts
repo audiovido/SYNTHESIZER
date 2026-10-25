@@ -284,7 +284,7 @@ export async function requestMidi(): Promise<void> {
     };
     notifyMidiState();
   } catch (err) {
-    midiStatusMessage = "MIDI needs Chrome or Edge on desktop or Android";
+    midiStatusMessage = "MIDI permission was blocked. Allow MIDI in the site settings, or open the app in its own tab.";
     notifyMidiState();
   }
 }

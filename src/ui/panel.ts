@@ -114,7 +114,7 @@ export function renderSynthPanelHtml(): string {
         <section class="synth-sec"><h4>DELAY</h4><div class="sk-row">${renderSynthKnob("delayTime", "TIME")}${renderSynthKnob("delayFb", "FDBK")}${renderSynthKnob("delayMix", "MIX")}</div></section>
         <section class="synth-sec"><h4>REVERB · OUT</h4><div class="sk-row">${renderSynthKnob("revSize", "SIZE")}${renderSynthKnob("revMix", "MIX")}${renderSynthKnob("volume", "VOL")}</div></section>
       </div>
-      <div class="synth-hint">Drag a knob up/down (or scroll / arrow keys) · double-click to reset · right-click/long-press unmaps CC · keys A W S E D F T G Y H U J K · Z/X = octave</div>
+      <div class="synth-hint">Drag a knob up/down (or scroll / arrow keys) · double-click to reset · right-click (or long-press in LEARN) unmaps CC · keys A W S E D F T G Y H U J K · Z/X = octave</div>
     </div>`;
 }
 

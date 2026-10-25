@@ -113,7 +113,7 @@ export function initKeyboardInteractions(): void {
   document.addEventListener("keydown", (e) => {
     if (e.repeat || e.metaKey || e.ctrlKey || e.altKey) return;
     const target = e.target as HTMLElement | null;
-    if (target?.closest?.(".sk, input, textarea")) return;
+    if (target?.closest?.(".sk, input, textarea, select")) return;
 
     const k = e.key.toLowerCase();
     if (k === "z") {
