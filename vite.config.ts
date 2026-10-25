@@ -3,6 +3,8 @@ import {defineConfig} from 'vite';
 
 export default defineConfig(() => {
   return {
+    // Relative asset paths so the build works on GitHub Pages (/SYNTHESIZER/) and anywhere else.
+    base: './',
     resolve: {
       alias: {
         '@': path.resolve(__dirname, '.'),
