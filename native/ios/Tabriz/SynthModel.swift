@@ -212,8 +212,9 @@ final class SynthModel: ObservableObject {
         engine.setPreferredBufferFrames(Int32(frames))
     }
 
+    /// Moves the keyboard only: HOLD-latched notes and a running arpeggio keep playing
+    /// (keys held down while shifting are released by the keyboard view, like lifting the finger).
     func shiftOctave(_ d: Int) {
-        engine.allNotesOff()
         octave = max(-3, min(3, octave + d))
     }
 

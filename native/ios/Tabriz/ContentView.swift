@@ -68,6 +68,8 @@ struct ContentView: View {
                     .foregroundColor(Theme.cream)
                 Text(model.panel?.role ?? "").font(.system(size: 10)).foregroundColor(Theme.inkFaint)
             }
+            ScopeView(engine: model.engine)
+                .frame(width: 180, height: 40)
             Spacer(minLength: 6)
             pill("chevron.left") { model.step(-1) }
             Menu {

@@ -19,6 +19,9 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)setNumber:(double)value forKey:(NSString *)key;
 - (void)setChoice:(NSString *)value forKey:(NSString *)key;
 
+/// Copies the most recent `count` output samples (up to 4096) for the oscilloscope.
+- (void)copyScopeInto:(float *)buffer count:(int)count;
+
 @property (nonatomic, readonly) double sampleRate;
 @property (nonatomic, readonly) int bufferFrames;        ///< frames per render call (measured)
 @property (nonatomic, readonly) double ioBufferMs;       ///< hardware buffer duration

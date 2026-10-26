@@ -15,6 +15,11 @@ namespace {
 struct Stats {
   std::atomic<double> load{0}, peak{0};
   std::atomic<int> frames{0}, glitches{0};
+  // oscilloscope: the last 4096 output samples (written by the audio thread, read by the UI)
+  static constexpr uint32_t kScope = 4096;
+  std::atomic<float> scope[kScope];
+  std::atomic<uint32_t> scopeW{0};
+  Stats() { for (auto& s : scope) s.store(0, std::memory_order_relaxed); }
 };
 }  // namespace
 
@@ -74,6 +79,9 @@ struct Stats {
         float *L = static_cast<float *>(abl->mBuffers[0].mData);
         float *R = abl->mNumberBuffers > 1 ? static_cast<float *>(abl->mBuffers[1].mData) : nullptr;
         host->render(L, R, static_cast<int>(frameCount));
+        uint32_t w = stats->scopeW.load(std::memory_order_relaxed);
+        for (AVAudioFrameCount i = 0; i < frameCount; i++) stats->scope[(w + i) & (Stats::kScope - 1)].store(L[i], std::memory_order_relaxed);
+        stats->scopeW.store(w + frameCount, std::memory_order_release);
         const double ns = double(mach_absolute_time() - t0) * tb.numer / tb.denom;
         const double load = ns / (frameCount / sr * 1e9);
         stats->load.store(stats->load.load(std::memory_order_relaxed) * 0.98 + load * 0.02, std::memory_order_relaxed);
@@ -118,6 +126,12 @@ struct Stats {
 - (void)setChoice:(NSString *)value forKey:(NSString *)key {
   _params[key] = [value copy];
   if (_mono) _mono->setStr(key.UTF8String, value.UTF8String);
+}
+
+- (void)copyScopeInto:(float *)buffer count:(int)count {
+  const uint32_t n = static_cast<uint32_t>(count) < Stats::kScope ? static_cast<uint32_t>(count) : Stats::kScope;
+  const uint32_t end = _stats->scopeW.load(std::memory_order_acquire);
+  for (uint32_t i = 0; i < n; i++) buffer[i] = _stats->scope[(end - n + i) & (Stats::kScope - 1)].load(std::memory_order_relaxed);
 }
 
 - (double)sampleRate { return _sr; }

@@ -284,3 +284,45 @@ struct WheelStrip: View {
         .frame(width: 34)
     }
 }
+
+// MARK: - Oscilloscope (green CRT, same drawing as src/ui/scope.ts)
+
+struct ScopeView: View {
+    let engine: SynthEngine
+
+    var body: some View {
+        TimelineView(.animation) { timeline in
+            Canvas { ctx, size in
+                let w = size.width, h = size.height
+                // centre line (grid)
+                var grid = Path()
+                grid.move(to: CGPoint(x: 0, y: h / 2))
+                grid.addLine(to: CGPoint(x: w, y: h / 2))
+                ctx.stroke(grid, with: .color(Color(red: 116 / 255, green: 1, blue: 152 / 255).opacity(0.18)), lineWidth: 1)
+                // latest samples, starting at the first rising zero crossing (stable trace)
+                var samples = [Float](repeating: 0, count: 2048)
+                samples.withUnsafeMutableBufferPointer { p in
+                    if let base = p.baseAddress { engine.copyScope(into: base, count: Int32(p.count)) }
+                }
+                var start = 0
+                for i in 1..<1024 where samples[i - 1] < 0 && samples[i] >= 0 { start = i; break }
+                var line = Path()
+                let cols = max(1, Int(w))
+                for x in 0..<cols {
+                    let v = Double(max(-1, min(1, samples[start + Int(Double(x) / Double(cols) * 1000)])))
+                    let pt = CGPoint(x: CGFloat(x), y: h / 2 - CGFloat(v) * (h / 2 - 3))
+                    if x == 0 { line.move(to: pt) } else { line.addLine(to: pt) }
+                }
+                let green = Color(red: 116 / 255, green: 1, blue: 152 / 255)
+                ctx.addFilter(.shadow(color: green, radius: 3))
+                ctx.stroke(line, with: .color(green), lineWidth: 2)
+                _ = timeline.date
+            }
+        }
+        .background(RadialGradient(colors: [Color(hex: 0x12361d), Color(hex: 0x06170c)], center: .center, startRadius: 0, endRadius: 120))
+        .clipShape(RoundedRectangle(cornerRadius: 4))
+        .overlay(RoundedRectangle(cornerRadius: 4).stroke(Color(hex: 0x2c2c2c), lineWidth: 3))
+        .shadow(color: .black, radius: 1)
+        .accessibilityHidden(true)
+    }
+}
