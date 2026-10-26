@@ -41,8 +41,7 @@ struct ContentView: View {
 
     // walnut cheek
     private var walnut: some View {
-        LinearGradient(stops: Theme.walnut.enumerated().map { Gradient.Stop(color: $0.element, location: Double($0.offset) / 4) },
-                       startPoint: .topLeading, endPoint: .bottomTrailing)
+        LinearGradient(colors: Theme.walnut, startPoint: .topLeading, endPoint: .bottomTrailing)
             .overlay(LinearGradient(colors: [.black.opacity(0.45), .clear, .black.opacity(0.45)], startPoint: .leading, endPoint: .trailing))
             .frame(width: 14)
             .ignoresSafeArea()
@@ -121,9 +120,7 @@ struct ContentView: View {
                     Text(p.label).font(.system(size: 13, weight: .bold))
                         .foregroundColor(on ? Theme.accentInk : Theme.cream)
                         .frame(maxWidth: 170).frame(height: 30)
-                        .background(RoundedRectangle(cornerRadius: 3)
-                            .fill(on ? AnyShapeStyle(LinearGradient(colors: [Theme.accentHi, Theme.accent, Theme.accentLo], startPoint: .top, endPoint: .bottom))
-                                     : AnyShapeStyle(Color(hex: 0x262320))))
+                        .background(tabBackground(on))
                 }
                 .buttonStyle(.plain)
             }
@@ -133,25 +130,47 @@ struct ContentView: View {
         }
     }
 
+    private func tabBackground(_ on: Bool) -> some View {
+        let active = LinearGradient(colors: [Theme.accentHi, Theme.accent, Theme.accentLo], startPoint: .top, endPoint: .bottom)
+        let idle = LinearGradient(colors: [Color(hex: 0x262320), Color(hex: 0x262320)], startPoint: .top, endPoint: .bottom)
+        return RoundedRectangle(cornerRadius: 3).fill(on ? active : idle)
+    }
+
     // MARK: sections of the current page
 
     private var sections: some View {
         GeometryReader { geo in
-            let secs = (model.panel?.sections ?? []).filter { $0.page == model.page }
-            let cols = CGFloat(max(1, secs.count))
-            let cardW = (geo.size.width - 8 * (cols - 1)) / cols
-            // tallest content: header + choice + full row + small row
-            let byHeight = (geo.size.height - 22 - 16 - 30 - 3 * 8 - 2 * 30) / 1.78
-            let byWidth = cardW / 3.5 - 8
-            let size = min(84, max(34, min(byHeight, byWidth)))
-            HStack(alignment: .top, spacing: 8) {
-                ForEach(secs, id: \.self) { s in
-                    SectionCard(title: s.title) {
-                        ForEach(Array(s.controls.enumerated()), id: \.offset) { _, c in control(c) }
-                    }
-                }
-            }
-            .environment(\.knobSize, size)
+            sectionRow(size: geo.size)
+        }
+    }
+
+    private var pageSections: [SectionDef] {
+        (model.panel?.sections ?? []).filter { $0.page == model.page }
+    }
+
+    /// Knob size that lets the tallest section (header + choice + full row + small row) fit.
+    private func knobSize(for size: CGSize, columns: Int) -> CGFloat {
+        let cols = CGFloat(max(1, columns))
+        let cardW: CGFloat = (size.width - 8 * (cols - 1)) / cols
+        let usable: CGFloat = size.height - 152
+        let byHeight: CGFloat = usable / 1.78
+        let byWidth: CGFloat = cardW / 3.5 - 8
+        let s: CGFloat = min(byHeight, byWidth)
+        return min(84, max(34, s))
+    }
+
+    private func sectionRow(size: CGSize) -> some View {
+        let secs = pageSections
+        let k = knobSize(for: size, columns: secs.count)
+        return HStack(alignment: .top, spacing: 8) {
+            ForEach(secs, id: \.self) { s in sectionCard(s) }
+        }
+        .environment(\.knobSize, k)
+    }
+
+    private func sectionCard(_ s: SectionDef) -> some View {
+        SectionCard(title: s.title) {
+            ForEach(Array(s.controls.enumerated()), id: \.offset) { _, c in control(c) }
         }
     }
 

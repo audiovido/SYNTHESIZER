@@ -130,7 +130,7 @@ proj_release = dict(proj_common, DEBUG_INFORMATION_FORMAT="dwarf-with-dsym", ENA
                     SWIFT_COMPILATION_MODE="wholemodule", SWIFT_OPTIMIZATION_LEVEL="-O", VALIDATE_PRODUCT="YES",
                     GCC_OPTIMIZATION_LEVEL="3")
 target = {
-    "CODE_SIGN_STYLE": "Automatic", "CURRENT_PROJECT_VERSION": "1", "DEVELOPMENT_TEAM": "",
+    "CODE_SIGN_STYLE": "Automatic", "CURRENT_PROJECT_VERSION": "1", "DEVELOPMENT_TEAM": "DKJ9UJHCRR",  # Armin Shokri (Personal Team)
     "GENERATE_INFOPLIST_FILE": "YES", "HEADER_SEARCH_PATHS": ["$(inherited)", "$(SRCROOT)/../dsp"],
     "INFOPLIST_KEY_CFBundleDisplayName": "Tabriz", "INFOPLIST_KEY_UIApplicationSceneManifest_Generation": "YES",
     "INFOPLIST_KEY_UILaunchScreen_Generation": "YES", "INFOPLIST_KEY_UIRequiresFullScreen": "YES",
