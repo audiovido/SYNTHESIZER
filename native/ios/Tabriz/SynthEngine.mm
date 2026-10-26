@@ -107,6 +107,8 @@ struct Stats {
 - (void)noteDown:(int)midi velocity:(double)velocity { if (_mono) _mono->noteDown(midi, velocity); }
 - (void)noteUp:(int)midi { if (_mono) _mono->noteUp(midi); }
 - (void)allNotesOff { if (_mono) _mono->allOff(); }
+- (void)setPitchBend:(double)value { if (_mono) _mono->bend(value); }
+- (void)setModWheel:(double)value { if (_mono) _mono->mod(value); }
 
 - (void)setNumber:(double)value forKey:(NSString *)key {
   _params[key] = @(value);

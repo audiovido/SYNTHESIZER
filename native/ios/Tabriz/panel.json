@@ -1,0 +1,878 @@
+{
+ "name": "Tabriz",
+ "role": "Mono leads & bass",
+ "pages": [
+  {
+   "id": "osc",
+   "label": "Osc"
+  },
+  {
+   "id": "filter",
+   "label": "Filter & amp"
+  },
+  {
+   "id": "voice",
+   "label": "Voice"
+  },
+  {
+   "id": "fx",
+   "label": "Effects"
+  }
+ ],
+ "sections": [
+  {
+   "title": "OSC 1",
+   "page": "osc",
+   "controls": [
+    {
+     "kind": "choice",
+     "key": "osc1Wave",
+     "options": [
+      {
+       "value": "sawtooth",
+       "text": "⩘",
+       "title": "Saw"
+      },
+      {
+       "value": "square",
+       "text": "⊓",
+       "title": "Square"
+      },
+      {
+       "value": "triangle",
+       "text": "△",
+       "title": "Triangle"
+      },
+      {
+       "value": "sine",
+       "text": "∿",
+       "title": "Sine"
+      }
+     ]
+    },
+    {
+     "kind": "row",
+     "knobs": [
+      {
+       "key": "osc1Oct",
+       "label": "OCT"
+      },
+      {
+       "key": "sub",
+       "label": "SUB"
+      },
+      {
+       "key": "noise",
+       "label": "NOISE"
+      }
+     ],
+     "small": false,
+     "caption": ""
+    }
+   ]
+  },
+  {
+   "title": "OSC 2",
+   "page": "osc",
+   "controls": [
+    {
+     "kind": "choice",
+     "key": "osc2Wave",
+     "options": [
+      {
+       "value": "sawtooth",
+       "text": "⩘",
+       "title": "Saw"
+      },
+      {
+       "value": "square",
+       "text": "⊓",
+       "title": "Square"
+      },
+      {
+       "value": "triangle",
+       "text": "△",
+       "title": "Triangle"
+      },
+      {
+       "value": "sine",
+       "text": "∿",
+       "title": "Sine"
+      }
+     ]
+    },
+    {
+     "kind": "row",
+     "knobs": [
+      {
+       "key": "osc2Oct",
+       "label": "OCT"
+      },
+      {
+       "key": "osc2Detune",
+       "label": "DETUNE"
+      },
+      {
+       "key": "oscMix",
+       "label": "MIX"
+      }
+     ],
+     "small": false,
+     "caption": ""
+    }
+   ]
+  },
+  {
+   "title": "OSC 3",
+   "page": "osc",
+   "controls": [
+    {
+     "kind": "choice",
+     "key": "osc3Wave",
+     "options": [
+      {
+       "value": "triangle",
+       "text": "△",
+       "title": "Triangle"
+      },
+      {
+       "value": "sawtooth",
+       "text": "⩘",
+       "title": "Saw"
+      },
+      {
+       "value": "revsaw",
+       "text": "⩗",
+       "title": "Reverse saw"
+      },
+      {
+       "value": "square",
+       "text": "⊓",
+       "title": "Square"
+      }
+     ]
+    },
+    {
+     "kind": "row",
+     "knobs": [
+      {
+       "key": "osc3Oct",
+       "label": "OCT"
+      },
+      {
+       "key": "osc3Detune",
+       "label": "DETUNE"
+      },
+      {
+       "key": "osc3Level",
+       "label": "LEVEL"
+      }
+     ],
+     "small": false,
+     "caption": ""
+    }
+   ]
+  },
+  {
+   "title": "LADDER",
+   "page": "filter",
+   "controls": [
+    {
+     "kind": "choice",
+     "key": "filterType",
+     "options": [
+      {
+       "value": "lp24",
+       "text": "24",
+       "title": "Ladder low-pass 24 dB"
+      },
+      {
+       "value": "lowpass",
+       "text": "12",
+       "title": "Ladder low-pass 12 dB"
+      },
+      {
+       "value": "bandpass",
+       "text": "BP",
+       "title": "Ladder band-pass"
+      },
+      {
+       "value": "highpass",
+       "text": "HP",
+       "title": "Ladder high-pass"
+      }
+     ]
+    },
+    {
+     "kind": "row",
+     "knobs": [
+      {
+       "key": "cutoff",
+       "label": "CUTOFF"
+      },
+      {
+       "key": "res",
+       "label": "EMPHASIS"
+      },
+      {
+       "key": "envAmt",
+       "label": "CONTOUR"
+      }
+     ],
+     "small": false,
+     "caption": ""
+    },
+    {
+     "kind": "row",
+     "knobs": [
+      {
+       "key": "fA",
+       "label": "A"
+      },
+      {
+       "key": "fD",
+       "label": "D"
+      },
+      {
+       "key": "fS",
+       "label": "S"
+      }
+     ],
+     "small": true,
+     "caption": ""
+    }
+   ]
+  },
+  {
+   "title": "AMP ENV",
+   "page": "filter",
+   "controls": [
+    {
+     "kind": "row",
+     "knobs": [
+      {
+       "key": "aA",
+       "label": "ATTACK"
+      },
+      {
+       "key": "aD",
+       "label": "DECAY"
+      },
+      {
+       "key": "velSens",
+       "label": "VEL"
+      }
+     ],
+     "small": false,
+     "caption": ""
+    },
+    {
+     "kind": "row",
+     "knobs": [
+      {
+       "key": "aS",
+       "label": "SUSTAIN"
+      },
+      {
+       "key": "aR",
+       "label": "RELEASE"
+      }
+     ],
+     "small": false,
+     "caption": ""
+    }
+   ]
+  },
+  {
+   "title": "VOICE",
+   "page": "voice",
+   "controls": [
+    {
+     "kind": "toggles",
+     "items": [
+      {
+       "key": "polyMode",
+       "label": "MONO",
+       "on": "mono",
+       "off": "poly"
+      },
+      {
+       "key": "legato",
+       "label": "LEGATO",
+       "on": "on",
+       "off": "off"
+      }
+     ]
+    },
+    {
+     "kind": "row",
+     "knobs": [
+      {
+       "key": "glide",
+       "label": "GLIDE"
+      },
+      {
+       "key": "bendRange",
+       "label": "BEND"
+      },
+      {
+       "key": "velSens",
+       "label": "VEL"
+      }
+     ],
+     "small": false,
+     "caption": ""
+    }
+   ]
+  },
+  {
+   "title": "ANALOG",
+   "page": "voice",
+   "controls": [
+    {
+     "kind": "row",
+     "knobs": [
+      {
+       "key": "keyTrack",
+       "label": "KEY TRK"
+      },
+      {
+       "key": "filterDrive",
+       "label": "DRIVE"
+      },
+      {
+       "key": "drift",
+       "label": "DRIFT"
+      }
+     ],
+     "small": false,
+     "caption": ""
+    }
+   ]
+  },
+  {
+   "title": "LFO",
+   "page": "voice",
+   "controls": [
+    {
+     "kind": "choice",
+     "key": "lfoTarget",
+     "options": [
+      {
+       "value": "pitch",
+       "text": "PITCH",
+       "title": "PITCH"
+      },
+      {
+       "value": "filter",
+       "text": "FILTER",
+       "title": "FILTER"
+      },
+      {
+       "value": "amp",
+       "text": "AMP",
+       "title": "AMP"
+      }
+     ]
+    },
+    {
+     "kind": "row",
+     "knobs": [
+      {
+       "key": "lfoRate",
+       "label": "RATE"
+      },
+      {
+       "key": "lfoDepth",
+       "label": "DEPTH"
+      },
+      {
+       "key": "bendRange",
+       "label": "BEND"
+      }
+     ],
+     "small": false,
+     "caption": ""
+    }
+   ]
+  },
+  {
+   "title": "DRIVE · EQ",
+   "page": "fx",
+   "controls": [
+    {
+     "kind": "row",
+     "knobs": [
+      {
+       "key": "drive",
+       "label": "DRIVE"
+      },
+      {
+       "key": "eqLow",
+       "label": "LOW"
+      }
+     ],
+     "small": false,
+     "caption": ""
+    },
+    {
+     "kind": "row",
+     "knobs": [
+      {
+       "key": "eqMid",
+       "label": "MID"
+      },
+      {
+       "key": "eqHigh",
+       "label": "HIGH"
+      }
+     ],
+     "small": false,
+     "caption": ""
+    }
+   ]
+  },
+  {
+   "title": "SPACE",
+   "page": "fx",
+   "controls": [
+    {
+     "kind": "row",
+     "knobs": [
+      {
+       "key": "delayTime",
+       "label": "TIME"
+      },
+      {
+       "key": "delayFb",
+       "label": "FDBK"
+      },
+      {
+       "key": "delayMix",
+       "label": "DELAY"
+      }
+     ],
+     "small": false,
+     "caption": ""
+    },
+    {
+     "kind": "row",
+     "knobs": [
+      {
+       "key": "revSize",
+       "label": "SIZE"
+      },
+      {
+       "key": "revMix",
+       "label": "REVERB"
+      },
+      {
+       "key": "volume",
+       "label": "VOL"
+      }
+     ],
+     "small": false,
+     "caption": ""
+    }
+   ]
+  }
+ ],
+ "params": {
+  "filterType": {
+   "choice": true,
+   "options": [
+    "lowpass",
+    "lp24",
+    "bandpass",
+    "highpass"
+   ],
+   "def": "lowpass"
+  },
+  "volume": {
+   "min": 0,
+   "max": 1,
+   "step": 0,
+   "log": false,
+   "def": 0.7,
+   "kind": "pct"
+  },
+  "legato": {
+   "choice": true,
+   "options": [
+    "off",
+    "on"
+   ],
+   "def": "on"
+  },
+  "polyMode": {
+   "choice": true,
+   "options": [
+    "poly",
+    "mono"
+   ],
+   "def": "poly"
+  },
+  "lfoShape": {
+   "choice": true,
+   "options": [
+    "sine",
+    "triangle",
+    "square",
+    "sawtooth",
+    "sh"
+   ],
+   "def": "sine"
+  },
+  "osc3Wave": {
+   "choice": true,
+   "options": [
+    "triangle",
+    "sawtooth",
+    "revsaw",
+    "square"
+   ],
+   "def": "triangle"
+  },
+  "osc1Wave": {
+   "choice": true,
+   "options": [
+    "sawtooth",
+    "square",
+    "triangle",
+    "sine"
+   ],
+   "def": "sawtooth"
+  },
+  "osc1Oct": {
+   "min": -2,
+   "max": 2,
+   "step": 1,
+   "log": false,
+   "def": 0,
+   "kind": "signed"
+  },
+  "sub": {
+   "min": 0,
+   "max": 1,
+   "step": 0,
+   "log": false,
+   "def": 0.2,
+   "kind": "pct"
+  },
+  "noise": {
+   "min": 0,
+   "max": 1,
+   "step": 0,
+   "log": false,
+   "def": 0,
+   "kind": "pct"
+  },
+  "osc2Wave": {
+   "choice": true,
+   "options": [
+    "sawtooth",
+    "square",
+    "triangle",
+    "sine"
+   ],
+   "def": "square"
+  },
+  "osc2Oct": {
+   "min": -2,
+   "max": 2,
+   "step": 1,
+   "log": false,
+   "def": 0,
+   "kind": "signed"
+  },
+  "osc2Detune": {
+   "min": -50,
+   "max": 50,
+   "step": 1,
+   "log": false,
+   "def": 8,
+   "kind": "cents"
+  },
+  "oscMix": {
+   "min": 0,
+   "max": 1,
+   "step": 0,
+   "log": false,
+   "def": 0.45,
+   "kind": "pct"
+  },
+  "osc3Oct": {
+   "min": -2,
+   "max": 2,
+   "step": 1,
+   "log": false,
+   "def": -1,
+   "kind": "signed"
+  },
+  "osc3Detune": {
+   "min": -50,
+   "max": 50,
+   "step": 1,
+   "log": false,
+   "def": -5,
+   "kind": "cents"
+  },
+  "osc3Level": {
+   "min": 0,
+   "max": 1,
+   "step": 0,
+   "log": false,
+   "def": 0,
+   "kind": "pct"
+  },
+  "cutoff": {
+   "min": 40,
+   "max": 18000,
+   "step": 0,
+   "log": true,
+   "def": 2200,
+   "kind": "freq"
+  },
+  "res": {
+   "min": 0.1,
+   "max": 18,
+   "step": 0,
+   "log": true,
+   "def": 2,
+   "kind": "f1"
+  },
+  "envAmt": {
+   "min": 0,
+   "max": 1,
+   "step": 0,
+   "log": false,
+   "def": 0.45,
+   "kind": "pct"
+  },
+  "fA": {
+   "min": 0.001,
+   "max": 3,
+   "step": 0,
+   "log": true,
+   "def": 0.01,
+   "kind": "sec"
+  },
+  "fD": {
+   "min": 0.01,
+   "max": 4,
+   "step": 0,
+   "log": true,
+   "def": 0.35,
+   "kind": "sec"
+  },
+  "fS": {
+   "min": 0,
+   "max": 1,
+   "step": 0,
+   "log": false,
+   "def": 0.25,
+   "kind": "pct"
+  },
+  "aA": {
+   "min": 0.001,
+   "max": 4,
+   "step": 0,
+   "log": true,
+   "def": 0.008,
+   "kind": "sec"
+  },
+  "aD": {
+   "min": 0.01,
+   "max": 4,
+   "step": 0,
+   "log": true,
+   "def": 0.3,
+   "kind": "sec"
+  },
+  "velSens": {
+   "min": 0,
+   "max": 1,
+   "step": 0,
+   "log": false,
+   "def": 0.6,
+   "kind": "pct"
+  },
+  "aS": {
+   "min": 0,
+   "max": 1,
+   "step": 0,
+   "log": false,
+   "def": 0.75,
+   "kind": "pct"
+  },
+  "aR": {
+   "min": 0.01,
+   "max": 6,
+   "step": 0,
+   "log": true,
+   "def": 0.35,
+   "kind": "sec"
+  },
+  "glide": {
+   "min": 0,
+   "max": 1.5,
+   "step": 0,
+   "log": false,
+   "def": 0,
+   "kind": "secOff"
+  },
+  "bendRange": {
+   "min": 0,
+   "max": 12,
+   "step": 1,
+   "log": false,
+   "def": 2,
+   "kind": "st"
+  },
+  "keyTrack": {
+   "min": 0,
+   "max": 1,
+   "step": 0,
+   "log": false,
+   "def": 0.33,
+   "kind": "pct"
+  },
+  "filterDrive": {
+   "min": 0,
+   "max": 1,
+   "step": 0,
+   "log": false,
+   "def": 0.3,
+   "kind": "pct"
+  },
+  "drift": {
+   "min": 0,
+   "max": 1,
+   "step": 0,
+   "log": false,
+   "def": 0.25,
+   "kind": "pct"
+  },
+  "lfoTarget": {
+   "choice": true,
+   "options": [
+    "pitch",
+    "filter",
+    "amp"
+   ],
+   "def": "pitch"
+  },
+  "lfoRate": {
+   "min": 0.05,
+   "max": 20,
+   "step": 0,
+   "log": true,
+   "def": 5,
+   "kind": "hz"
+  },
+  "lfoDepth": {
+   "min": 0,
+   "max": 1,
+   "step": 0,
+   "log": false,
+   "def": 0,
+   "kind": "pct"
+  },
+  "drive": {
+   "min": 0,
+   "max": 1,
+   "step": 0,
+   "log": false,
+   "def": 0,
+   "kind": "pct"
+  },
+  "eqLow": {
+   "min": -12,
+   "max": 12,
+   "step": 0,
+   "log": false,
+   "def": 0,
+   "kind": "db"
+  },
+  "eqMid": {
+   "min": -12,
+   "max": 12,
+   "step": 0,
+   "log": false,
+   "def": 0,
+   "kind": "db"
+  },
+  "eqHigh": {
+   "min": -12,
+   "max": 12,
+   "step": 0,
+   "log": false,
+   "def": 0,
+   "kind": "db"
+  },
+  "delayTime": {
+   "min": 0.05,
+   "max": 1.2,
+   "step": 0,
+   "log": true,
+   "def": 0.32,
+   "kind": "sec"
+  },
+  "delayFb": {
+   "min": 0,
+   "max": 0.85,
+   "step": 0,
+   "log": false,
+   "def": 0.35,
+   "kind": "pct"
+  },
+  "delayMix": {
+   "min": 0,
+   "max": 1,
+   "step": 0,
+   "log": false,
+   "def": 0,
+   "kind": "pct"
+  },
+  "revSize": {
+   "min": 0.3,
+   "max": 6,
+   "step": 0,
+   "log": true,
+   "def": 2.2,
+   "kind": "sec"
+  },
+  "revMix": {
+   "min": 0,
+   "max": 1,
+   "step": 0,
+   "log": false,
+   "def": 0.18,
+   "kind": "pct"
+  },
+  "chorusMix": {
+   "min": 0,
+   "max": 1,
+   "step": 0,
+   "log": false,
+   "def": 0,
+   "kind": "pct"
+  },
+  "chorusRate": {
+   "min": 0.1,
+   "max": 6,
+   "step": 0,
+   "log": true,
+   "def": 0.6,
+   "kind": "hz"
+  },
+  "chorusDepth": {
+   "min": 0,
+   "max": 1,
+   "step": 0,
+   "log": false,
+   "def": 0.5,
+   "kind": "pct"
+  }
+ }
+}

@@ -1,53 +1,5 @@
-// Tabriz iOS — main screen: presets, knobs, engine stats, keyboard.
+// Tabriz iOS — main screen: header, page tabs, panel sections, wheels, keyboard.
 import SwiftUI
-
-extension Color {
-    static let panel = Color(red: 0.16, green: 0.11, blue: 0.08)
-    static let wood = Color(red: 0.30, green: 0.18, blue: 0.10)
-    static let accent = Color(red: 0.95, green: 0.55, blue: 0.20)
-    static let cream = Color(red: 0.93, green: 0.88, blue: 0.78)
-}
-
-struct Knob: View {
-    let spec: KnobSpec
-    let value: Double
-    let onChange: (Double) -> Void
-    @State private var startNorm: Double?
-
-    var body: some View {
-        let n = spec.norm(value)
-        VStack(spacing: 3) {
-            ZStack {
-                Circle().trim(from: 0, to: 0.75)
-                    .stroke(Color.black.opacity(0.45), style: StrokeStyle(lineWidth: 4, lineCap: .round))
-                    .rotationEffect(.degrees(135))
-                Circle().trim(from: 0, to: 0.75 * n)
-                    .stroke(Color.accent, style: StrokeStyle(lineWidth: 4, lineCap: .round))
-                    .rotationEffect(.degrees(135))
-                Circle().fill(LinearGradient(colors: [Color(white: 0.92), Color(white: 0.65)],
-                                             startPoint: .top, endPoint: .bottom))
-                    .padding(7)
-                    .shadow(radius: 2, y: 1)
-                Capsule().fill(Color.black.opacity(0.8))
-                    .frame(width: 3, height: 11)
-                    .offset(y: -10)
-                    .rotationEffect(.degrees(-135 + 270 * n))
-            }
-            .frame(width: 48, height: 48)
-            .contentShape(Rectangle())
-            .gesture(DragGesture(minimumDistance: 0)
-                .onChanged { g in
-                    if startNorm == nil { startNorm = n }
-                    let delta = (-g.translation.height + g.translation.width * 0.5) / 160
-                    onChange(spec.value((startNorm ?? n) + delta))
-                }
-                .onEnded { _ in startNorm = nil })
-            Text(spec.label).font(.system(size: 10, weight: .bold)).foregroundColor(.cream)
-            Text(spec.format(value)).font(.system(size: 10).monospacedDigit()).foregroundColor(.cream.opacity(0.7))
-        }
-        .frame(minWidth: 56)
-    }
-}
 
 struct ContentView: View {
     @StateObject private var model = SynthModel()
@@ -55,37 +7,59 @@ struct ContentView: View {
     var body: some View {
         GeometryReader { geo in
             let wide = geo.size.width > geo.size.height
-            VStack(spacing: 6) {
-                header
-                if let e = model.error {
-                    Text(e).font(.caption).foregroundColor(.red)
-                } else {
-                    Text(model.stats).font(.system(size: 10).monospacedDigit())
-                        .foregroundColor(.cream.opacity(0.65)).lineLimit(1).minimumScaleFactor(0.6)
+            let kbHeight = wide ? geo.size.height * 0.36 : geo.size.height * 0.3
+            HStack(spacing: 0) {
+                walnut
+                VStack(spacing: 6) {
+                    header
+                    tabs
+                    if let e = model.error {
+                        Text(e).font(.caption).foregroundColor(.red)
+                    }
+                    sections
+                    HStack(spacing: 6) {
+                        WheelStrip(label: "PB", springs: true) { model.bend($0) }
+                        WheelStrip(label: "MOD", springs: false) { model.mod($0) }
+                        KeyboardView(lowNote: 48 + model.octave * 12,
+                                     onDown: { model.engine.noteDown(Int32($0), velocity: $1) },
+                                     onUp: { model.engine.noteUp(Int32($0)) })
+                            .clipShape(RoundedRectangle(cornerRadius: 4))
+                    }
+                    .frame(height: kbHeight)
                 }
-                knobs(wide: wide)
-                KeyboardView(lowNote: 48 + model.octave * 12,
-                             onDown: { model.engine.noteDown(Int32($0), velocity: $1) },
-                             onUp: { model.engine.noteUp(Int32($0)) })
-                    .clipShape(RoundedRectangle(cornerRadius: 6))
-                    .frame(height: wide ? geo.size.height * 0.46 : geo.size.height * 0.36)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 6)
+                .background(LinearGradient(colors: [Theme.shellTop, Theme.shellBottom], startPoint: .top, endPoint: .bottom))
+                walnut
             }
-            .padding(.horizontal, 10)
-            .padding(.vertical, 6)
-            .background(RoundedRectangle(cornerRadius: 10).fill(Color.panel))
-            .padding(.horizontal, wide ? 14 : 6)
         }
-        .background(Color.wood.ignoresSafeArea())
+        .background(Theme.page.ignoresSafeArea())
         .statusBarHidden()
         .persistentSystemOverlays(.hidden)
         .defersSystemGestures(on: .all)
     }
 
+    // walnut cheek
+    private var walnut: some View {
+        LinearGradient(stops: Theme.walnut.enumerated().map { Gradient.Stop(color: $0.element, location: Double($0.offset) / 4) },
+                       startPoint: .topLeading, endPoint: .bottomTrailing)
+            .overlay(LinearGradient(colors: [.black.opacity(0.45), .clear, .black.opacity(0.45)], startPoint: .leading, endPoint: .trailing))
+            .frame(width: 14)
+            .ignoresSafeArea()
+    }
+
+    // MARK: header
+
     private var header: some View {
         HStack(spacing: 8) {
-            Text("TABRIZ").font(.system(size: 17, weight: .heavy)).foregroundColor(.accent)
-            Spacer(minLength: 4)
-            button("chevron.left") { model.step(-1) }
+            VStack(alignment: .leading, spacing: 0) {
+                Text(model.panel?.name ?? "Tabriz")
+                    .font(.system(size: 20, weight: .bold, design: .serif))
+                    .foregroundColor(Theme.cream)
+                Text(model.panel?.role ?? "").font(.system(size: 10)).foregroundColor(Theme.inkFaint)
+            }
+            Spacer(minLength: 6)
+            pill("chevron.left") { model.step(-1) }
             Menu {
                 ForEach(model.groups, id: \.self) { g in
                     Section(g) {
@@ -95,53 +69,115 @@ struct ContentView: View {
                     }
                 }
             } label: {
-                Text(model.currentName).font(.system(size: 14, weight: .semibold)).foregroundColor(.cream)
-                    .lineLimit(1).frame(minWidth: 120)
-                    .padding(.horizontal, 10).padding(.vertical, 6)
-                    .background(RoundedRectangle(cornerRadius: 6).fill(Color.black.opacity(0.35)))
+                HStack(spacing: 4) {
+                    Text(model.currentName).font(.system(size: 14, weight: .bold))
+                    if model.edited { Text("•").font(.system(size: 14, weight: .heavy)).foregroundColor(Theme.accent) }
+                }
+                .foregroundColor(Theme.btnInk)
+                .lineLimit(1)
+                .frame(minWidth: 150)
+                .padding(.horizontal, 12).padding(.vertical, 7)
+                .background(RoundedRectangle(cornerRadius: 3)
+                    .fill(LinearGradient(colors: [Theme.btnTop, Theme.btnBottom], startPoint: .top, endPoint: .bottom))
+                    .shadow(color: Color(hex: 0x6e6450), radius: 0, y: 3))
             }
-            button("chevron.right") { model.step(1) }
-            Spacer(minLength: 4)
+            pill("chevron.right") { model.step(1) }
+            if model.edited {
+                pill("arrow.uturn.backward") { model.revert() }
+            }
+            Spacer(minLength: 6)
             Menu {
                 ForEach([64, 128, 256, 512], id: \.self) { f in
                     Button("\(f) samples\(f == model.bufferFrames ? "  ✓" : "")") { model.setBuffer(f) }
                 }
             } label: {
-                Text("BUF \(model.bufferFrames)").font(.system(size: 11, weight: .bold)).foregroundColor(.cream)
-                    .padding(.horizontal, 8).padding(.vertical, 6)
-                    .background(RoundedRectangle(cornerRadius: 6).fill(Color.black.opacity(0.35)))
+                Text("BUF \(model.bufferFrames)").font(.system(size: 11, weight: .heavy)).foregroundColor(Theme.cream)
+                    .padding(.horizontal, 8).padding(.vertical, 7)
+                    .background(RoundedRectangle(cornerRadius: 3).fill(Color(hex: 0x33241a)))
             }
-            button("minus") { model.shiftOctave(-1) }
+            pill("minus") { model.shiftOctave(-1) }
             Text("OCT \(model.octave >= 0 ? "+" : "")\(model.octave)")
-                .font(.system(size: 11, weight: .bold).monospacedDigit()).foregroundColor(.cream)
-            button("plus") { model.shiftOctave(1) }
+                .font(.system(size: 11, weight: .heavy).monospacedDigit()).foregroundColor(Theme.cream)
+            pill("plus") { model.shiftOctave(1) }
         }
     }
 
-    private func button(_ icon: String, action: @escaping () -> Void) -> some View {
+    private func pill(_ icon: String, action: @escaping () -> Void) -> some View {
         Button(action: action) {
-            Image(systemName: icon).font(.system(size: 13, weight: .bold)).foregroundColor(.cream)
+            Image(systemName: icon).font(.system(size: 13, weight: .bold)).foregroundColor(Theme.cream)
                 .frame(width: 32, height: 30)
-                .background(RoundedRectangle(cornerRadius: 6).fill(Color.black.opacity(0.35)))
+                .background(RoundedRectangle(cornerRadius: 3).fill(LinearGradient(colors: [Color(hex: 0x4a3526), Color(hex: 0x33241a)],
+                                                                                   startPoint: .top, endPoint: .bottom)))
+        }
+    }
+
+    // MARK: page tabs
+
+    private var tabs: some View {
+        HStack(spacing: 6) {
+            ForEach(model.panel?.pages ?? [], id: \.self) { p in
+                let on = p.id == model.page
+                Button { model.page = p.id } label: {
+                    Text(p.label).font(.system(size: 13, weight: .bold))
+                        .foregroundColor(on ? Theme.accentInk : Theme.cream)
+                        .frame(maxWidth: 170).frame(height: 30)
+                        .background(RoundedRectangle(cornerRadius: 3)
+                            .fill(on ? AnyShapeStyle(LinearGradient(colors: [Theme.accentHi, Theme.accent, Theme.accentLo], startPoint: .top, endPoint: .bottom))
+                                     : AnyShapeStyle(Color(hex: 0x262320))))
+                }
+                .buttonStyle(.plain)
+            }
+            Spacer(minLength: 8)
+            Text(model.stats).font(.system(size: 9).monospacedDigit()).foregroundColor(Theme.inkFaint)
+                .lineLimit(1).minimumScaleFactor(0.5)
+        }
+    }
+
+    // MARK: sections of the current page
+
+    private var sections: some View {
+        GeometryReader { geo in
+            let secs = (model.panel?.sections ?? []).filter { $0.page == model.page }
+            let cols = CGFloat(max(1, secs.count))
+            let cardW = (geo.size.width - 8 * (cols - 1)) / cols
+            // tallest content: header + choice + full row + small row
+            let byHeight = (geo.size.height - 22 - 16 - 30 - 3 * 8 - 2 * 30) / 1.78
+            let byWidth = cardW / 3.5 - 8
+            let size = min(84, max(34, min(byHeight, byWidth)))
+            HStack(alignment: .top, spacing: 8) {
+                ForEach(secs, id: \.self) { s in
+                    SectionCard(title: s.title) {
+                        ForEach(Array(s.controls.enumerated()), id: \.offset) { _, c in control(c) }
+                    }
+                }
+            }
+            .environment(\.knobSize, size)
         }
     }
 
     @ViewBuilder
-    private func knobs(wide: Bool) -> some View {
-        let specs = SynthModel.knobs
-        if wide {
-            HStack(spacing: 2) {
-                ForEach(specs) { s in knob(s).frame(maxWidth: .infinity) }
+    private func control(_ c: ControlDef) -> some View {
+        switch c.kind {
+        case "choice":
+            if let key = c.key, let opts = c.options {
+                ChoiceRow(options: opts, selected: model.choice(key)) { model.choose(key, $0) }
             }
-        } else {
-            LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 5), spacing: 8) {
-                ForEach(specs) { s in knob(s) }
+        case "toggles":
+            ToggleRow(items: c.items ?? [], value: { model.choice($0) }) { model.choose($0, $1) }
+        default:
+            VStack(spacing: 2) {
+                if let cap = c.caption, !cap.isEmpty {
+                    Text(cap).font(.system(size: 9, weight: .heavy)).foregroundColor(Theme.inkFaint)
+                }
+                HStack(alignment: .top, spacing: 2) {
+                    ForEach(c.knobs ?? [], id: \.self) { k in
+                        if let spec = model.panel?.params[k.key] {
+                            KnobView(label: k.label, spec: spec, value: model.number(k.key), small: c.small == true,
+                                     onChange: { model.set(k.key, $0) }, onReset: { model.resetToDefault(k.key) })
+                        }
+                    }
+                }
             }
         }
-        Spacer(minLength: 0)
-    }
-
-    private func knob(_ s: KnobSpec) -> some View {
-        Knob(spec: s, value: model.values[s.key] ?? s.min) { model.set(s.key, $0) }
     }
 }

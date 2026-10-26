@@ -1,89 +1,61 @@
-// Tabriz iOS — app state: presets, knob values, engine statistics.
+// Tabriz iOS — app state: panel, presets, parameter values, engine statistics.
 import Foundation
 import UIKit
 
-enum PatchValue: Decodable {
-    case num(Double)
-    case str(String)
-
-    init(from decoder: Decoder) throws {
-        let c = try decoder.singleValueContainer()
-        if let v = try? c.decode(Double.self) { self = .num(v) } else { self = .str(try c.decode(String.self)) }
-    }
-}
-
-struct Preset: Decodable, Identifiable {
-    let id: String
-    let name: String
-    let group: String
-    let patch: [String: PatchValue]
-}
-
-struct KnobSpec: Identifiable {
-    let key: String
-    let label: String
-    let min: Double
-    let max: Double
-    let log: Bool
-    let format: (Double) -> String
-    var id: String { key }
-
-    func norm(_ v: Double) -> Double {
-        let x = log ? Foundation.log(v / min) / Foundation.log(max / min) : (v - min) / (max - min)
-        return Swift.min(1, Swift.max(0, x))
-    }
-
-    func value(_ n: Double) -> Double {
-        let x = Swift.min(1, Swift.max(0, n))
-        return log ? min * pow(max / min, x) : min + (max - min) * x
-    }
-}
-
-private func pct(_ v: Double) -> String { "\(Int((v * 100).rounded()))%" }
-private func sec(_ v: Double) -> String { v < 0.005 ? "Off" : v < 1 ? "\(Int((v * 1000).rounded()))ms" : String(format: "%.2fs", v) }
-
 final class SynthModel: ObservableObject {
     let engine = SynthEngine()
+    let panel: PanelDef?
 
     @Published var presets: [Preset] = []
     @Published var presetIndex = 0
+    @Published var edited = false
     @Published var values: [String: Double] = [:]
+    @Published var choices: [String: String] = [:]
+    @Published var page = "osc"
     @Published var octave = 0
     @Published var bufferFrames = 128
     @Published var stats = "starting audio…"
     @Published var error: String?
 
-    static let knobs: [KnobSpec] = [
-        KnobSpec(key: "cutoff", label: "CUTOFF", min: 40, max: 18000, log: true,
-                 format: { $0 >= 1000 ? String(format: "%.1fk", $0 / 1000) : "\(Int($0))" }),
-        KnobSpec(key: "res", label: "EMPHASIS", min: 0.1, max: 18, log: true, format: { String(format: "%.1f", $0) }),
-        KnobSpec(key: "envAmt", label: "CONTOUR", min: 0, max: 1, log: false, format: pct),
-        KnobSpec(key: "fD", label: "DECAY", min: 0.01, max: 4, log: true, format: sec),
-        KnobSpec(key: "filterDrive", label: "DRIVE", min: 0, max: 1, log: false, format: pct),
-        KnobSpec(key: "osc3Level", label: "OSC 3", min: 0, max: 1, log: false, format: pct),
-        KnobSpec(key: "glide", label: "GLIDE", min: 0, max: 1.5, log: false, format: sec),
-        KnobSpec(key: "drift", label: "DRIFT", min: 0, max: 1, log: false, format: pct),
-        KnobSpec(key: "volume", label: "VOLUME", min: 0, max: 1, log: false, format: pct),
-    ]
-
     private var timer: Timer?
+    private var saveWork: DispatchWorkItem?
+    private let store = UserDefaults.standard
 
     init() {
+        panel = PanelDef.load()
         if let url = Bundle.main.url(forResource: "presets", withExtension: "json"),
            let data = try? Data(contentsOf: url),
            let list = try? JSONDecoder().decode([Preset].self, from: data) {
             presets = list
         }
+        if let p = panel { page = p.pages.first?.id ?? "osc" }
         do {
             try engine.start()
-            engine.setPreferredBufferFrames(Int32(bufferFrames))
         } catch {
             self.error = "Audio could not start: \(error.localizedDescription)"
         }
-        if !presets.isEmpty { apply(0) }
+        let savedBuf = store.integer(forKey: "tabriz.buffer")
+        bufferFrames = [64, 128, 256, 512].contains(savedBuf) ? savedBuf : 128
+        engine.setPreferredBufferFrames(Int32(bufferFrames))
+
+        // defaults first, then the last session (or the first preset)
+        for (key, spec) in panel?.params ?? [:] {
+            if spec.isChoice { send(key, .str(spec.defString)) } else { send(key, .num(spec.defNumber)) }
+        }
+        if let saved = store.dictionary(forKey: "tabriz.patch") {
+            presetIndex = min(max(0, store.integer(forKey: "tabriz.preset")), max(0, presets.count - 1))
+            for (k, v) in saved {
+                if let n = v as? Double { send(k, .num(n)) } else if let s = v as? String { send(k, .str(s)) }
+            }
+            edited = store.bool(forKey: "tabriz.edited")
+        } else if !presets.isEmpty {
+            apply(0)
+        }
         UIApplication.shared.isIdleTimerDisabled = true
         timer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { [weak self] _ in self?.refreshStats() }
     }
+
+    // MARK: presets
 
     var currentName: String { presets.isEmpty ? "—" : presets[presetIndex].name }
     var groups: [String] { presets.reduce(into: [String]()) { if !$0.contains($1.group) { $0.append($1.group) } } }
@@ -92,15 +64,9 @@ final class SynthModel: ObservableObject {
         guard presets.indices.contains(index) else { return }
         presetIndex = index
         engine.allNotesOff()
-        for (key, v) in presets[index].patch {
-            switch v {
-            case .num(let n):
-                engine.setNumber(n, forKey: key)
-                values[key] = n
-            case .str(let s):
-                engine.setChoice(s, forKey: key)
-            }
-        }
+        for (key, v) in presets[index].patch { send(key, v) }
+        edited = false
+        saveSoon()
     }
 
     func step(_ d: Int) {
@@ -108,28 +74,85 @@ final class SynthModel: ObservableObject {
         apply((presetIndex + d + presets.count) % presets.count)
     }
 
+    func revert() { apply(presetIndex) }
+
+    // MARK: parameters
+
+    func number(_ key: String) -> Double { values[key] ?? panel?.params[key]?.defNumber ?? 0 }
+    func choice(_ key: String) -> String { choices[key] ?? panel?.params[key]?.defString ?? "" }
+
     func set(_ key: String, _ v: Double) {
-        values[key] = v
-        engine.setNumber(v, forKey: key)
+        guard values[key] != v else { return }
+        send(key, .num(v))
+        edited = true
+        saveSoon()
     }
+
+    func choose(_ key: String, _ v: String) {
+        guard choices[key] != v else { return }
+        send(key, .str(v))
+        edited = true
+        saveSoon()
+    }
+
+    func resetToDefault(_ key: String) {
+        guard let spec = panel?.params[key] else { return }
+        if let p = presets.indices.contains(presetIndex) ? presets[presetIndex].patch[key] : nil, case .num(let n) = p {
+            set(key, n)
+        } else {
+            set(key, spec.defNumber)
+        }
+    }
+
+    private func send(_ key: String, _ v: PatchValue) {
+        switch v {
+        case .num(let n):
+            values[key] = n
+            engine.setNumber(n, forKey: key)
+        case .str(let s):
+            choices[key] = s
+            engine.setChoice(s, forKey: key)
+        }
+    }
+
+    private func saveSoon() {
+        saveWork?.cancel()
+        let w = DispatchWorkItem { [weak self] in
+            guard let self = self else { return }
+            var d: [String: Any] = [:]
+            for (k, v) in self.values { d[k] = v }
+            for (k, v) in self.choices { d[k] = v }
+            self.store.set(d, forKey: "tabriz.patch")
+            self.store.set(self.presetIndex, forKey: "tabriz.preset")
+            self.store.set(self.edited, forKey: "tabriz.edited")
+        }
+        saveWork = w
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.6, execute: w)
+    }
+
+    // MARK: performance
 
     func setBuffer(_ frames: Int) {
         bufferFrames = frames
+        store.set(frames, forKey: "tabriz.buffer")
         engine.setPreferredBufferFrames(Int32(frames))
     }
 
     func shiftOctave(_ d: Int) {
         engine.allNotesOff()
-        octave = max(-2, min(2, octave + d))
+        octave = max(-3, min(3, octave + d))
     }
+
+    func bend(_ v: Double) { engine.setPitchBend(v) }
+    func mod(_ v: Double) { engine.setModWheel(v) }
 
     private func refreshStats() {
         guard error == nil else { return }
         let sr = engine.sampleRate
-        let frames = engine.bufferFrames
-        let bufMs = sr > 0 ? Double(frames) / sr * 1000 : 0
-        stats = String(format: "%.0f kHz · buffer %d (%.1f ms) · output latency %.1f ms · DSP %ld%% (peak %ld%%) · glitches %d",
-                       sr / 1000, frames, bufMs, engine.outputLatencyMs,
-                       Int(engine.dspLoad * 100), Int(engine.dspLoadPeak * 100), engine.glitches)
+        let frames = Int(engine.bufferFrames)
+        let ms = sr > 0 ? Double(frames) / sr * 1000 : 0
+        stats = String(format: "%.0f kHz · %ld (%.1f ms) · out %.1f ms · DSP %ld%% · peak %ld%% · glitches %ld",
+                       sr / 1000, frames, ms, engine.outputLatencyMs,
+                       Int(engine.dspLoad * 100), Int(engine.dspLoadPeak * 100), Int(engine.glitches))
     }
 }

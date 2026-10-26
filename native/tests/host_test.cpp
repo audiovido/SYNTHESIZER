@@ -50,6 +50,19 @@ int main() {
   for (int i = 0; i < 2000; i++) mc.setNum("cutoff", 1000 + i);
   run(h, 0.1, SR);
   CHECK(true, "queue overflow is safe");
+  // poly mode: two keys sound together, releasing one leaves the other
+  mc.allOff(); mc.setNum("revMix", 0); mc.setNum("res", 0.1); mc.setNum("filterDrive", 0); mc.setNum("osc3Level", 0);
+  mc.setNum("noise", 0); mc.setNum("volume", 0.7); run(h, 2, SR);
+  mc.setStr("polyMode", "poly");
+  mc.noteDown(57, 1); mc.noteDown(64, 1);
+  auto p1 = run(h, 0.5, SR);
+  mc.noteUp(64);
+  auto p2 = run(h, 1.5, SR);
+  const double r1 = [&]{ double s=0; for (size_t i=12000;i<p1.size();i++) s+=p1[i]*p1[i]; return std::sqrt(s/(p1.size()-12000)); }();
+  const double f2 = freq(std::vector<float>(p2.begin() + 48000, p2.end()), SR);
+  CHECK(r1 > 0.05, "poly: two notes sound together");
+  CHECK(std::fabs(f2 - 220) < 0.5, "poly: releasing one key leaves the other (A3)");
+  mc.setStr("polyMode", "mono");
   // limiter: worst case stays below 1.0
   mc.setNum("res", 18); mc.setNum("filterDrive", 1); mc.setNum("volume", 1); mc.setNum("osc3Level", 1); mc.setNum("noise", 1);
   mc.noteDown(36, 1);

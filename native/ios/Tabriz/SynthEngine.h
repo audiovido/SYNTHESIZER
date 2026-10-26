@@ -14,6 +14,8 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)noteDown:(int)midi velocity:(double)velocity;
 - (void)noteUp:(int)midi;
 - (void)allNotesOff;
+- (void)setPitchBend:(double)value;   ///< -1..1
+- (void)setModWheel:(double)value;    ///< 0..1
 - (void)setNumber:(double)value forKey:(NSString *)key;
 - (void)setChoice:(NSString *)value forKey:(NSString *)key;
 

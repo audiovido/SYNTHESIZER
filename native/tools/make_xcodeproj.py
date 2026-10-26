@@ -6,9 +6,9 @@ import hashlib, os
 def oid(name):  # stable 24-hex object ids
     return hashlib.md5(name.encode()).hexdigest()[:24].upper()
 
-SOURCES = ["TabrizApp.swift", "ContentView.swift", "SynthModel.swift", "KeyboardView.swift", "SynthEngine.mm"]
+SOURCES = ["TabrizApp.swift", "ContentView.swift", "Controls.swift", "Panel.swift", "SynthModel.swift", "KeyboardView.swift", "SynthEngine.mm"]
 HEADERS = ["SynthEngine.h", "Tabriz-Bridging-Header.h"]
-RESOURCES = ["presets.json"]
+RESOURCES = ["presets.json", "panel.json"]
 FTYPE = {".swift": "sourcecode.swift", ".mm": "sourcecode.cpp.objcpp", ".h": "sourcecode.c.h", ".json": "text.json"}
 
 o = []
