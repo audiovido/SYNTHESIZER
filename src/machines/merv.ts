@@ -38,6 +38,15 @@ export const MERV: MachineDef = {
     { id: "neuro", name: "Neuro", group: "Growl", patch: { osc1Wave: "square", osc2Wave: "sawtooth", filterType: "bandpass", res: 8, cutoff: 600, lfoShape: "triangle", lfoSync: 6, lfoDepth: 0.6, drive: 0.6 } },
     { id: "reeseWob", name: "Reese Wobble", group: "Growl", patch: { osc2Wave: "sawtooth", osc2Detune: 22, unison: 5, uniDetune: 25, uniWidth: 0.3, lfoSync: 3, lfoDepth: 0.4, cutoff: 700 } },
     { id: "gate", name: "Amp Gate", group: "Rhythm", patch: { osc2Wave: "sawtooth", lfoTarget: "amp", lfoShape: "square", lfoSync: 6, lfoDepth: 1, cutoff: 1200, res: 4 } },
-    { id: "siren", name: "Siren Bass", group: "Rhythm", patch: { osc2Wave: "square", lfoTarget: "pitch", lfoShape: "triangle", lfoSync: 3, lfoDepth: 1, cutoff: 900 } }
+    { id: "siren", name: "Siren Bass", group: "Rhythm", patch: { osc2Wave: "square", lfoTarget: "pitch", lfoShape: "triangle", lfoSync: 3, lfoDepth: 1, cutoff: 900 } },
+{ id: "riddim", name: "Riddim", group: "Wobble", patch: { osc1Wave: "square", osc2Wave: "square", osc2Detune: 10, lfoShape: "square", lfoSync: 5, lfoDepth: 0.7, cutoff: 350, res: 10, drive: 0.6 } },
+    { id: "dubWub", name: "Dub Wub 1/2", group: "Wobble", patch: { osc1Wave: "sawtooth", osc2Wave: "sine", lfoShape: "sine", lfoSync: 2, lfoDepth: 0.65, cutoff: 300, res: 6, drive: 0.3, sub: 0.5 } },
+    { id: "wobbleLead", name: "Wobble Lead", group: "Wobble", patch: { osc1Oct: 0, osc2Oct: 0, osc2Detune: 12, lfoShape: "triangle", lfoSync: 6, lfoDepth: 0.5, cutoff: 900, res: 7, drive: 0.35, delayMix: 0.2, revMix: 0.15 } },
+    { id: "robotTalk", name: "Robot Talk", group: "Growl", patch: { filterType: "bandpass", lfoShape: "sh", lfoSync: 6, lfoDepth: 0.75, cutoff: 900, res: 12, drive: 0.55 } },
+    { id: "talkingSaw", name: "Talking Saw", group: "Growl", patch: { osc2Wave: "sawtooth", osc2Detune: 18, filterType: "bandpass", lfoShape: "triangle", lfoSync: 4, lfoDepth: 0.6, cutoff: 700, res: 9, drive: 0.65 } },
+    { id: "growlSquare", name: "Square Growl", group: "Growl", patch: { osc1Wave: "square", osc2Wave: "sawtooth", osc2Detune: 7, lfoShape: "sawtooth", lfoSync: 6, lfoDepth: 0.55, cutoff: 500, res: 11, drive: 0.75 } },
+    { id: "grimeHalf", name: "Halftime Grime", group: "Rhythm", patch: { osc1Wave: "square", osc2Wave: "square", osc2Oct: -1, lfoTarget: "amp", lfoShape: "square", lfoSync: 4, lfoDepth: 0.8, cutoff: 1200, res: 3, drive: 0.4 } },
+    { id: "laserZap", name: "Laser Zap Bass", group: "Rhythm", patch: { osc1Wave: "sawtooth", osc2Wave: "square", lfoTarget: "pitch", lfoShape: "sawtooth", lfoSync: 6, lfoDepth: 0.3, cutoff: 1500, res: 5, drive: 0.4, glide: 0.08 } },
+    { id: "wubChords", name: "Wub Chords", group: "Rhythm", patch: { polyMode: "poly", osc1Oct: 0, osc2Oct: 0, osc2Detune: 14, unison: 3, uniDetune: 18, lfoShape: "sine", lfoSync: 4, lfoDepth: 0.55, cutoff: 700, res: 5, drive: 0.3, sub: 0.1, revMix: 0.2 } }
   ]
 };

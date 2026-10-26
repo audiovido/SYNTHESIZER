@@ -33,6 +33,7 @@ import { initPanelInteractions, renderPanel, selectDrumVoiceForNote } from "./ui
 import { startSynthScope } from "./ui/scope";
 import { initArpPanel } from "./ui/arp-panel";
 import { initOrientalPanel, syncOrientalButton } from "./ui/oriental-panel";
+import { initLibrary } from "./ui/library";
 
 function initApp(): void {
   // skin and keyboard follow the machine
@@ -44,6 +45,7 @@ function initApp(): void {
   initPanelInteractions();
   initArpPanel();
   initOrientalPanel();
+  initLibrary();
   initMachine();          // loads the remembered machine and its patch
   applySkin(getMachine().skin);
   renderPanel();

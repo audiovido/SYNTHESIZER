@@ -165,6 +165,46 @@ export const KERMAN: MachineDef = {
         P(12, { kick: "X..X..X..XxX", tom: "..x..x..x.x.", rim: ".x.x.x......" }),
         P(12, { kick: "X.....X.....", rim: ".x.x.x.x.x.x" })
       ])
+    },
+{
+      id: "afroHouse", name: "Afro House", group: "Club", bpm: 122,
+      patch: mk({ kick: [0, 0.9, 0.5, 0.95], tom: [2, 0.7, 0.6, 0.6], rim: [3, 0.7, 0.6, 0.5], bell: [1, 0.7, 0.5, 0.35], ch: [1, 0.7, 0.6, 0.35] }, { drumSwing: 0.12, revMix: 0.14 }),
+      patterns: pats([
+        P(16, { kick: "X...X...X...X...", tom: "..x...x.x..x...x", rim: "...x..x....x..x.", ch: "x.x.x.x.x.x.x.x." }),
+        P(16, { kick: "X...X...X...X...", tom: "..x...x.x..x...x", rim: "...x..x....x..x.", bell: "x..x..x...x.x...", clap: "....X.......X..." }),
+        P(16, { kick: "X...X...X...X...", tom: "x.x.x.x.x.xxxxxx" }),
+        P(16, { tom: "..x...x.x..x...x", ch: "x.x.x.x.x.x.x.x." })
+      ])
+    },
+    {
+      id: "dnb", name: "Drum & Bass", group: "Breaks & Latin", bpm: 174,
+      patch: mk({ kick: [0, 0.8, 0.6, 0.95], snare: [2, 0.8, 0.8, 0.8], ch: [1, 0.6, 0.7, 0.35], oh: [0, 0.6, 0.7, 0.3] }, { drive: 0.2, revMix: 0.12 }),
+      patterns: pats([
+        P(16, { kick: "X.........X.....", snare: "....X.......X...", ch: "x.x.x.x.x.x.x.x." }),
+        P(16, { kick: "X.........XX....", snare: "....X..x....X...", ch: "x.x.x.x.x.x.x.x.", oh: "..............x." }),
+        P(16, { kick: "X.........X.....", snare: "....X..x.x..XxXX" }),
+        P(16, { kick: "X.......X.......", ch: "xxxxxxxxxxxxxxxx" })
+      ])
+    },
+    {
+      id: "ukGarage", name: "UK Garage 2-Step", group: "Club", bpm: 132,
+      patch: mk({ kick: [0, 0.9, 0.5, 0.9], snare: [1, 0.9, 0.7, 0.7], rim: [2, 0.7, 0.6, 0.45], ch: [2, 0.6, 0.6, 0.35] }, { drumSwing: 0.25, revMix: 0.15 }),
+      patterns: pats([
+        P(16, { kick: "X.........X.....", snare: "....X.......X...", ch: "..x...x...x...x.", rim: ".......x......x." }),
+        P(16, { kick: "X......x..X.....", snare: "....X.......X...", ch: "..x.x.x...x.x.x.", rim: ".......x......x." }),
+        P(16, { kick: "X.........X.....", snare: "....X.......XxXx", tom: "..........x.x..." }),
+        P(16, { ch: "..x...x...x...x.", rim: ".......x......x." })
+      ])
+    },
+    {
+      id: "disco", name: "Disco", group: "Classic", bpm: 118,
+      patch: mk({ kick: [0, 0.9, 0.4, 0.9], snare: [0, 0.9, 0.6, 0.7], oh: [0, 0.7, 0.6, 0.45], ch: [0, 0.8, 0.5, 0.4] }, { revMix: 0.18 }),
+      patterns: pats([
+        P(16, { kick: "X...X...X...X...", snare: "....X.......X...", oh: "..X...X...X...X.", ch: "x...x...x...x..." }),
+        P(16, { kick: "X...X...X...X...", snare: "....X.......X...", oh: "..X...X...X...X.", ch: "xxx.xxx.xxx.xxx." }),
+        P(16, { kick: "X...X...X...X...", snare: "....X.......XXXX", tom: "........x.x.x..." }),
+        P(16, { kick: "X...X...X...X...", oh: "..X...X...X...X." })
+      ])
     }
   ]
 };

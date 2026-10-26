@@ -46,7 +46,7 @@ import { getEngine, getHQState, onEngineChange } from "../engine/hq";
 import { getTempo, onTempoChange, setTempo, tapTempo } from "../engine/tempo";
 import {
   clearPattern,
-  DRUM_LABELS,
+  drumLabel,
   DRUM_NOTES,
   DRUM_VOICES,
   DrumVoice,
@@ -63,6 +63,7 @@ import {
   triggerDrum
 } from "../engine/drums";
 import type { ControlDef, SectionDef } from "../machines/types";
+import { euclidHit, onArpStep } from "../engine/arp";
 import { getBaseMidi } from "./keyboard";
 import { renderSynthKnob, updateMidiLearnDOM, updateSynthControlDOM } from "./knob";
 
@@ -129,7 +130,7 @@ function renderDrumSteps(): string {
   const pat = getPattern();
   const row = pat.steps[drumVoice];
   const voices = `<div class="drum-voices" role="group" aria-label="Drum voice">${DRUM_VOICES.map((v) =>
-    `<button type="button" class="drum-voice-btn ${v === drumVoice ? "active" : ""}" data-action="drum-voice" data-voice="${v}">${DRUM_LABELS[v]}</button>`).join("")}</div>`;
+    `<button type="button" class="drum-voice-btn ${v === drumVoice ? "active" : ""}" data-action="drum-voice" data-voice="${v}">${drumLabel(v)}</button>`).join("")}</div>`;
   const steps = `<div class="drum-steps" style="--len:${pat.len}">${Array.from({ length: pat.len }, (_, i) => {
     const s = row[i];
     return `<button type="button" class="drum-step${s ? " on" : ""}${s === 2 ? " accent" : ""}${i % (pat.len === 12 ? 3 : 4) === 0 ? " beat" : ""}" data-action="drum-step" data-index="${i}" aria-pressed="${!!s}" aria-label="Step ${i + 1}"></button>`;
@@ -139,12 +140,92 @@ function renderDrumSteps(): string {
 
 function renderDrumVoice(): string {
   const v = drumVoice;
-  return `<div class="drum-voice-name">${DRUM_LABELS[v]}</div><div class="sk-row">${
+  return `<div class="drum-voice-name">${drumLabel(v)}</div><div class="sk-row">${
     renderSynthKnob(v + "Tune", "TUNE") + renderSynthKnob(v + "Decay", "DECAY") +
     renderSynthKnob(v + "Tone", "TONE") + renderSynthKnob(v + "Level", "LEVEL")}</div>`;
 }
 
+// ------------------------------------------------- Kashan: algorithm LCD ----
+// Operator positions (x, y) per algorithm in a 200 x 120 box; edges are [from, to].
+const FM_LAYOUT: { pos: [number, number][]; edges: [number, number][]; car: number[] }[] = [
+  { pos: [[100, 100], [100, 72], [100, 44], [100, 16]], edges: [[2, 1], [3, 2], [4, 3]], car: [1] },
+  { pos: [[100, 100], [100, 66], [70, 28], [130, 28]], edges: [[2, 1], [3, 2], [4, 2]], car: [1] },
+  { pos: [[100, 100], [70, 66], [70, 28], [130, 66]], edges: [[2, 1], [3, 2], [4, 1]], car: [1] },
+  { pos: [[100, 100], [70, 66], [130, 66], [130, 28]], edges: [[2, 1], [3, 1], [4, 3]], car: [1] },
+  { pos: [[70, 100], [70, 58], [130, 100], [130, 58]], edges: [[2, 1], [4, 3]], car: [1, 3] },
+  { pos: [[50, 100], [100, 100], [150, 100], [100, 52]], edges: [[4, 1], [4, 2], [4, 3]], car: [1, 2, 3] },
+  { pos: [[40, 100], [90, 100], [150, 100], [150, 58]], edges: [[4, 3]], car: [1, 2, 3] },
+  { pos: [[34, 100], [78, 100], [122, 100], [166, 100]], edges: [], car: [1, 2, 3, 4] }
+];
+
+function renderFmAlgo(): string {
+  const n = Math.max(1, Math.min(8, Number(getSynthPatch().fmAlgo) || 1));
+  const L = FM_LAYOUT[n - 1];
+  const R = 11;
+  const lines = L.edges.map(([a, b]) => {
+    const [x1, y1] = L.pos[a - 1];
+    const [x2, y2] = L.pos[b - 1];
+    return `<line x1="${x1}" y1="${y1 + R}" x2="${x2}" y2="${y2 - R}" />`;
+  }).join("");
+  const outY = 118;
+  const outs = L.car.map((c) => { const [x, y] = L.pos[c - 1]; return `<line x1="${x}" y1="${y + R}" x2="${x}" y2="${outY}" />`; }).join("");
+  const xs = L.car.map((c) => L.pos[c - 1][0]);
+  const bus = `<line x1="${Math.min(...xs) - 6}" y1="${outY}" x2="${Math.max(...xs) + 6}" y2="${outY}" />`;
+  const [fx, fy] = L.pos[3];
+  const fb = `<path class="fb" d="M ${fx + R} ${fy} C ${fx + 30} ${fy - 4}, ${fx + 30} ${fy - 26}, ${fx} ${fy - R}" />`;
+  const ops = L.pos.map(([x, y], i) =>
+    `<g class="op${L.car.includes(i + 1) ? " car" : ""}"><rect x="${x - R}" y="${y - R}" width="${R * 2}" height="${R * 2}" rx="3" /><text x="${x}" y="${y + 4}">${i + 1}</text></g>`).join("");
+  return `<div class="fm-lcd" role="img" aria-label="Algorithm ${n}">
+      <div class="fm-lcd-head"><span>ALGORITHM</span><b>${n}</b></div>
+      <svg viewBox="0 0 200 124" aria-hidden="true"><g class="wires">${lines}${outs}${bus}${fb}</g>${ops}</svg>
+    </div>
+    ${renderSynthChoice("fmAlgo", [1, 2, 3, 4, 5, 6, 7, 8].map((k) => [String(k), String(k), `Algorithm ${k}`] as [string, string, string]))}`;
+}
+
+// ----------------------------------------------------- Konya: the rings ----
+const RING_R = [26, 44, 62];
+
+function renderEuclidRings(): string {
+  const p = getSynthPatch();
+  let svg = "";
+  for (let r = 1; r <= 3; r++) {
+    const steps = Math.max(1, Math.round(p[`euc${r}Steps`] ?? 16));
+    const pulses = p[`euc${r}Pulses`] ?? 0;
+    const rot = p[`euc${r}Rot`] ?? 0;
+    const on = p[`euc${r}On`] !== "off";
+    const rad = RING_R[r - 1];
+    let dots = "";
+    for (let i = 0; i < steps; i++) {
+      const a = (i / steps) * Math.PI * 2 - Math.PI / 2;
+      const x = 80 + Math.cos(a) * rad;
+      const y = 80 + Math.sin(a) * rad;
+      const hit = euclidHit(steps, pulses, rot, i);
+      dots += `<circle class="eu-dot${hit ? " hit" : ""}" data-ring="${r}" data-i="${i}" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${hit ? 5.2 : 3}" />`;
+    }
+    svg += `<g class="eu-ring eu-ring-${r}${on ? "" : " is-off"}"><circle class="eu-track" cx="80" cy="80" r="${rad}" />${dots}</g>`;
+  }
+  return `<div class="eu-wrap"><svg class="eu-svg" viewBox="0 0 160 160" aria-label="Euclidean rings">${svg}<circle class="eu-hub" cx="80" cy="80" r="9" /></svg>
+    <p class="eu-hint">Hold a chord: ring 1 plays its lowest note, ring 2 the next, ring 3 the next. HOLD keeps it going.</p></div>`;
+}
+
+let euStepUnsub: (() => void) | null = null;
+function bindEuclidPlayhead(): void {
+  if (euStepUnsub) return;
+  euStepUnsub = onArpStep((step) => {
+    document.querySelectorAll(".eu-dot.now").forEach((el) => el.classList.remove("now"));
+    if (step < 0) return;
+    const p = getSynthPatch();
+    for (let r = 1; r <= 3; r++) {
+      const steps = Math.max(1, Math.round(p[`euc${r}Steps`] ?? 16));
+      const el = document.querySelector(`.eu-dot[data-ring="${r}"][data-i="${step % steps}"]`);
+      if (el) el.classList.add("now");
+    }
+  });
+}
+
 function renderCustom(id: string): string {
+  if (id === "fm-algo") return renderFmAlgo();
+  if (id === "euclid-rings") { bindEuclidPlayhead(); return renderEuclidRings(); }
   if (id === "drum-transport") return renderDrumTransport();
   if (id === "drum-steps") return renderDrumSteps();
   if (id === "drum-voice") return renderDrumVoice();
@@ -186,17 +267,14 @@ function renderDeviceOptions(): string {
   return html;
 }
 
-function renderPresetOptions(): string {
+/** The preset name in the top bar: tap it to open the sound library. */
+function renderPresetButton(): string {
   const m = getMachine();
-  const cur = getSynthPresetId();
-  const groups: Record<string, string[]> = {};
-  m.presets.forEach((p) => {
-    (groups[p.group] = groups[p.group] || []).push(
-      `<option value="${p.id}"${cur === p.id ? " selected" : ""}>${escapeHtml(p.name)}</option>`);
-  });
-  let html = Object.keys(groups).map((g) => `<optgroup label="${escapeHtml(g)}">${groups[g].join("")}</optgroup>`).join("");
-  if (!m.presets.some((p) => p.id === cur)) html += `<option value="custom" selected disabled>Custom</option>`;
-  return html;
+  const cur = m.presets.find((p) => p.id === getSynthPresetId());
+  const name = cur ? cur.name : "Custom";
+  const sub = cur ? cur.group : "Edited sound";
+  return `<span class="pd-text"><span class="pd-name">${escapeHtml(name)}</span><span class="pd-sub">${escapeHtml(sub)}</span></span>` +
+    `<svg class="pd-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="4" y="4" width="7" height="7" rx="1.5" /><rect x="13" y="4" width="7" height="7" rx="1.5" /><rect x="4" y="13" width="7" height="7" rx="1.5" /><rect x="13" y="13" width="7" height="7" rx="1.5" /></svg>`;
 }
 
 function renderMachineOptions(): string {
@@ -245,7 +323,7 @@ function tabsVisible(): boolean {
   return !!tabs && getComputedStyle(tabs).display !== "none";
 }
 
-function previewPreset(presetId: string): void {
+export function previewPreset(presetId: string): void {
   applySynthPreset(presetId);
   const m = getMachine();
   // no preview for drums, arpeggios or HOLD patches (a held drone would never stop)
@@ -273,7 +351,7 @@ export function renderSynthPanelHtml(): string {
         <canvas class="synth-scope" width="320" height="56" aria-hidden="true"></canvas>
         <div class="synth-preset-nav">
           <button type="button" class="synth-midi-btn" data-action="preset-prev" aria-label="Previous preset">◀</button>
-          <select class="synth-midi-select synth-preset-select" id="preset-select" aria-label="Preset">${renderPresetOptions()}</select>
+          <button type="button" class="preset-display synth-preset-select" id="preset-btn" aria-haspopup="dialog" aria-expanded="false" title="Open the sound library">${renderPresetButton()}</button>
           <button type="button" class="synth-midi-btn" data-action="preset-next" aria-label="Next preset">▶</button>
         </div>
         <div class="synth-midi-bar">
@@ -298,8 +376,8 @@ export function renderSynthPanelHtml(): string {
 }
 
 export function updateSynthPresetDOM(): void {
-  const sel = document.getElementById("preset-select") as HTMLSelectElement | null;
-  if (sel) sel.innerHTML = renderPresetOptions();
+  const btn = document.getElementById("preset-btn");
+  if (btn) btn.innerHTML = renderPresetButton();
 }
 
 function updateMidiBarDOM(): void {
@@ -372,8 +450,6 @@ function bindPanelElements(): void {
   if (devSelect) devSelect.addEventListener("change", () => setSelectedMidiDevice(devSelect.value));
   const chSelect = document.getElementById("midi-channel") as HTMLSelectElement | null;
   if (chSelect) chSelect.addEventListener("change", () => setSelectedMidiChannel(parseInt(chSelect.value, 10) || 0));
-  const presetSel = document.getElementById("preset-select") as HTMLSelectElement | null;
-  if (presetSel) presetSel.addEventListener("change", () => { previewPreset(presetSel.value); presetSel.blur(); });
   const machineSel = document.getElementById("machine-select") as HTMLSelectElement | null;
   if (machineSel) machineSel.addEventListener("change", () => { setMachine(machineSel.value); });
   document.querySelectorAll<HTMLSelectElement>(".synth-param-select").forEach((sel) => {
@@ -401,7 +477,11 @@ function bindPanelElements(): void {
 }
 
 export function initPanelInteractions(): void {
-  onParamChange((key) => updateSynthControlDOM(key));
+  onParamChange((key) => {
+    updateSynthControlDOM(key);
+    if (key === "fmAlgo") refreshCustom("fm-algo");
+    else if (key.startsWith("euc")) refreshCustom("euclid-rings");
+  });
   onPresetChange(() => updateSynthPresetDOM());
   onMidiStateChange(() => updateMidiBarDOM());
   onEngineChange(updateEngineDOM);

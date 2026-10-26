@@ -1,6 +1,6 @@
 import { centsFor, downKeys, getMachine, getSynthPatch, isNoteSounding, midiToName, noteOff, noteOn, NOTE_NAMES, onParamChange, prepareAudio, releasePhysicalNotes, setModWheel, setPitchBend, setSynthParam } from "../engine/synth";
 import { TUNINGS } from "../engine/params";
-import { DRUM_LABELS, DRUM_NOTES, DRUM_VOICES } from "../engine/drums";
+import { drumLabel, DRUM_NOTES, DRUM_VOICES } from "../engine/drums";
 
 /** Computer keys for the 8 drum pads (home row). */
 const DRUM_KEYMAP: Record<string, number> = {
@@ -34,7 +34,7 @@ export function renderKeyboard(): void {
     // the drum machine plays 8 pads instead of a keyboard
     kb.style.removeProperty("--whites");
     kb.innerHTML = DRUM_VOICES.map((v, i) =>
-      `<div class="key pad" data-midi="${DRUM_NOTES[v]}"><span class="pad-name">${DRUM_LABELS[v]}</span><span class="pad-key">${DRUM_KEY_LETTERS[i]}</span></div>`
+      `<div class="key pad" data-midi="${DRUM_NOTES[v]}"><span class="pad-name">${drumLabel(v)}</span><span class="pad-key">${DRUM_KEY_LETTERS[i]}</span></div>`
     ).join("");
     return;
   }

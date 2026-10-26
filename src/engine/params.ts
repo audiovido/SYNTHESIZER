@@ -3,7 +3,7 @@
  */
 
 export interface ParamDef {
-  type?: "wave" | "filter" | "lfo" | "poly" | "onoff" | "lfoShape" | "arpMode" | "tuning" | "strModel";
+  type?: "wave" | "filter" | "lfo" | "poly" | "onoff" | "lfoShape" | "arpMode" | "tuning" | "strModel" | "fmAlgo";
   min?: number;
   max?: number;
   step?: number;
@@ -21,9 +21,10 @@ export const PARAM_CHOICES: Record<string, string[]> = {
   poly: ["poly", "mono"],
   onoff: ["off", "on"],
   lfoShape: ["sine", "triangle", "square", "sawtooth", "sh"],
-  arpMode: ["up", "down", "updown", "random", "played"],
+  arpMode: ["up", "down", "updown", "random", "played", "euclid"],
   tuning: ["12tet", "shur", "homayoun", "chahargah", "segah", "bayati", "rast", "hijaz", "custom"],
-  strModel: ["santur", "setar", "tar", "kanun", "oud", "harp"]
+  strModel: ["santur", "setar", "tar", "kanun", "oud", "harp"],
+  fmAlgo: ["1", "2", "3", "4", "5", "6", "7", "8"]
 };
 
 /** Musical note divisions used by tempo-synced LFO and arpeggiator (beats per step). */
@@ -147,6 +148,32 @@ export const SYNTH_PARAMS: Record<string, ParamDef> = {
   riz:        { type: "onoff", def: "off" },
   rizRate:    { min: 4, max: 20, def: 11, fmt: (v) => v.toFixed(1) + "Hz" }
 };
+
+// Kashan FM engine: 4 operators (ratio, level, ADSR) + global controls
+SYNTH_PARAMS.fmAlgo = { type: "fmAlgo", def: "1" };
+SYNTH_PARAMS.fmFeedback = { min: 0, max: 1, def: 0, fmt: (x) => Math.round(x * 100) + "%" };
+SYNTH_PARAMS.fmBright = { min: 0, max: 1, def: 0.5, fmt: (x) => Math.round(x * 100) + "%" };
+SYNTH_PARAMS.fmVelMod = { min: 0, max: 1, def: 0.5, fmt: (x) => Math.round(x * 100) + "%" };
+SYNTH_PARAMS.fmTone = { min: 0, max: 1, def: 1, fmt: (x) => (x >= 0.999 ? "Open" : Math.round(300 * Math.pow(2, x * 6)) + "Hz") };
+const OP_DEF_LEVEL = [1, 0.5, 0.35, 0.25];
+[1, 2, 3, 4].forEach((k) => {
+  SYNTH_PARAMS[`op${k}Ratio`] = { min: 0.5, max: 16, curve: "log", step: 0.01, def: 1, fmt: (x) => "×" + (x >= 10 ? x.toFixed(1) : x.toFixed(2)) };
+  SYNTH_PARAMS[`op${k}Level`] = { min: 0, max: 1, def: OP_DEF_LEVEL[k - 1], fmt: (x) => Math.round(x * 99) + "" };
+  SYNTH_PARAMS[`op${k}A`] = { min: 0.001, max: 4, curve: "log", def: 0.002, fmt: fmtSec };
+  SYNTH_PARAMS[`op${k}D`] = { min: 0.01, max: 8, curve: "log", def: 0.8, fmt: fmtSec };
+  SYNTH_PARAMS[`op${k}S`] = { min: 0, max: 1, def: 0.4, fmt: (x) => Math.round(x * 100) + "%" };
+  SYNTH_PARAMS[`op${k}R`] = { min: 0.01, max: 8, curve: "log", def: 0.4, fmt: fmtSec };
+});
+
+// Konya Euclidean rings: steps, pulses, rotation, octave and on/off per ring
+SYNTH_PARAMS.eucRate = { min: 1, max: SYNC_DIVS.length, step: 1, def: 6, fmt: (v) => SYNC_DIVS[v - 1].label };
+[1, 2, 3].forEach((r) => {
+  SYNTH_PARAMS[`euc${r}Steps`] = { min: 1, max: 16, step: 1, def: [16, 12, 7][r - 1], fmt: (v) => String(v) };
+  SYNTH_PARAMS[`euc${r}Pulses`] = { min: 0, max: 16, step: 1, def: [5, 4, 3][r - 1], fmt: (v) => String(v) };
+  SYNTH_PARAMS[`euc${r}Rot`] = { min: 0, max: 15, step: 1, def: 0, fmt: (v) => String(v) };
+  SYNTH_PARAMS[`euc${r}Oct`] = { min: -2, max: 2, step: 1, def: [0, 0, 1][r - 1], fmt: (v) => (v > 0 ? "+" : "") + v };
+  SYNTH_PARAMS[`euc${r}On`] = { type: "onoff", def: "on" };
+});
 
 // Drum machine voice params (Kerman): TUNE, DECAY, TONE, LEVEL per voice
 export const DRUM_PARAM_VOICES = ["kick", "snare", "clap", "ch", "oh", "tom", "rim", "bell"];

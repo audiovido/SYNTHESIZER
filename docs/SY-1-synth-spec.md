@@ -196,14 +196,20 @@ SY-1 is now a family of instruments. The machine menu (top-left) switches betwee
 
 | Machine | Role | Signature | Presets |
 |---|---|---|---|
-| SY-1 | All-rounder | Full panel | 16 |
-| Yazd | Pads & atmospheres | Chorus, LFO shapes, HOLD | 16 |
-| Tabriz | Mono leads & bass | Mono, legato glide, last-note priority, 24 dB filter | 16 |
-| Baku | Arpeggios | Tempo-synced arp: up, down, up/down, random, as played; octaves, gate, swing, latch | 16 |
-| Merv | Wobble & bass | Tempo-synced LFO (1/1 to 1/32, triplets), 5 shapes incl. S&H | 14 |
-| Isfahan | Persian lead | Dastgah/maqam tunings, scoop, delayed vibrato, tahrir (hit a key hard) | 14 |
-| Bam | Drones & textures | HOLD, noise, S&H motion | 12 |
-| Kerman | Drum machine | 8 synthesized voices, 16/12-step sequencer, 8 patterns, accents, swing | 12 kits × 4 patterns |
+| SY-1 | All-rounder | Full panel | 30 |
+| Yazd | Pads & atmospheres | Chorus, LFO shapes, HOLD | 28 |
+| Tabriz | Mono leads & bass | Mono, legato glide, last-note priority, 24 dB filter | 26 |
+| Baku | Arpeggios | Tempo-synced arp: up, down, up/down, random, as played; octaves, gate, swing, latch | 26 |
+| Merv | Wobble & bass | Tempo-synced LFO (1/1 to 1/32, triplets), 5 shapes incl. S&H | 23 |
+| Isfahan | Persian lead | Dastgah/maqam tunings, scoop, delayed vibrato, tahrir (hit a key hard) | 25 |
+| Shiraz | Strings & santur | Physical-model strings (santur, setar, tar, kanun, oud, harp), riz tremolo | 26 |
+| Kashan | FM digital keys | 4-operator FM, 8 algorithms drawn on a green LCD, feedback, brightness | 28 |
+| Konya | Euclidean rhythm synth | 3 rotating Euclidean rings play the held chord on the tempo | 17 |
+| Bam | Drones & textures | HOLD, noise, S&H motion | 20 |
+| Kerman | Drum machine (analog) | 8 synthesized voices, 16/12-step sequencer, 8 patterns, accents, swing | 16 kits × 4 patterns |
+| Bushehr | Persian & Arabic percussion | DOHOL, TAK, DAF, ZANG, DAYEREH, DOM, PELANG, SENJ | 14 kits × 4 patterns |
+| Rasht | Acoustic studio drums | KICK, SNARE, BRUSH, HAT, RIDE, TOM, X-STICK, SHAKER; triplet grids | 13 kits × 4 patterns |
+| Hormoz | Digital & glitch drums | BOOM (808 sub), SNAP (FM), ZAP, TICK (crushed), METAL, FM TOM, GLITCH, BLIP | 12 kits × 4 patterns |
 
 Machine definitions live in `src/machines/*.ts`. Each defines its sections, pages, a `base` patch shared by every preset, and its presets. The panel is rendered from this data, so a new machine is one new file plus one line in `src/machines/index.ts`.
 
@@ -232,4 +238,28 @@ The ORIENTAL button on the performance bar toggles microtonal scale tunings (`or
 - **12-TET C4 / A4 / E4:** 261.63 Hz / 440.00 Hz / 329.63 Hz (Oriental OFF).
 - **Rast on C (E4 half-flat):** 329.63 × 2^(−50/1200) = 320.24 Hz (−50.0¢).
 - **Shur on G (A4 koron):** 440.00 × 2^(−50/1200) = 427.47 Hz (−50.0¢).
+
+## 16. New machines, drum models and the sound library (added October 2026)
+
+### Drum machines
+All four drum machines share the sequencer (16 or 12 steps, 8 pattern slots, accents, swing, tempo) and the pad/step UI. Each sets `drumModel` and `drumLabels` in its machine file; `src/engine/drum-models.ts` builds every hit from Web Audio nodes (no samples):
+
+- `analog` (Kerman): the original 808/909-style voices in `drums.ts`.
+- `persian` (Bushehr): dohol (big drum), tombak dom/tak/pelang strokes, daf with ring jingles, dayereh rattle, zang finger cymbals, senj hand cymbals.
+- `acoustic` (Rasht): felt-beater kick, snare shell + wires, brush swish, hi-hat, ride (bell + wash), rack tom, cross-stick, shaker.
+- `digital` (Hormoz): long 808 boom with saturation, FM snare, laser zap, bit-crushed tick, FM metal hat, FM tom (long decay = log drum), random glitch bursts, sine blip.
+
+TUNE, DECAY, TONE and LEVEL work on every slot; the TONE comment next to each voice in `drum-models.ts` says what it changes. Every drum machine keeps its own pattern bank in `localStorage` (`sy1.m.<id>.bank`; Kerman keeps `sy1.drums.bank`). Rhythms in Bushehr are written as playable starting points, not transcriptions.
+
+### Kashan (FM)
+`src/engine/worklet/fm-processor.ts` ("sy1-fm"): 4 operators with ratio, level and ADSR each, 8 algorithms, feedback on op 4, BRIGHT (scales all modulators), VEL→MOD, key scaling, output TONE low-pass, mod-wheel vibrato. 8 sounding voices. A carrier's LEVEL is loudness; a modulator's LEVEL is its modulation index. The worklet loads the first time Kashan is used.
+
+### Konya (Euclidean)
+The arpeggiator has a mode `euclid`. Three rings (steps 1–16, hits, rotation, octave, on/off) run on the tempo at `eucRate`. Ring N plays the Nth note of the held chord (lowest first, wrapping). The first hit of each ring cycle is accented. HOLD (shown as LATCH) keeps the chord going. The panel draws the rings and lights the current step.
+
+### Sound library
+The preset name in the top bar opens the library over the panel: categories (All, Favorites, then the machine's groups) with counts, a grid of tiles with a colored icon per sound family, search, and ★ favorites saved per machine (`sy1.m.<id>.favs`). Tapping a tile loads it and plays a short preview; the keyboard stays playable. ◀ ▶ still step through presets. Esc or Done closes it.
+
+### QA (this release)
+Every preset on all 14 machines was played in a headless browser: all make sound, none produce invalid samples or leave stuck notes; the only long tails are intentional long releases (pads, drones). First tap makes sound on every machine (tested in Chromium). Layout checked on 16 viewports × 14 machines × every page: no page scroll, no overlaps; very short phones in landscape (568×320, 932×400) still scroll a few pixels inside some panel pages.
 

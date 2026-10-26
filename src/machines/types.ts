@@ -64,7 +64,11 @@ export interface MachineDef {
   role: string;
   skin: string;
   kind: "synth" | "drums";
-  engine?: "hq" | "strings";
+  engine?: "hq" | "strings" | "fm";
+  /** Drum machines: which synthesis model plays the 8 drum slots. */
+  drumModel?: "analog" | "persian" | "acoustic" | "digital";
+  /** Drum machines: the name shown for each of the 8 slots (kick, snare, clap, ch, oh, tom, rim, bell). */
+  drumLabels?: Partial<Record<"kick" | "snare" | "clap" | "ch" | "oh" | "tom" | "rim" | "bell", string>>;
   /** Shows the tempo control (arpeggiator, synced LFO, sequencer). */
   tempo?: boolean;
   pages: { id: string; label: string }[];

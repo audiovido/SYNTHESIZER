@@ -8,6 +8,7 @@
  */
 
 import { getAudioCtxIfAny, getSharedNoiseBuffer } from "./bus";
+import { acousticHit, digitalHit, HitCtx, persianHit } from "./drum-models";
 
 export const DRUM_VOICES = ["kick", "snare", "clap", "ch", "oh", "tom", "rim", "bell"] as const;
 export type DrumVoice = (typeof DRUM_VOICES)[number];
@@ -15,6 +16,19 @@ export type DrumVoice = (typeof DRUM_VOICES)[number];
 export const DRUM_LABELS: Record<DrumVoice, string> = {
   kick: "KICK", snare: "SNARE", clap: "CLAP", ch: "HAT", oh: "OPEN", tom: "TOM", rim: "RIM", bell: "BELL"
 };
+
+export type DrumModel = "analog" | "persian" | "acoustic" | "digital";
+let drumModel: DrumModel = "analog";
+let drumLabels: Record<DrumVoice, string> = { ...DRUM_LABELS };
+
+/** The active drum machine's sound model and slot names (set on machine switch). */
+export function setDrumKit(model: DrumModel | undefined, labels: Partial<Record<DrumVoice, string>> | undefined): void {
+  drumModel = model || "analog";
+  drumLabels = { ...DRUM_LABELS, ...(labels || {}) };
+}
+export function drumLabel(v: DrumVoice): string {
+  return drumLabels[v];
+}
 
 /** General MIDI drum notes (used for pads, the keyboard and MIDI input). */
 export const DRUM_NOTES: Record<DrumVoice, number> = {
@@ -85,7 +99,10 @@ export function triggerDrum(v: DrumVoice, vel: number, at?: number): void {
   const ctx = getAudioCtxIfAny();
   const dest = getDest();
   if (!ctx || !dest) return;
-  const t = Math.max(ctx.currentTime, at || 0);
+  // While the audio device is still starting (first tap), the clock can jump ahead:
+  // schedule a few ms later so the attack of the very first hit is not lost.
+  const warmup = ctx.state !== "running" || ctx.currentTime < 0.3 ? 0.04 : 0;
+  const t = Math.max(ctx.currentTime + warmup, at || 0);
   const tune = Math.pow(2, vp(v, "Tune", 0) / 12);
   const dec = vp(v, "Decay", 1);
   const tone = vp(v, "Tone", 0.5);
@@ -95,6 +112,14 @@ export function triggerDrum(v: DrumVoice, vel: number, at?: number): void {
   out.connect(dest);
   const life = 3 * dec + 0.2;
   setTimeout(() => { try { out.disconnect(); } catch (e) {} }, (t - ctx.currentTime + life) * 1000 + 100);
+
+  if (drumModel !== "analog") {
+    const h: HitCtx = { ctx, out, t, tune, dec, tone, vel, life };
+    if (drumModel === "persian") persianHit(v, h);
+    else if (drumModel === "acoustic") acousticHit(v, h);
+    else digitalHit(v, h);
+    return;
+  }
 
   if (v === "kick") {
     const o = ctx.createOscillator();
@@ -189,7 +214,9 @@ export function triggerDrum(v: DrumVoice, vel: number, at?: number): void {
 }
 
 // ------------------------------------------------------------ sequencer ----
-const BANK_KEY = "sy1.drums.bank";
+// Each drum machine keeps its own 8-pattern bank (Kerman keeps the original key).
+const bankKey = (machineId: string) => (machineId === "kerman" ? "sy1.drums.bank" : `sy1.m.${machineId}.bank`);
+let BANK_KEY = bankKey("kerman");
 let bank: DrumPattern[] = Array.from({ length: 8 }, () => emptyPattern());
 let current = 0;
 let playing = false;
@@ -204,6 +231,20 @@ try {
   const saved = JSON.parse(localStorage.getItem(BANK_KEY) || "null");
   if (Array.isArray(saved) && saved.length === 8) bank = saved;
 } catch (e) {}
+
+/** Switch to a drum machine's own pattern bank (its saved one, or the given default kit patterns). */
+export function useDrumBank(machineId: string, fallback?: DrumPattern[]): void {
+  BANK_KEY = bankKey(machineId);
+  let saved: unknown = null;
+  try { saved = JSON.parse(localStorage.getItem(BANK_KEY) || "null"); } catch (e) {}
+  if (Array.isArray(saved) && saved.length === 8) {
+    bank = saved as DrumPattern[];
+    current = 0;
+    notify();
+  } else {
+    loadBank(fallback || []);
+  }
+}
 
 function saveBank(): void {
   try { localStorage.setItem(BANK_KEY, JSON.stringify(bank)); } catch (e) {}
