@@ -64,7 +64,7 @@ export interface MachineDef {
   role: string;
   skin: string;
   kind: "synth" | "drums";
-  engine?: "hq" | "strings" | "fm";
+  engine?: "hq" | "strings" | "fm" | "analog";
   /** Drum machines: which synthesis model plays the 8 drum slots. */
   drumModel?: "analog" | "persian" | "acoustic" | "digital";
   /** Drum machines: the name shown for each of the 8 slots (kick, snare, clap, ch, oh, tom, rim, bell). */
@@ -84,6 +84,18 @@ export const WAVE_OPTS: ChoiceOption[] = [
   ["square", "⊓", "Square"],
   ["triangle", "△", "Triangle"],
   ["sine", "∿", "Sine"]
+];
+export const WAVE3_OPTS: ChoiceOption[] = [
+  ["triangle", "△", "Triangle"],
+  ["sawtooth", "⩘", "Saw"],
+  ["revsaw", "⩗", "Reverse saw"],
+  ["square", "⊓", "Square"]
+];
+export const LADDER_OPTS: ChoiceOption[] = [
+  ["lp24", "24", "Ladder low-pass 24 dB"],
+  ["lowpass", "12", "Ladder low-pass 12 dB"],
+  ["bandpass", "BP", "Ladder band-pass"],
+  ["highpass", "HP", "Ladder high-pass"]
 ];
 export const FILTER_OPTS: ChoiceOption[] = [
   ["lowpass", "LP", "Low-pass 12 dB"],

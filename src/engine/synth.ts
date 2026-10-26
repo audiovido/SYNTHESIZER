@@ -13,6 +13,7 @@ import { getCustomTuning, setCustomTuning, SYNC_DIVS, SYNTH_PARAMS, SynthPatch, 
 import { createHQVoice, EngineId, hqPost, initHQ, setEngine, useHQ } from "./hq";
 import { createStringsVoice, initStrings, stringsPost, useStrings } from "./strings";
 import { createFmVoice, fmPost, initFm, useFm } from "./fm";
+import { analogPost, createAnalogVoice, initAnalog, useAnalog } from "./analog";
 import {
   activeSynthVoices,
   createSynthVoice,
@@ -200,6 +201,7 @@ export function setSynthParam(
   hqPost({ t: "param", key, value: synthPatch[key] });
   stringsPost({ t: "param", key, value: synthPatch[key] });
   fmPost({ t: "param", key, value: synthPatch[key] });
+  analogPost({ t: "param", key, value: synthPatch[key] });
   if (!fromPreset && (key === "oriental" || key === "tuning" || key === "tuneRoot")) {
     retuneActiveVoices();
   }
@@ -303,6 +305,7 @@ export function setPitchBend(norm: number): void {
   hqPost({ t: "bend", v });
   stringsPost({ t: "bend", v });
   fmPost({ t: "bend", v });
+  analogPost({ t: "bend", v });
 }
 export function getPitchBend(): number {
   return getVoicePitchBend();
@@ -313,6 +316,7 @@ export function setModWheel(norm: number): void {
   hqPost({ t: "mod", v });
   stringsPost({ t: "mod", v });
   fmPost({ t: "mod", v });
+  analogPost({ t: "mod", v });
 }
 export function getModWheel(): number {
   return getVoiceModWheel();
@@ -328,6 +332,7 @@ export function prepareAudio(): void {
     // the special engines load only when their machine is used (less work on the first tap)
     if (machine.engine === "strings") initStrings(ctx, input, () => synthPatch);
     if (machine.engine === "fm") initFm(ctx, input, () => synthPatch);
+    if (machine.engine === "analog") initAnalog(ctx, input, () => synthPatch);
   }
 }
 
@@ -388,6 +393,9 @@ function startVoice(midi: number, vel: number, at: number, fromHz = 0, glide = 0
   const ctx = getAudioCtx();
   if (machine.engine === "strings" && useStrings()) {
     return createStringsVoice(midi, centsFor(midi), vel, at, fromHz, glide);
+  }
+  if (machine.engine === "analog" && useAnalog()) {
+    return createAnalogVoice(midi, centsFor(midi), vel, at, fromHz, glide);
   }
   if (machine.engine === "fm" && useFm()) {
     return createFmVoice(midi, centsFor(midi), vel, at, fromHz, glide);
@@ -582,6 +590,7 @@ function releaseEverything(): void {
   hqPost({ t: "alloff" });
   stringsPost({ t: "alloff" });
   fmPost({ t: "alloff" });
+  analogPost({ t: "alloff" });
   document.querySelectorAll(".key.is-pressed").forEach((el) => el.classList.remove("is-pressed"));
 }
 
@@ -592,6 +601,7 @@ export function allNotesOff(): void {
   hqPost({ t: "bend", v: 0 });
   stringsPost({ t: "bend", v: 0 });
   fmPost({ t: "bend", v: 0 });
+  analogPost({ t: "bend", v: 0 });
   releaseEverything();
 }
 

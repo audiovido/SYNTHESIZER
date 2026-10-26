@@ -3,7 +3,7 @@
  */
 
 export interface ParamDef {
-  type?: "wave" | "filter" | "lfo" | "poly" | "onoff" | "lfoShape" | "arpMode" | "tuning" | "strModel" | "fmAlgo";
+  type?: "wave" | "filter" | "lfo" | "poly" | "onoff" | "lfoShape" | "arpMode" | "tuning" | "strModel" | "fmAlgo" | "wave3";
   min?: number;
   max?: number;
   step?: number;
@@ -16,6 +16,7 @@ export type SynthPatch = Record<string, any>;
 
 export const PARAM_CHOICES: Record<string, string[]> = {
   wave: ["sawtooth", "square", "triangle", "sine"],
+  wave3: ["triangle", "sawtooth", "revsaw", "square"],
   filter: ["lowpass", "lp24", "bandpass", "highpass"],
   lfo: ["pitch", "filter", "amp"],
   poly: ["poly", "mono"],
@@ -96,6 +97,15 @@ export const SYNTH_PARAMS: Record<string, ParamDef> = {
   revSize:    { min: 0.3, max: 6, curve: "log", def: 2.2, fmt: fmtSec },
   revMix:     { min: 0, max: 1, def: 0.18, fmt: (v) => Math.round(v * 100) + "%" },
   volume:     { min: 0, max: 1, def: 0.7, fmt: (v) => Math.round(v * 100) + "%" },
+
+  // analog engine (Tabriz): third oscillator, ladder extras, drift
+  osc3Wave:   { type: "wave3", def: "triangle" },
+  osc3Oct:    { min: -2, max: 2, step: 1, def: -1, fmt: (v) => (v > 0 ? "+" : "") + v },
+  osc3Detune: { min: -50, max: 50, step: 1, def: -5, fmt: (v) => v + "¢" },
+  osc3Level:  { min: 0, max: 1, def: 0, fmt: (v) => Math.round(v * 100) + "%" },
+  keyTrack:   { min: 0, max: 1, def: 0.33, fmt: (v) => Math.round(v * 100) + "%" },
+  filterDrive:{ min: 0, max: 1, def: 0.3, fmt: (v) => Math.round(v * 100) + "%" },
+  drift:      { min: 0, max: 1, def: 0.25, fmt: (v) => Math.round(v * 100) + "%" },
 
   // voice mode
   polyMode:   { type: "poly", def: "poly" },
