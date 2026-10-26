@@ -3,6 +3,7 @@
  */
 
 import "./index.css";
+import { getAnalogState } from "./engine/analog";
 import "./ui/skins.css";
 import { installAudioUnlock } from "./engine/bus";
 import { applySkin } from "./ui/skins";
@@ -84,7 +85,7 @@ function initApp(): void {
     getTempo,
     requestMidi,
     getPatch: () => ({ ...getSynthPatch() }),
-    getEngine: () => ({ engine: getEngine(), hq: getHQState() }),
+    getEngine: () => ({ engine: getEngine(), hq: getHQState(), analog: getAnalogState() }),
     PARAMS: SYNTH_PARAMS
   };
 }
