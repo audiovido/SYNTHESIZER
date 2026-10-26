@@ -22,7 +22,7 @@ struct Stats {
   AVAudioEngine *_engine;
   AVAudioSourceNode *_source;
   std::unique_ptr<sy1::TabrizHost> _host;
-  std::unique_ptr<sy1::MonoController> _mono;
+  std::unique_ptr<sy1::Controller> _mono;
   std::unique_ptr<Stats> _stats;
   double _sr;
   int _preferredFrames;
@@ -58,7 +58,7 @@ struct Stats {
   [_engine stop];
   _engine = [[AVAudioEngine alloc] init];
   _host = std::make_unique<sy1::TabrizHost>(_sr);
-  _mono = std::make_unique<sy1::MonoController>(_host->queue);
+  _mono = std::make_unique<sy1::Controller>(_host->queue);
 
   sy1::TabrizHost *host = _host.get();
   Stats *stats = _stats.get();
@@ -104,8 +104,8 @@ struct Stats {
   _stats->glitches.store(0);
 }
 
-- (void)noteDown:(int)midi velocity:(double)velocity { if (_mono) _mono->noteDown(midi, velocity); }
-- (void)noteUp:(int)midi { if (_mono) _mono->noteUp(midi); }
+- (void)noteDown:(int)midi velocity:(double)velocity { if (_mono) _mono->keyDown(midi, velocity); }
+- (void)noteUp:(int)midi { if (_mono) _mono->keyUp(midi); }
 - (void)allNotesOff { if (_mono) _mono->allOff(); }
 - (void)setPitchBend:(double)value { if (_mono) _mono->bend(value); }
 - (void)setModWheel:(double)value { if (_mono) _mono->mod(value); }

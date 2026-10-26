@@ -16,6 +16,13 @@ final class SynthModel: ObservableObject {
     @Published var bufferFrames = 128
     @Published var stats = "starting audio…"
     @Published var error: String?
+    @Published var tempo: Double = 110
+    @Published var customOffsets: [Double] = Array(repeating: 0, count: 12)
+
+    /// Performance controls: not part of presets, never mark the preset as edited.
+    static let perfKeys: Set<String> = ["hold", "arpOn", "arpMode", "arpRate", "arpOct", "arpGate", "arpSwing",
+                                        "oriental", "tuning", "tuneRoot"]
+    private var taps: [Date] = []
 
     private var timer: Timer?
     private var saveWork: DispatchWorkItem?
@@ -51,6 +58,10 @@ final class SynthModel: ObservableObject {
         } else if !presets.isEmpty {
             apply(0)
         }
+        if let c = store.array(forKey: "tabriz.customTuning") as? [Double], c.count == 12 { customOffsets = c }
+        let t = store.double(forKey: "tabriz.tempo")
+        setTempo(t >= 40 ? t : 110)
+        sendTuning()
         UIApplication.shared.isIdleTimerDisabled = true
         timer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { [weak self] _ in self?.refreshStats() }
     }
@@ -84,15 +95,78 @@ final class SynthModel: ObservableObject {
     func set(_ key: String, _ v: Double) {
         guard values[key] != v else { return }
         send(key, .num(v))
-        edited = true
+        if !Self.perfKeys.contains(key) { edited = true }
+        if key == "tuneRoot" { sendTuning() }
         saveSoon()
     }
 
     func choose(_ key: String, _ v: String) {
         guard choices[key] != v else { return }
         send(key, .str(v))
-        edited = true
+        if !Self.perfKeys.contains(key) { edited = true }
+        if key == "oriental" || key == "tuning" { sendTuning() }
         saveSoon()
+    }
+
+    // MARK: HOLD / ARP / ORIENTAL
+
+    func toggle(_ key: String) { choose(key, choice(key) == "on" ? "off" : "on") }
+
+    var tunings: [TuningDef] { panel?.tunings ?? [] }
+    var currentTuning: TuningDef? { tunings.first { $0.id == choice("tuning") } }
+    var tuningLabel: String {
+        guard let t = currentTuning, t.id != "12tet" else { return "" }
+        return t.id == "custom" ? "Custom" : "\(t.label) · \(noteNames[Int(number("tuneRoot")) % 12])"
+    }
+
+    /// Picking a maqam/dastgah also sets its tonic and turns ORIENTAL on (like the website).
+    func selectTuning(_ id: String) {
+        choose("tuning", id)
+        if let t = tunings.first(where: { $0.id == id }), id != "custom", id != "12tet" { set("tuneRoot", Double(t.tonic)) }
+        if id != "12tet" && choice("oriental") != "on" { choose("oriental", "on") }
+        sendTuning()
+    }
+
+    func setCustomOffset(_ degree: Int, _ cents: Double) {
+        guard customOffsets.indices.contains(degree) else { return }
+        customOffsets[degree] = max(-100, min(100, (cents * 10).rounded() / 10))
+        store.set(customOffsets, forKey: "tabriz.customTuning")
+        if choice("tuning") != "custom" { selectTuning("custom") } else { sendTuning() }
+    }
+
+    func resetCustom() {
+        customOffsets = Array(repeating: 0, count: 12)
+        store.set(customOffsets, forKey: "tabriz.customTuning")
+        sendTuning()
+    }
+
+    /// Sends the cent offset of each pitch class (tc0..tc11) to the engine; held notes are retuned live.
+    func sendTuning() {
+        let on = choice("oriental") == "on"
+        let offs = choice("tuning") == "custom" ? customOffsets : (currentTuning?.offsets ?? Array(repeating: 0, count: 12))
+        let root = Int(number("tuneRoot"))
+        for pc in 0..<12 {
+            let deg = ((pc - root) % 12 + 12) % 12
+            engine.setNumber(on && offs.indices.contains(deg) ? offs[deg] : 0, forKey: "tc\(pc)")
+        }
+    }
+
+    func setTempo(_ bpm: Double) {
+        tempo = max(40, min(240, bpm.rounded()))
+        store.set(tempo, forKey: "tabriz.tempo")
+        engine.setNumber(tempo, forKey: "tempo")
+    }
+
+    /// Tap tempo: average of the last taps within 2 seconds of each other.
+    func tapTempo() {
+        let now = Date()
+        taps = taps.filter { now.timeIntervalSince($0) < 2 }
+        taps.append(now)
+        if taps.count >= 2 {
+            let gaps = zip(taps.dropFirst(), taps).map { $0.timeIntervalSince($1) }
+            setTempo(60 / (gaps.reduce(0, +) / Double(gaps.count)))
+        }
+        if taps.count > 6 { taps.removeFirst() }
     }
 
     func resetToDefault(_ key: String) {

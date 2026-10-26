@@ -10,6 +10,7 @@
 		33528ECC6AE43A6A19F89477 /* TabrizApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C59F35AAA8AE81DB2577561 /* TabrizApp.swift */; };
 		62ADFAF7EDC910F8379C61C6 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A4C8F32E95A9FD25E99B0F8 /* ContentView.swift */; };
 		5236974117C2BFF18833B4FE /* Controls.swift in Sources */ = {isa = PBXBuildFile; fileRef = A336976A10CC6CA836AF549C /* Controls.swift */; };
+		2CA773CD7C17403F775E9517 /* Performance.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4959C868DC9A49117322FBF /* Performance.swift */; };
 		6C90235BF71177F0FDD2D6DE /* Panel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A112100CD6ADE4F1137DDD6 /* Panel.swift */; };
 		FAB24D62B3A8F02837F7612A /* SynthModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 259B4484BFE5FF1B0DF581CD /* SynthModel.swift */; };
 		19D20F8DACC791EB5FDC21E9 /* KeyboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F4CCB809E199A35D578B2CC /* KeyboardView.swift */; };
@@ -23,6 +24,7 @@
 		2C59F35AAA8AE81DB2577561 /* TabrizApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TabrizApp.swift"; sourceTree = "<group>"; };
 		1A4C8F32E95A9FD25E99B0F8 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ContentView.swift"; sourceTree = "<group>"; };
 		A336976A10CC6CA836AF549C /* Controls.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Controls.swift"; sourceTree = "<group>"; };
+		E4959C868DC9A49117322FBF /* Performance.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Performance.swift"; sourceTree = "<group>"; };
 		1A112100CD6ADE4F1137DDD6 /* Panel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Panel.swift"; sourceTree = "<group>"; };
 		259B4484BFE5FF1B0DF581CD /* SynthModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SynthModel.swift"; sourceTree = "<group>"; };
 		3F4CCB809E199A35D578B2CC /* KeyboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "KeyboardView.swift"; sourceTree = "<group>"; };
@@ -62,6 +64,7 @@
 				2C59F35AAA8AE81DB2577561 /* TabrizApp.swift */,
 				1A4C8F32E95A9FD25E99B0F8 /* ContentView.swift */,
 				A336976A10CC6CA836AF549C /* Controls.swift */,
+				E4959C868DC9A49117322FBF /* Performance.swift */,
 				1A112100CD6ADE4F1137DDD6 /* Panel.swift */,
 				259B4484BFE5FF1B0DF581CD /* SynthModel.swift */,
 				3F4CCB809E199A35D578B2CC /* KeyboardView.swift */,
@@ -163,6 +166,7 @@
 				33528ECC6AE43A6A19F89477 /* TabrizApp.swift in Sources */,
 				62ADFAF7EDC910F8379C61C6 /* ContentView.swift in Sources */,
 				5236974117C2BFF18833B4FE /* Controls.swift in Sources */,
+				2CA773CD7C17403F775E9517 /* Performance.swift in Sources */,
 				6C90235BF71177F0FDD2D6DE /* Panel.swift in Sources */,
 				FAB24D62B3A8F02837F7612A /* SynthModel.swift in Sources */,
 				19D20F8DACC791EB5FDC21E9 /* KeyboardView.swift in Sources */,

@@ -873,6 +873,324 @@
    "log": false,
    "def": 0.5,
    "kind": "pct"
+  },
+  "hold": {
+   "choice": true,
+   "options": [
+    "off",
+    "on"
+   ],
+   "def": "off"
+  },
+  "arpOn": {
+   "choice": true,
+   "options": [
+    "off",
+    "on"
+   ],
+   "def": "off"
+  },
+  "arpMode": {
+   "choice": true,
+   "options": [
+    "up",
+    "down",
+    "updown",
+    "random",
+    "played",
+    "euclid"
+   ],
+   "def": "up"
+  },
+  "arpRate": {
+   "min": 1,
+   "max": 8,
+   "step": 1,
+   "log": false,
+   "def": 6,
+   "kind": "div"
+  },
+  "arpOct": {
+   "min": 1,
+   "max": 4,
+   "step": 1,
+   "log": false,
+   "def": 1,
+   "kind": "oct"
+  },
+  "arpGate": {
+   "min": 0.05,
+   "max": 1,
+   "step": 0,
+   "log": false,
+   "def": 0.6,
+   "kind": "pct"
+  },
+  "arpSwing": {
+   "min": 0,
+   "max": 0.6,
+   "step": 0,
+   "log": false,
+   "def": 0,
+   "kind": "pct"
+  },
+  "oriental": {
+   "choice": true,
+   "options": [
+    "off",
+    "on"
+   ],
+   "def": "off"
+  },
+  "tuning": {
+   "choice": true,
+   "options": [
+    "12tet",
+    "shur",
+    "homayoun",
+    "chahargah",
+    "segah",
+    "bayati",
+    "rast",
+    "hijaz",
+    "custom"
+   ],
+   "def": "12tet"
+  },
+  "tuneRoot": {
+   "min": 0,
+   "max": 11,
+   "step": 1,
+   "log": false,
+   "def": 7,
+   "kind": "note"
   }
- }
+ },
+ "arpModes": [
+  {
+   "value": "up",
+   "text": "UP",
+   "title": "Up"
+  },
+  {
+   "value": "down",
+   "text": "DN",
+   "title": "Down"
+  },
+  {
+   "value": "updown",
+   "text": "U/D",
+   "title": "Up and down"
+  },
+  {
+   "value": "random",
+   "text": "RND",
+   "title": "Random"
+  },
+  {
+   "value": "played",
+   "text": "PLAY",
+   "title": "As played"
+  }
+ ],
+ "tunings": [
+  {
+   "id": "12tet",
+   "label": "Equal",
+   "name": "Equal (12-TET)",
+   "tonic": 0,
+   "offsets": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "approx": false,
+   "source": "Standard 12-tone equal temperament (A4 = 440 Hz)."
+  },
+  {
+   "id": "shur",
+   "label": "Shur",
+   "name": "Shur",
+   "tonic": 7,
+   "offsets": [
+    0,
+    0,
+    -50,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "approx": false,
+   "source": "Vaziri 24-TET & Farhat (1990, ch. 3): G A-koron Bb C D Eb F — 2nd degree (+2 st) is koron (−50¢)."
+  },
+  {
+   "id": "homayoun",
+   "label": "Homayoun",
+   "name": "Homayoun",
+   "tonic": 7,
+   "offsets": [
+    0,
+    0,
+    -50,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    -50,
+    0,
+    0
+   ],
+   "approx": true,
+   "source": "Vaziri 24-TET & Farhat (1990, ch. 6, Homayoun/Bidad): G A-koron B C D Eb/E-koron F — 2nd (+2 st) & 6th (+9 st) degrees koron (−50¢, approximate)."
+  },
+  {
+   "id": "chahargah",
+   "label": "Chahargah",
+   "name": "Chahargah",
+   "tonic": 0,
+   "offsets": [
+    0,
+    0,
+    -50,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    -50,
+    0,
+    0
+   ],
+   "approx": false,
+   "source": "Vaziri 24-TET & Farhat (1990, ch. 5): C D-koron E F G A-koron B — symmetrical tetrachords with 2nd (+2 st) & 6th (+9 st) degrees koron (−50¢)."
+  },
+  {
+   "id": "segah",
+   "label": "Segah",
+   "name": "Segah",
+   "tonic": 4,
+   "offsets": [
+    -50,
+    0,
+    0,
+    0,
+    0,
+    -50,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "approx": true,
+   "source": "Vaziri 24-TET & Farhat (1990, ch. 4): E-koron F G A-koron Bb C D — tonic (0 st) & 4th (+5 st) on koron degrees of the C staff (−50¢, approximate)."
+  },
+  {
+   "id": "bayati",
+   "label": "Bayati",
+   "name": "Bayati (maqam)",
+   "tonic": 2,
+   "offsets": [
+    0,
+    0,
+    -50,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "approx": false,
+   "source": "Arabic 24-TET maqam theory (Touma 1996): D E-half-flat F G A Bb C — 2nd degree (+2 st) is half-flat (−50¢)."
+  },
+  {
+   "id": "rast",
+   "label": "Rast",
+   "name": "Rast (maqam)",
+   "tonic": 0,
+   "offsets": [
+    0,
+    0,
+    0,
+    0,
+    -50,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    -50
+   ],
+   "approx": false,
+   "source": "Arabic 24-TET maqam theory (Touma 1996): C D E-half-flat F G A B-half-flat — 3rd (+4 st) & 7th (+11 st) degrees are half-flat (−50¢)."
+  },
+  {
+   "id": "hijaz",
+   "label": "Hijaz",
+   "name": "Hijaz (maqam)",
+   "tonic": 2,
+   "offsets": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "approx": false,
+   "source": "Arabic 24-TET maqam theory (Touma 1996): D Eb F# G A Bb C — augmented 2nd between Eb and F#, all 12-TET offsets 0¢."
+  },
+  {
+   "id": "custom",
+   "label": "Custom",
+   "name": "Custom",
+   "tonic": 0,
+   "offsets": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "approx": false,
+   "source": "Custom per-key cent offsets (−100¢ to +100¢) or imported 12-note Scala (.scl) file, saved per machine."
+  }
+ ]
 }

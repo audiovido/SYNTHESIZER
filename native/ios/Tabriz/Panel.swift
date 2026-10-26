@@ -66,9 +66,27 @@ struct ParamSpec: Decodable {
         case "signed": return (v > 0 ? "+" : "") + "\(r(v))"
         case "freq": return v >= 1000 ? String(format: "%.1fk", v / 1000) : "\(r(v))"
         case "int": return "\(r(v))"
+        case "div":
+            let labels = ["1/1", "1/2", "1/4", "1/8", "1/8T", "1/16", "1/16T", "1/32"]
+            let i = r(v) - 1
+            return labels.indices.contains(i) ? labels[i] : "?"
+        case "oct": return "\(r(v)) oct"
+        case "note": return noteNames[((r(v) % 12) + 12) % 12]
         default: return String(format: "%.1f", v)
         }
     }
+}
+
+let noteNames = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
+
+struct TuningDef: Decodable, Hashable {
+    let id: String
+    let label: String
+    let name: String
+    let tonic: Int
+    let offsets: [Double]
+    let approx: Bool
+    let source: String
 }
 
 struct ChoiceOption: Decodable, Hashable {
@@ -116,6 +134,8 @@ struct PanelDef: Decodable {
     let pages: [PageDef]
     let sections: [SectionDef]
     let params: [String: ParamSpec]
+    let arpModes: [ChoiceOption]
+    let tunings: [TuningDef]
 
     static func load() -> PanelDef? {
         guard let url = Bundle.main.url(forResource: "panel", withExtension: "json"),

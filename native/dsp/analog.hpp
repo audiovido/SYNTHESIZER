@@ -222,7 +222,8 @@ class AnalogEngine {
   void noteOff(int id, int offset, bool fast) {
     AnalogVoice* v = find(id);
     if (!v) return;
-    v->relDelay = offset > v->delay ? offset : v->delay;
+    // relDelay counts from the moment the note starts (after its own delay)
+    v->relDelay = offset > v->delay ? offset - v->delay : 0;
     v->relFast = fast ? 0.005 : 0;
   }
 

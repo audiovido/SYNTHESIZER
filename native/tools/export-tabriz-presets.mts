@@ -4,7 +4,8 @@
 //   npx esbuild native/tools/export-tabriz-presets.mts --bundle --platform=node --format=esm --outfile=native/tools/.exp.mjs
 //   node native/tools/.exp.mjs && rm native/tools/.exp.mjs
 import { writeFileSync } from "fs";
-import { PARAM_CHOICES, SYNTH_PARAMS } from "../../src/engine/params";
+import { PARAM_CHOICES, SYNC_DIVS, SYNTH_PARAMS, TUNINGS } from "../../src/engine/params";
+import { ARP_MODE_OPTS, TUNING_OPTS } from "../../src/machines/types";
 import { TABRIZ } from "../../src/machines/tabriz";
 
 // ---- every key the panel shows + FX bus + engine-only keys ----
@@ -18,6 +19,9 @@ for (const s of TABRIZ.sections)
 ["drive", "eqLow", "eqMid", "eqHigh", "delayTime", "delayFb", "delayMix", "revSize", "revMix",
   "chorusMix", "chorusRate", "chorusDepth"].forEach((k) => keys.add(k));
 const KEYS = [...keys].filter((k) => SYNTH_PARAMS[k]);
+// performance controls (HOLD, ARP, ORIENTAL): in the panel spec but not in presets,
+// so they stay as the player set them when switching presets (like the web keeps the arp settings)
+const PERF = ["hold", "arpOn", "arpMode", "arpRate", "arpOct", "arpGate", "arpSwing", "oriental", "tuning", "tuneRoot"];
 
 // ---- value formatting: pick the formatter kind that reproduces fmt() exactly ----
 const sec = (v: number) => (v < 1 ? Math.round(v * 1000) + "ms" : v.toFixed(2) + "s");
@@ -33,6 +37,9 @@ const KINDS: Record<string, (v: number) => string> = {
   freq: (v) => (v >= 1000 ? (v / 1000).toFixed(1) + "k" : Math.round(v) + ""),
   f1: (v) => v.toFixed(1),
   int: (v) => String(Math.round(v)),
+  div: (v) => SYNC_DIVS[v - 1]?.label ?? "?",
+  oct: (v) => v + " oct",
+  note: (v) => ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"][v] ?? "?",
 };
 function kindOf(key: string): string {
   const d = SYNTH_PARAMS[key];
@@ -48,7 +55,7 @@ function kindOf(key: string): string {
 }
 
 const params: Record<string, unknown> = {};
-for (const k of KEYS) {
+for (const k of [...KEYS, ...PERF]) {
   const d = SYNTH_PARAMS[k];
   if (d.type) params[k] = { choice: true, options: PARAM_CHOICES[d.type], def: d.def };
   else params[k] = { min: d.min, max: d.max, step: d.step ?? 0, log: d.curve === "log", def: d.def, kind: kindOf(k) };
@@ -70,6 +77,11 @@ const panel = {
     }),
   })),
   params,
+  arpModes: ARP_MODE_OPTS.filter(([v]) => v !== "euclid").map(([value, text, title]) => ({ value, text, title: title ?? text })),
+  tunings: TUNING_OPTS.map(([id, label]) => {
+    const t = TUNINGS[id];
+    return { id, label: label.replace(/ \(approx\.\)/, ""), name: t.name, tonic: t.tonic, offsets: t.offsets, approx: !!t.approx, source: t.source };
+  }),
 };
 
 const presets = TABRIZ.presets.map((p) => {

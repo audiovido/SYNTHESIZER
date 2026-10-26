@@ -3,6 +3,7 @@ import SwiftUI
 
 struct ContentView: View {
     @StateObject private var model = SynthModel()
+    @State private var perfPanel: PerfPanel = .none
 
     var body: some View {
         GeometryReader { geo in
@@ -16,7 +17,17 @@ struct ContentView: View {
                     if let e = model.error {
                         Text(e).font(.caption).foregroundColor(.red)
                     }
-                    sections
+                    ZStack(alignment: .top) {
+                        sections
+                        if perfPanel == .arp {
+                            ArpPanelView(model: model) { perfPanel = .none }
+                                .frame(maxWidth: 560)
+                        } else if perfPanel == .tuning {
+                            TuningPanelView(model: model) { perfPanel = .none }
+                                .frame(maxWidth: 640)
+                        }
+                    }
+                    PerformanceBar(model: model, panel: $perfPanel)
                     HStack(spacing: 6) {
                         WheelStrip(label: "PB", springs: true) { model.bend($0) }
                         WheelStrip(label: "MOD", springs: false) { model.mod($0) }

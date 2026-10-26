@@ -223,7 +223,8 @@ export class AnalogEngine {
   noteOff(id: number, offset: number, fast: boolean): void {
     const v = this.find(id);
     if (!v) return;
-    v.relDelay = Math.max(offset | 0, v.delay);
+    // relDelay counts from the moment the note starts (after its own delay)
+    v.relDelay = Math.max(0, (offset | 0) - v.delay);
     v.relFast = fast ? 0.005 : 0;
   }
 
