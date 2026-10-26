@@ -44,13 +44,50 @@ export function getAudioCtxIfAny(): AudioContext | null {
   return audioCtx;
 }
 
+let unlockedOnce = false;
+
+/**
+ * Wake the audio context. Browsers only allow this inside a user gesture, so it
+ * is called from every touch, click and key press (see installAudioUnlock) and
+ * the very first key you play makes sound: no separate "start audio" button.
+ */
 export function unlockAudio(): void {
+  // iOS 17+: play through the speaker even when the ring/silent switch is on silent
+  try {
+    const nav = navigator as any;
+    if (nav.audioSession && nav.audioSession.type !== "playback") nav.audioSession.type = "playback";
+  } catch (e) {}
   const ctx = getAudioCtx();
-  if (ctx && ctx.state === "suspended") {
-    ctx.resume();
+  if (!ctx) return;
+  if (ctx.state !== "running") {
+    ctx.resume().catch(() => {});
   }
-  const b = document.getElementById("sy1-start");
-  if (b) b.hidden = true;
+  if (!unlockedOnce) {
+    // Older iOS only unlocks after a sound is started inside the gesture: play one silent sample
+    try {
+      const src = ctx.createBufferSource();
+      src.buffer = ctx.createBuffer(1, 1, ctx.sampleRate);
+      src.connect(ctx.destination);
+      src.start(0);
+      unlockedOnce = true;
+    } catch (e) {}
+  }
+}
+
+/** Resume audio on any gesture anywhere on the page (and again after the OS suspends it). */
+export function installAudioUnlock(onGesture: () => void): void {
+  const handler = () => {
+    const ctx = getAudioCtxIfAny();
+    if (ctx && ctx.state === "running" && unlockedOnce) return;
+    onGesture();
+  };
+  ["pointerdown", "touchstart", "touchend", "mousedown", "click", "keydown"].forEach((type) => {
+    window.addEventListener(type, handler, { capture: true, passive: true });
+  });
+  document.addEventListener("visibilitychange", () => {
+    const ctx = getAudioCtxIfAny();
+    if (!document.hidden && ctx && ctx.state !== "running") ctx.resume().catch(() => {});
+  });
 }
 
 const synthBuses = new WeakMap<AudioContext, SynthFXBus>();

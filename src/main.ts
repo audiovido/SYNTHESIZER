@@ -4,6 +4,7 @@
 
 import "./index.css";
 import "./ui/skins.css";
+import { installAudioUnlock } from "./engine/bus";
 import { applySkin } from "./ui/skins";
 import { getEngine, getHQState } from "./engine/hq";
 import { requestMidi } from "./engine/midi";
@@ -48,8 +49,7 @@ function initApp(): void {
   renderPanel();
   renderKeyboard();
 
-  const startBtn = document.getElementById("sy1-start");
-  if (startBtn) startBtn.addEventListener("click", prepareAudio);
+  installAudioUnlock(prepareAudio);
 
   initKnobInteractions();
   initKeyboardInteractions();

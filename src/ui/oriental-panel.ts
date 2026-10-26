@@ -21,6 +21,7 @@ import {
 } from "../engine/synth";
 import { choice, ChoiceOption, toggles, TUNING_OPTS } from "../machines/types";
 import { renderControl, setPanelRenderHook } from "./panel";
+import { syncOriental } from "./keyboard";
 
 let open = false;
 let sclStatusMsg = "";
@@ -94,28 +95,11 @@ function html(): string {
   </div></div>`;
 }
 
+/** One source of truth for the ORIENTAL button label (see syncOriental in keyboard.ts). */
 export function syncOrientalButton(): void {
+  syncOriental();
   const btn = document.getElementById("kb-oriental");
-  if (!btn) return;
-  const patch = getSynthPatch();
-  const isOn = patch.oriental === "on";
-
-  btn.classList.toggle("active", isOn);
-  btn.classList.toggle("is-open", open);
-  btn.setAttribute("aria-pressed", isOn ? "true" : "false");
-
-  const sub = document.getElementById("kb-oriental-sub");
-  if (sub) {
-    if (!isOn) {
-      sub.textContent = "OFF";
-    } else {
-      const tDef = TUNINGS[patch.tuning] || TUNINGS["12tet"];
-      const shortName = tDef.name.split(" ")[0];
-      const rootLabel = NOTE_NAMES[patch.tuneRoot ?? 0] || "C";
-      const approxTag = tDef.approx ? " ~" : "";
-      sub.textContent = `${shortName}${approxTag} · ${rootLabel}`;
-    }
-  }
+  if (btn) btn.classList.toggle("is-open", open);
 }
 
 function render(): void {

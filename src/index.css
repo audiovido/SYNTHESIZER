@@ -121,34 +121,12 @@ html, body {
   display: contents;
 }
 
-.sy1-start {
-  position: fixed;
-  z-index: 20;
-  left: 50%;
-  transform: translateX(-50%);
-  top: calc(12px + env(safe-area-inset-top, 0px));
-  min-height: 48px;
-  padding: 0 22px;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.5);
-  border-radius: 10px;
-  border: 1px solid var(--btn-border);
-  background: var(--btn-bg);
-  color: var(--kb-btn-ink);
-  font-weight: 800;
-  cursor: pointer;
-}
-
-.sy1-start[hidden] {
-  display: none;
-}
-
 /* keyboard */
 /* Keyboard area: octave controls in a column beside the keys (wide screens)
    or in a row above them (phone portrait). Takes the space the panel leaves. */
 .kb-area {
   flex: 1 1 auto;
   min-height: var(--kb-min);
-  max-height: var(--kb-max);
   display: flex;
   gap: 8px;
   margin-top: 10px;
@@ -1594,4 +1572,16 @@ body { touch-action: manipulation; }
   --k: min(var(--k-in), calc(var(--fit) - 10px));
   width: min(var(--sk-w), var(--fit));
   min-width: 0;
+}
+
+/* Bigger touch target for the ORIENTAL edit gear */
+.kb-oriental-gear {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  align-self: stretch;
+  min-width: 26px;
+  margin-right: -4px;
+  padding: 0 4px;
+  font-size: 0.95rem;
 }
