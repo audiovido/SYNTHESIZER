@@ -51,6 +51,8 @@ struct KnobView: View {
 
     @Environment(\.knobSize) private var baseSize
     @State private var startNorm: Double?
+    @State private var dragging = false
+    @State private var lastTap: Date?
 
     init(label: String, spec: ParamSpec, value: Double, small: Bool = false,
          onChange: @escaping (Double) -> Void, onReset: @escaping () -> Void) {
@@ -91,14 +93,30 @@ struct KnobView: View {
             }
             .frame(width: size, height: size)
             .contentShape(Rectangle())
+            // One gesture does both: drag turns the knob, a quick double tap (no movement) resets it.
+            // (A separate tap gesture never fires: the drag gesture claims the touch first.)
             .gesture(DragGesture(minimumDistance: 0)
                 .onChanged { g in
                     if startNorm == nil { startNorm = n }
+                    let moved = abs(g.translation.width) + abs(g.translation.height)
+                    if moved < 3 && !dragging { return }  // still a tap: leave the value alone
+                    dragging = true
                     let delta = (-g.translation.height + g.translation.width * 0.4) / 180
                     onChange(spec.value((startNorm ?? n) + delta))
                 }
-                .onEnded { _ in startNorm = nil })
-            .onTapGesture(count: 2) { onReset() }
+                .onEnded { _ in
+                    let wasTap = !dragging
+                    startNorm = nil
+                    dragging = false
+                    guard wasTap else { lastTap = nil; return }
+                    let now = Date()
+                    if let t = lastTap, now.timeIntervalSince(t) < 0.35 {
+                        lastTap = nil
+                        onReset()
+                    } else {
+                        lastTap = now
+                    }
+                })
             Text(label)
                 .font(.system(size: max(8, size * 0.19), weight: .bold))
                 .foregroundColor(Theme.cream)
