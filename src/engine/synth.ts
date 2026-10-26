@@ -9,7 +9,7 @@
  */
 
 import { getAudioCtx, getAudioCtxIfAny, getSynthBus, makeDriveCurve, makeReverbImpulse, unlockAudio } from "./bus";
-import { SYNC_DIVS, SYNTH_PARAMS, SynthPatch, synthDefaults, TUNINGS, tuningCents } from "./params";
+import { getCustomTuning, setCustomTuning, SYNC_DIVS, SYNTH_PARAMS, SynthPatch, synthDefaults, TUNINGS, tuningCents } from "./params";
 import { createHQVoice, EngineId, hqPost, initHQ, setEngine, useHQ } from "./hq";
 import { createStringsVoice, initStrings, stringsPost, useStrings } from "./strings";
 import {
@@ -21,7 +21,7 @@ import {
   setVoicePitchBend,
   SynthVoice
 } from "./voice";
-import { arpAllOff, arpNoteOff, arpNoteOn, arpReleaseLatched, configureArp } from "./arp";
+import { arpAllOff, arpHeldNotes, arpNoteOff, arpNoteOn, arpReleaseLatched, arpReleasePhysical, configureArp } from "./arp";
 import { getTempo, onTempoChange, setTempo } from "./tempo";
 import {
   configureDrums,
@@ -133,7 +133,7 @@ export function setSynthParam(
     synthPatch[key] = v;
   }
 
-  if (!fromPreset && !internal && key !== "hold") {
+  if (!fromPreset && !internal && key !== "hold" && key !== "oriental") {
     synthPresetId = "custom";
     presetChangeListeners.forEach((cb) => cb(synthPresetId));
   }
@@ -149,12 +149,12 @@ export function setSynthParam(
       const r = syncedLfoRate();
       if (r !== null) setSynthParam("lfoRate", r, { internal: true });
     }
-    if (key === "tuning" && !fromPreset && TUNINGS[value]) {
-      setSynthParam("tuneRoot", TUNINGS[value].root, { internal: true });
+    if (key === "tuning" && !fromPreset && TUNINGS[value] && value !== "custom") {
+      setSynthParam("tuneRoot", TUNINGS[value].tonic, { internal: true });
     }
     if (key === "hold" && value !== "on" && before === "on") {
       releaseHeldByHold();
-      arpReleaseLatched();
+      arpReleaseLatched().forEach((m) => markKey(m, false));
     }
     if (key === "arpOn" && value !== before) releaseEverything();
     if (key === "polyMode" && value !== before) releaseEverything();
@@ -196,8 +196,19 @@ export function setSynthParam(
   activeSynthVoices.forEach((vc) => vc.update(key));
   hqPost({ t: "param", key, value: synthPatch[key] });
   stringsPost({ t: "param", key, value: synthPatch[key] });
+  if (!fromPreset && (key === "oriental" || key === "tuning" || key === "tuneRoot")) {
+    retuneActiveVoices();
+  }
   paramChangeListeners.forEach((cb) => cb(key, synthPatch[key]));
   savePatchSoon();
+}
+
+export function updateCustomTuningOffsets(offsets?: number[]): number[] {
+  const machineId = machine.id;
+  const clean = offsets ? setCustomTuning(machineId, offsets) : getCustomTuning(machineId);
+  retuneActiveVoices();
+  paramChangeListeners.forEach((cb) => cb("tuning", synthPatch.tuning));
+  return clean;
 }
 
 // tempo changes re-sync a synced LFO
@@ -247,6 +258,7 @@ export function setMachine(id: string): void {
   releaseEverything();
   stopDrums();
   machine = next;
+  TUNINGS.custom.offsets = getCustomTuning(machine.id).slice();
   try { localStorage.setItem(MACHINE_KEY, machine.id); } catch (e) {}
   let restored = false;
   try {
@@ -262,6 +274,13 @@ export function setMachine(id: string): void {
   if (!restored) {
     synthPresetId = machine.presets[0]?.id || "custom";
     if (machine.presets[0]) applySynthPreset(machine.presets[0].id);
+    // Every machine opens with oriental off by default
+    setSynthParam("oriental", "off", { internal: true });
+    if (machine.id === "isfahan" || machine.id === "shiraz") {
+      setSynthParam("glide", 0, { internal: true });
+      setSynthParam("scoop", 0, { internal: true });
+      setSynthParam("tahrir", 0, { internal: true });
+    }
   }
   machineListeners.forEach((cb) => cb(machine));
   presetChangeListeners.forEach((cb) => cb(synthPresetId));
@@ -317,12 +336,36 @@ let lastMonoHz = 0;
 
 export const downKeys = new Map<string, number>(); // computer key -> midi
 
-function centsFor(midi: number): number {
-  return tuningCents(synthPatch.tuning || "12tet", midi, synthPatch.tuneRoot);
+export function centsFor(midi: number): number {
+  if (synthPatch.oriental !== "on") return 0;
+  return tuningCents(synthPatch.tuning || "12tet", midi, synthPatch.tuneRoot, machine.id);
 }
-function freqFor(midi: number): number {
+
+export function freqFor(midi: number): number {
   return 440 * Math.pow(2, (midi - 69) / 12 + centsFor(midi) / 1200);
 }
+
+function retuneActiveVoices(): void {
+  const ctx = getAudioCtxIfAny();
+  if (!ctx) return;
+  const now = ctx.currentTime;
+  heldVoices.forEach((v, m) => {
+    if (!v.isReleased() && v.retune) v.retune(freqFor(m), 0.005, now);
+  });
+  if (monoVoice && !monoVoice.isReleased() && monoMidi >= 0 && monoVoice.retune) {
+    const hz = freqFor(monoMidi);
+    monoVoice.retune(hz, 0.005, now);
+    lastMonoHz = hz;
+  }
+}
+
+export function isNoteSounding(midi: number): boolean {
+  if (synthPatch.arpOn === "on") return arpHeldNotes().includes(midi);
+  if (synthPatch.polyMode === "mono") return monoVoice !== null && !monoVoice.isReleased() && monoMidi === midi;
+  const v = heldVoices.get(midi);
+  return !!v && !v.isReleased();
+}
+
 function holding(): boolean {
   return sustainPedal || synthPatch.hold === "on";
 }
@@ -360,6 +403,7 @@ function releaseHeldByHold(): void {
     if (ctx) monoVoice.release(ctx.currentTime);
     monoVoice = null;
     markKey(monoMidi, false);
+    monoMidi = -1;
   }
 }
 
@@ -374,6 +418,14 @@ export function getSustainPedal(): boolean {
 // mono/legato voice handling
 function monoOn(midi: number, vel: number): void {
   const ctx = getAudioCtx();
+  // Pressing the currently HOLD-latched mono note stops it (toggle)
+  if (synthPatch.hold === "on" && monoVoice && !monoVoice.isReleased() && monoMidi === midi && monoStack.length === 0) {
+    monoVoice.release(ctx.currentTime);
+    monoVoice = null;
+    markKey(monoMidi, false);
+    monoMidi = -1;
+    return;
+  }
   const i = monoStack.indexOf(midi);
   if (i >= 0) monoStack.splice(i, 1);
   monoStack.push(midi);
@@ -422,6 +474,11 @@ function monoOff(midi: number): void {
 
 function polyOn(midi: number, vel: number): void {
   const ctx = getAudioCtx();
+  if (synthPatch.hold === "on" && sustainedNotes.has(midi) && !physicallyHeld.has(midi)) {
+    sustainedNotes.delete(midi);
+    releaseVoiceNow(midi);
+    return;
+  }
   physicallyHeld.add(midi);
   sustainedNotes.delete(midi);
   const prev = heldVoices.get(midi);
@@ -452,7 +509,7 @@ export function noteOn(midi: number, velocity = 1): void {
   }
   if (synthPatch.arpOn === "on") {
     arpNoteOn(midi, velocity);
-    markKey(midi, true);
+    markKey(midi, isNoteSounding(midi));
     return;
   }
   if (synthPatch.polyMode === "mono") monoOn(midi, velocity);
@@ -466,11 +523,32 @@ export function noteOff(midi: number): void {
   }
   if (synthPatch.arpOn === "on") {
     arpNoteOff(midi);
-    markKey(midi, false);
+    markKey(midi, isNoteSounding(midi));
     return;
   }
   if (synthPatch.polyMode === "mono") monoOff(midi);
   else polyOff(midi);
+}
+
+/** Release only physically held keys (window blur / tab hidden); keeps HOLD-latched notes and sustain pedal. */
+export function releasePhysicalNotes(): void {
+  const fromKeys = Array.from(downKeys.values());
+  downKeys.clear();
+  fromKeys.forEach((m) => noteOff(m));
+
+  const heldArr = Array.from(physicallyHeld);
+  heldArr.forEach((m) => polyOff(m));
+
+  if (synthPatch.polyMode === "mono" && monoStack.length > 0) {
+    const top = monoStack[monoStack.length - 1];
+    monoStack.length = 0;
+    monoOff(top);
+  }
+
+  if (synthPatch.arpOn === "on") {
+    const dropped = arpReleasePhysical(synthPatch.hold === "on");
+    dropped.forEach((m) => markKey(m, false));
+  }
 }
 
 /** Stop every sound and forget held state (keeps the sustain pedal flag off too). */

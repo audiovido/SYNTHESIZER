@@ -1,8 +1,5 @@
-/**
- * SY-1 UI — On-Screen Keyboard & Computer Keyboard Handling
- */
-
-import { allNotesOff, downKeys, getMachine, getSynthPatch, midiToName, noteOff, noteOn, NOTE_NAMES, onParamChange, prepareAudio, setModWheel, setPitchBend, setSynthParam } from "../engine/synth";
+import { centsFor, downKeys, getMachine, getSynthPatch, isNoteSounding, midiToName, noteOff, noteOn, NOTE_NAMES, onParamChange, prepareAudio, releasePhysicalNotes, setModWheel, setPitchBend, setSynthParam } from "../engine/synth";
+import { TUNINGS } from "../engine/params";
 import { DRUM_LABELS, DRUM_NOTES, DRUM_VOICES } from "../engine/drums";
 
 /** Computer keys for the 8 drum pads (home row). */
@@ -18,10 +15,17 @@ export function getBaseMidi(): number {
   return baseMidi;
 }
 
+function fmtCentBadge(c: number): string {
+  const rounded = Math.round(c * 10) / 10;
+  if (Number.isInteger(rounded)) return (rounded > 0 ? "+" : "") + rounded;
+  return (rounded > 0 ? "+" : "") + rounded.toFixed(1);
+}
+
 export function renderKeyboard(): void {
   const kb = document.getElementById("kb");
   if (!kb) return;
   syncHold();
+  syncOriental();
   const area = kb.closest(".kb-area");
   const drums = getMachine().kind === "drums";
   if (area) area.classList.toggle("is-drums", drums);
@@ -41,13 +45,27 @@ export function renderKeyboard(): void {
     (NOTE_NAMES[m % 12].includes("#") ? blacks : whites).push(m);
   }
 
+  const p = getSynthPatch();
+  const orientalOn = p.oriental === "on";
+
+  const renderKeyContent = (m: number, nameLabel: string) => {
+    const c = centsFor(m);
+    const badge = orientalOn && Math.abs(c) > 0.001 ? `<span class="key-cents">${fmtCentBadge(c)}</span>` : "";
+    const labelHtml = nameLabel ? `<span class="key-lbl">${nameLabel}</span>` : "";
+    return `${labelHtml}${badge}`;
+  };
+
   kb.style.setProperty("--whites", String(whites.length));
   kb.innerHTML =
-    whites.map((m) => `<div class="key" data-midi="${m}">${m % 12 === 0 ? midiToName(m) : ""}</div>`).join("") +
+    whites.map((m) => {
+      const sounding = isNoteSounding(m) ? " is-pressed" : "";
+      return `<div class="key${sounding}" data-midi="${m}">${renderKeyContent(m, m % 12 === 0 ? midiToName(m) : "")}</div>`;
+    }).join("") +
     blacks.map((m) => {
       const leftWhite = whites.indexOf(m - 1);
       const left = ((leftWhite + 1) / whites.length) * 100;
-      return `<div class="key black" data-midi="${m}" style="left:calc(${left}% - (100% / ${whites.length} * 0.29))"></div>`;
+      const sounding = isNoteSounding(m) ? " is-pressed" : "";
+      return `<div class="key black${sounding}" data-midi="${m}" style="left:calc(${left}% - (100% / ${whites.length} * 0.29))">${renderKeyContent(m, "")}</div>`;
     }).join("");
 
   const rangeEl = document.getElementById("kb-range");
@@ -62,6 +80,24 @@ function syncHold(): void {
   const on = getSynthPatch().hold === "on";
   btn.classList.toggle("active", on);
   btn.setAttribute("aria-pressed", on ? "true" : "false");
+}
+
+export function syncOriental(): void {
+  const btn = document.getElementById("kb-oriental");
+  const subEl = document.getElementById("kb-oriental-sub");
+  if (!btn) return;
+  const p = getSynthPatch();
+  const on = p.oriental === "on";
+  const tId = p.tuning || "12tet";
+  const tDef = TUNINGS[tId] || TUNINGS["12tet"];
+  const rootName = NOTE_NAMES[((p.tuneRoot ?? tDef.tonic) % 12 + 12) % 12];
+  const approxMark = tDef.approx ? " ~" : "";
+  const subText = `${tDef.name.replace(/ \(maqam\)/, "")}${approxMark} · ${rootName}`;
+
+  btn.classList.toggle("active", on);
+  btn.setAttribute("aria-pressed", on ? "true" : "false");
+  btn.title = `Oriental tuning: ${subText}${tDef.approx ? " (approximate)" : ""} — click to toggle, ⚙ or long-press to edit`;
+  if (subEl) subEl.textContent = subText;
 }
 
 /** Pitch bend (springs back to centre) and mod wheel (stays), beside the keys. */
@@ -102,7 +138,6 @@ function initWheels(): void {
 export function shiftOctave(d: number): void {
   const next = Math.max(24, Math.min(84, baseMidi + d * 12));
   if (next === baseMidi) return;
-  allNotesOff();
   baseMidi = next;
   renderKeyboard();
 }
@@ -134,7 +169,14 @@ export function initKeyboardInteractions(): void {
   if (octUpBtn) octUpBtn.addEventListener("click", () => shiftOctave(1));
   const holdBtn = document.getElementById("kb-hold");
   if (holdBtn) holdBtn.addEventListener("click", () => setSynthParam("hold", getSynthPatch().hold === "on" ? "off" : "on"));
-  onParamChange((k) => { if (k === "hold") syncHold(); });
+  
+  onParamChange((k) => {
+    if (k === "hold") syncHold();
+    if (k === "oriental" || k === "tuning" || k === "tuneRoot") {
+      syncOriental();
+      renderKeyboard();
+    }
+  });
   initWheels();
 
   // Pointer tracking for mouse + touch multi-touch with glide
@@ -216,9 +258,17 @@ export function initKeyboardInteractions(): void {
     }
   });
 
-  // Blur and tab visibility handlers
-  window.addEventListener("blur", allNotesOff);
+  // Blur and tab visibility handlers release only physically held keys
+  window.addEventListener("blur", () => {
+    pointerNotes.forEach((m) => noteOff(m));
+    pointerNotes.clear();
+    releasePhysicalNotes();
+  });
   document.addEventListener("visibilitychange", () => {
-    if (document.hidden) allNotesOff();
+    if (document.hidden) {
+      pointerNotes.forEach((m) => noteOff(m));
+      pointerNotes.clear();
+      releasePhysicalNotes();
+    }
   });
 }

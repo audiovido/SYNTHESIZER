@@ -203,6 +203,7 @@ class Voice {
 class SY1Processor extends AudioWorkletProcessor {
   // discrete params
   w1 = 0; w2 = 1; oct1 = 0; oct2 = 0; ftype = 0; lfoTarget = 0; lfoShape = 0; uni = 1;
+  oriental = false;
   // time params (seconds)
   aA = 0.008; aD = 0.3; aR = 0.35; fA = 0.01; fD = 0.35;
   scoop = 0; scoopTime = 0.08; vibDelay = 0.3; tahrir = 0; tahrirSpeed = 12;
@@ -252,6 +253,7 @@ class SY1Processor extends AudioWorkletProcessor {
   setParam(key: string, v: unknown): void {
     const n = Number(v);
     switch (key) {
+      case "oriental": this.oriental = v === "on"; break;
       case "osc1Wave": this.w1 = WAVE[String(v)] ?? 0; break;
       case "osc2Wave": this.w2 = WAVE[String(v)] ?? 1; break;
       case "osc1Oct": this.oct1 = n; break;
@@ -362,8 +364,8 @@ class SY1Processor extends AudioWorkletProcessor {
       s.lfTarget = Math.log2(target);
       s.glideC = 1 - Math.exp(-1 / ((e.glide / 3) * sampleRate));
     }
-    s.scoopC = this.scoop > 0 ? -this.scoop * 200 : 0;
-    s.tahrirOn = this.tahrir > 0 && s.vel >= 0.7;
+    s.scoopC = this.oriental && this.scoop > 0 ? -this.scoop * 200 : 0;
+    s.tahrirOn = this.oriental && this.tahrir > 0 && s.vel >= 0.7;
   }
 
   handleEvents(n: number): void {
@@ -459,7 +461,7 @@ class SY1Processor extends AudioWorkletProcessor {
     const vibDepthC = this.vibDepth.cur * 50;
     const vibInc = this.vibRate.cur / sr;
     const vibDelay = this.vibDelay;
-    const tahrirAmt = this.tahrir * 200;
+    const tahrirAmt = this.oriental ? this.tahrir * 200 : 0;
     const tahrirSpeed = this.tahrirSpeed;
     const velS = this.velSens.cur;
     const aS = this.aS.cur;
@@ -502,7 +504,7 @@ class SY1Processor extends AudioWorkletProcessor {
         }
         let cents = bendCents;
         if (lt === 0) cents += lfo * depth * 60;
-        if (v.scoopC !== 0) {
+        if (this.oriental && v.scoopC !== 0) {
           cents += v.scoopC;
           v.scoopC -= v.scoopC * scoopC;
           if (Math.abs(v.scoopC) < 0.05) v.scoopC = 0;
@@ -514,7 +516,7 @@ class SY1Processor extends AudioWorkletProcessor {
         }
         v.vibPh += vibInc;
         if (v.vibPh >= 1) v.vibPh -= 1;
-        if (v.tahrirOn) {
+        if (this.oriental && v.tahrirOn) {
           const x = (t - 0.05) * tahrirSpeed;
           if (x > 0 && x < 2) {
             const s = Math.sin(Math.PI * x);

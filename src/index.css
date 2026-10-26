@@ -1280,6 +1280,220 @@ html, body {
   color: var(--ink-dim);
 }
 
+/* ============================================================
+   Oriental & Custom Tuning UI
+   ============================================================ */
+.key-cents {
+  position: absolute;
+  bottom: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.58rem;
+  font-weight: 800;
+  padding: 1px 3px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.45);
+  color: var(--accent);
+  pointer-events: none;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.key.black .key-cents {
+  bottom: auto;
+  top: 4px;
+  background: rgba(0, 0, 0, 0.7);
+}
+
+.kb-oriental {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+  min-width: 0;
+  padding: 0 6px;
+}
+
+.kb-oriental.active {
+  background: var(--accent);
+  color: var(--accent-ink);
+  border-color: var(--accent);
+  box-shadow: 0 0 10px var(--accent-glow-soft);
+}
+
+.kb-oriental-main {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  min-width: 0;
+  text-align: left;
+  line-height: 1.1;
+}
+
+.kb-oriental-lbl {
+  font-size: 0.68rem;
+  font-weight: 800;
+}
+
+.kb-oriental-sub {
+  font-size: 0.52rem;
+  font-weight: 700;
+  color: var(--ink-dim);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 65px;
+}
+
+.kb-oriental.active .kb-oriental-sub {
+  color: var(--accent-ink);
+}
+
+.kb-oriental-gear {
+  font-size: 0.8rem;
+  opacity: 0.7;
+  cursor: pointer;
+  padding: 2px;
+  transition: opacity 0.15s;
+}
+
+.kb-oriental-gear:hover {
+  opacity: 1;
+}
+
+.oriental-pop-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+}
+
+.tuning-source-box {
+  padding: 8px 10px;
+  border-radius: 6px;
+  background: var(--ctl-bg);
+  border: 1px solid var(--btn-border);
+  font-size: 0.72rem;
+  line-height: 1.35;
+}
+
+.tuning-source-title {
+  font-weight: 800;
+  color: var(--accent);
+  margin-bottom: 3px;
+}
+
+.tuning-source-desc {
+  color: var(--ink-dim);
+}
+
+.custom-tuning-sec {
+  border-top: 1px solid var(--sec-border);
+  padding-top: 10px;
+}
+
+.custom-tuning-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  gap: 8px;
+}
+
+.custom-tuning-head h5 {
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
+  font-weight: 800;
+  color: var(--sec-head);
+  font-family: var(--font-head);
+  margin: 0;
+}
+
+.scl-import-bar {
+  display: flex;
+  align-items: center;
+}
+
+.scl-btn {
+  min-height: 26px;
+  padding: 2px 8px;
+  font-size: 0.68rem;
+}
+
+.scl-status {
+  font-size: 0.7rem;
+  font-weight: 700;
+  margin-bottom: 6px;
+  display: none;
+}
+
+.scl-status:not(:empty) {
+  display: block;
+}
+
+.scl-status.scl-ok {
+  color: #4cd964;
+}
+
+.scl-status.scl-error {
+  color: #ff3b30;
+}
+
+.custom-cent-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 6px;
+}
+
+@media (max-width: 500px) {
+  .custom-cent-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.custom-cent-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  background: var(--ctl-bg);
+  padding: 4px;
+  border-radius: 6px;
+  border: 1px solid var(--btn-border);
+}
+
+.custom-cent-lbl {
+  font-size: 0.65rem;
+  font-weight: 800;
+  color: var(--accent);
+}
+
+.custom-cent-input {
+  width: 100%;
+  text-align: center;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 2px 0;
+  border-radius: 4px;
+  background: var(--btn-bg);
+  border: 1px solid var(--btn-border);
+  color: var(--ink);
+}
+
+.custom-cent-input:focus {
+  outline: 1px solid var(--accent);
+  border-color: var(--accent);
+}
+
+.custom-cent-unit {
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: var(--ink-dim);
+  font-variant-numeric: tabular-nums;
+}
+
 @media (max-height: 560px) and (orientation: landscape) {
   .kb-perf { gap: 2px; }
   .kb-perf .kb-btn { font-size: 0.56rem; padding: 0 1px; letter-spacing: 0; }

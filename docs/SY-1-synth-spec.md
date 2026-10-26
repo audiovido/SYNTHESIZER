@@ -212,3 +212,24 @@ Machine definitions live in `src/machines/*.ts`. Each defines its sections, page
 **Timing:** the arpeggiator and drum sequencer schedule notes 120 ms ahead on the audio clock. The HQ processor plays events sample-accurately using a preallocated event queue.
 
 **QA:** all 104 synth presets were rendered offline (no NaN, peak ≤ 1.0 before the limiter, none silent). All 8 machines were checked on 10 viewports, every page, with no page scroll.
+
+## 15. Oriental tunings & microtonality (added October 2026)
+
+The ORIENTAL button on the performance bar toggles microtonal scale tunings (`oriental` parameter, `"off"` by default on machines). Clicking the gear icon ⚙ or long-pressing opens the Oriental & Custom Tuning panel.
+
+### Supported Scales & Musicological Sources
+- **Equal (12-TET):** Standard equal temperament (0¢ on all degrees).
+- **Shur (default tonic G):** G A-koron Bb C D Eb F — 2nd degree (+2 st) is koron (−50¢). Source: Vaziri 24-TET & Farhat (1990, ch. 3).
+- **Homayoun (default tonic G, approx.):** G A-koron B C D Eb/E-koron F — 2nd (+2 st) & 6th (+9 st) degrees koron (−50¢). Marked `(approx.)`. Source: Vaziri 24-TET & Farhat (1990, ch. 6).
+- **Chahargah (default tonic C):** C D-koron E F G A-koron B — 2nd (+2 st) & 6th (+9 st) degrees koron (−50¢). Source: Vaziri 24-TET & Farhat (1990, ch. 5).
+- **Segah (default tonic E, approx.):** E-koron F G A-koron Bb C D — tonic (0 st) & 4th (+5 st) on koron degrees (−50¢). Marked `(approx.)`. Source: Vaziri 24-TET & Farhat (1990, ch. 4).
+- **Bayati (maqam, default tonic D):** D E-half-flat F G A Bb C — 2nd degree (+2 st) is half-flat (−50¢). Source: Touma (1996).
+- **Rast (maqam, default tonic C):** C D E-half-flat F G A B-half-flat — 3rd (+4 st) & 7th (+11 st) degrees half-flat (−50¢). Source: Touma (1996).
+- **Hijaz (maqam, default tonic D):** D Eb F# G A Bb C — 0¢ 12-TET offsets. Source: Touma (1996).
+- **Custom:** 12 per-key cent inputs (−100¢ to +100¢) stored per machine, plus a Scala `.scl` file importer (validates 12 notes, converts ratios and absolute cents to 12-TET cent deviations).
+
+### Measured Frequency Accuracy
+- **12-TET C4 / A4 / E4:** 261.63 Hz / 440.00 Hz / 329.63 Hz (Oriental OFF).
+- **Rast on C (E4 half-flat):** 329.63 × 2^(−50/1200) = 320.24 Hz (−50.0¢).
+- **Shur on G (A4 koron):** 440.00 × 2^(−50/1200) = 427.47 Hz (−50.0¢).
+

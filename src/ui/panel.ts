@@ -348,10 +348,10 @@ function updateEngineDOM(): void {
       : "Classic engine on (unison, tunings and ornaments are ignored). Click to use the HQ engine.";
 }
 
-/** Re-render the whole panel (machine switch) and bind element listeners. */
-let renderHook: (() => void) | null = null;
+/** Re-render registered overlay panels (machine switch) and bind element listeners. */
+const renderHooks = new Set<() => void>();
 export function setPanelRenderHook(fn: () => void): void {
-  renderHook = fn;
+  renderHooks.add(fn);
 }
 
 export function renderPanel(): void {
@@ -364,7 +364,7 @@ export function renderPanel(): void {
   setPanelPage(page);
   updateEngineDOM();
   updateMidiBarDOM();
-  if (renderHook) renderHook();
+  renderHooks.forEach((fn) => fn());
 }
 
 function bindPanelElements(): void {

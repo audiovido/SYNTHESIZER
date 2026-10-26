@@ -31,15 +31,18 @@ import { initKnobInteractions } from "./ui/knob";
 import { initPanelInteractions, renderPanel, selectDrumVoiceForNote } from "./ui/panel";
 import { startSynthScope } from "./ui/scope";
 import { initArpPanel } from "./ui/arp-panel";
+import { initOrientalPanel, syncOrientalButton } from "./ui/oriental-panel";
 
 function initApp(): void {
   // skin and keyboard follow the machine
   onMachineChange((m) => {
     applySkin(m.skin);
     renderKeyboard();
+    syncOrientalButton();
   });
   initPanelInteractions();
   initArpPanel();
+  initOrientalPanel();
   initMachine();          // loads the remembered machine and its patch
   applySkin(getMachine().skin);
   renderPanel();

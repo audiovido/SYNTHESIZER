@@ -22,7 +22,7 @@ export const PARAM_CHOICES: Record<string, string[]> = {
   onoff: ["off", "on"],
   lfoShape: ["sine", "triangle", "square", "sawtooth", "sh"],
   arpMode: ["up", "down", "updown", "random", "played"],
-  tuning: ["12tet", "shur", "homayoun", "chahargah", "segah", "bayati", "rast", "hijaz"],
+  tuning: ["12tet", "shur", "homayoun", "chahargah", "segah", "bayati", "rast", "hijaz", "custom"],
   strModel: ["santur", "setar", "tar", "kanun", "oud", "harp"]
 };
 
@@ -119,7 +119,8 @@ export const SYNTH_PARAMS: Record<string, ParamDef> = {
   arpGate:    { min: 0.05, max: 1, def: 0.6, fmt: (v) => Math.round(v * 100) + "%" },
   arpSwing:   { min: 0, max: 0.6, def: 0, fmt: (v) => Math.round(v * 100) + "%" },
 
-  // tuning and ornaments (HQ engine)
+  // tuning and ornaments (HQ & Strings engines)
+  oriental:   { type: "onoff", def: "off" },
   tuning:     { type: "tuning", def: "12tet" },
   tuneRoot:   { min: 0, max: 11, step: 1, def: 7, fmt: (v) => NOTE_LABELS[v] },
   scoop:      { min: 0, max: 1, def: 0, fmt: (v) => Math.round(v * 100) + "%" },
@@ -158,28 +159,216 @@ DRUM_PARAM_VOICES.forEach((v) => {
 SYNTH_PARAMS.drumSwing = { min: 0, max: 0.6, def: 0, fmt: (x) => Math.round(x * 100) + "%" };
 SYNTH_PARAMS.drumAccent = { min: 0, max: 1, def: 0.5, fmt: (x) => Math.round(x * 100) + "%" };
 
+export interface TuningDef {
+  name: string;
+  tonic: number;
+  /** Alias for `tonic` kept for compatibility. */
+  root: number;
+  offsets: number[];
+  approx?: boolean;
+  source: string;
+}
+
 /**
- * Tunings: cents offset per pitch class, indexed by semitones above the root.
- * Koron (and the Arabic half-flat) lowers a note by about a quarter tone: -50 cents
- * (Vaziri-style). These are starting points; real practice varies, so verify by ear.
+ * Tunings: cents offset from 12-TET for each of the 12 semitones relative to
+ * the tonic (0..11), with default tonic and documented musicological source.
+ * Koron and the Arabic half-flat lower a degree by a quarter-tone (-50 cents,
+ * 24-TET Vaziri / Cairo 1932 convention).
  */
-export const TUNINGS: Record<string, { name: string; root: number; offsets: number[] }> = {
-  "12tet":   { name: "Equal (12-TET)", root: 0, offsets: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
-  shur:      { name: "Shur", root: 7, offsets: [0, 0, -50, 0, 0, 0, 0, 0, 0, 0, 0, 0] },         // G, A koron, Bb, C, D, Eb, F
-  homayoun:  { name: "Homayoun", root: 7, offsets: [0, 0, -50, 0, 0, 0, 0, 0, 0, 0, 0, 0] },     // G, A koron, B, C, D, Eb, F
-  chahargah: { name: "Chahargah", root: 0, offsets: [0, 0, -50, 0, 0, 0, 0, 0, 0, -50, 0, 0] },  // C, D koron, E, F, G, A koron, B
-  segah:     { name: "Segah", root: 4, offsets: [-50, 0, 0, 0, 0, -50, 0, 0, 0, 0, 0, 0] },      // E koron, F, G, A koron, Bb, C, D
-  bayati:    { name: "Bayati (maqam)", root: 2, offsets: [0, 0, -50, 0, 0, 0, 0, 0, 0, 0, 0, 0] }, // D, E half-flat, F, G, A, Bb, C
-  rast:      { name: "Rast (maqam)", root: 0, offsets: [0, 0, 0, 0, -50, 0, 0, 0, 0, 0, 0, -50] },  // C, D, E half-flat, F, G, A, B half-flat
-  hijaz:     { name: "Hijaz (maqam)", root: 2, offsets: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] }     // D, Eb, F#, G, A, Bb, C
+export const TUNINGS: Record<string, TuningDef> = {
+  "12tet": {
+    name: "Equal (12-TET)",
+    tonic: 0,
+    root: 0,
+    offsets: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    source: "Standard 12-tone equal temperament (A4 = 440 Hz)."
+  },
+  shur: {
+    name: "Shur",
+    tonic: 7,
+    root: 7,
+    offsets: [0, 0, -50, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    source: "Vaziri 24-TET & Farhat (1990, ch. 3): G A-koron Bb C D Eb F — 2nd degree (+2 st) is koron (−50¢)."
+  },
+  homayoun: {
+    name: "Homayoun",
+    tonic: 7,
+    root: 7,
+    approx: true,
+    offsets: [0, 0, -50, 0, 0, 0, 0, 0, 0, -50, 0, 0],
+    source: "Vaziri 24-TET & Farhat (1990, ch. 6, Homayoun/Bidad): G A-koron B C D Eb/E-koron F — 2nd (+2 st) & 6th (+9 st) degrees koron (−50¢, approximate)."
+  },
+  chahargah: {
+    name: "Chahargah",
+    tonic: 0,
+    root: 0,
+    offsets: [0, 0, -50, 0, 0, 0, 0, 0, 0, -50, 0, 0],
+    source: "Vaziri 24-TET & Farhat (1990, ch. 5): C D-koron E F G A-koron B — symmetrical tetrachords with 2nd (+2 st) & 6th (+9 st) degrees koron (−50¢)."
+  },
+  segah: {
+    name: "Segah",
+    tonic: 4,
+    root: 4,
+    approx: true,
+    offsets: [-50, 0, 0, 0, 0, -50, 0, 0, 0, 0, 0, 0],
+    source: "Vaziri 24-TET & Farhat (1990, ch. 4): E-koron F G A-koron Bb C D — tonic (0 st) & 4th (+5 st) on koron degrees of the C staff (−50¢, approximate)."
+  },
+  bayati: {
+    name: "Bayati (maqam)",
+    tonic: 2,
+    root: 2,
+    offsets: [0, 0, -50, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    source: "Arabic 24-TET maqam theory (Touma 1996): D E-half-flat F G A Bb C — 2nd degree (+2 st) is half-flat (−50¢)."
+  },
+  rast: {
+    name: "Rast (maqam)",
+    tonic: 0,
+    root: 0,
+    offsets: [0, 0, 0, 0, -50, 0, 0, 0, 0, 0, 0, -50],
+    source: "Arabic 24-TET maqam theory (Touma 1996): C D E-half-flat F G A B-half-flat — 3rd (+4 st) & 7th (+11 st) degrees are half-flat (−50¢)."
+  },
+  hijaz: {
+    name: "Hijaz (maqam)",
+    tonic: 2,
+    root: 2,
+    offsets: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    source: "Arabic 24-TET maqam theory (Touma 1996): D Eb F# G A Bb C — augmented 2nd between Eb and F#, all 12-TET offsets 0¢."
+  },
+  custom: {
+    name: "Custom",
+    tonic: 0,
+    root: 0,
+    offsets: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    source: "Custom per-key cent offsets (−100¢ to +100¢) or imported 12-note Scala (.scl) file, saved per machine."
+  }
 };
 
+const customTuningKey = (machineId: string) => `sy1.m.${machineId}.customTuning`;
+const customTuningCache: Record<string, number[]> = {};
+
+function clampCentOffset(v: number): number {
+  const n = Number(v);
+  if (!Number.isFinite(n)) return 0;
+  const clamped = Math.max(-100, Math.min(100, n));
+  return Math.round(clamped * 10) / 10;
+}
+
+export function getCustomTuning(machineId = "sy1"): number[] {
+  if (!customTuningCache[machineId]) {
+    let arr: number[] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+    try {
+      const raw = JSON.parse(localStorage.getItem(customTuningKey(machineId)) || "null");
+      if (Array.isArray(raw) && raw.length === 12) {
+        arr = raw.map((x) => clampCentOffset(Number(x)));
+      }
+    } catch (e) {}
+    customTuningCache[machineId] = arr;
+  }
+  return customTuningCache[machineId];
+}
+
+export function setCustomTuning(machineId: string, offsets: number[]): number[] {
+  const clean = Array.from({ length: 12 }, (_, i) => clampCentOffset(offsets[i] ?? 0));
+  customTuningCache[machineId] = clean;
+  TUNINGS.custom.offsets = clean.slice();
+  try {
+    localStorage.setItem(customTuningKey(machineId), JSON.stringify(clean));
+  } catch (e) {}
+  return clean;
+}
+
+/**
+ * Parse a Scala (.scl) tuning file. Maps the first 12 steps to per-key cent
+ * deviations from 12-TET (-100..+100 cents). Returns a clear error if the
+ * file does not define 12 notes.
+ */
+export function parseScalaScl(text: string): { ok: true; offsets: number[]; description: string } | { ok: false; error: string } {
+  const lines = text
+    .split(/\r?\n/)
+    .map((l) => l.trim())
+    .filter((l, idx, arr) => !l.startsWith("!") && (l.length > 0 || idx < arr.length));
+
+  // Filter non-comment lines while preserving a possibly blank description line
+  const rawLines = text.split(/\r?\n/);
+  const nonComment: string[] = [];
+  for (const raw of rawLines) {
+    const trimmed = raw.trim();
+    if (trimmed.startsWith("!")) continue;
+    if (nonComment.length === 0) {
+      nonComment.push(trimmed); // description line (may be empty)
+    } else if (trimmed.length > 0) {
+      nonComment.push(trimmed);
+    }
+  }
+
+  if (nonComment.length < 2) {
+    return { ok: false, error: "Invalid .scl file: missing header or note count." };
+  }
+
+  const description = nonComment[0] || "Scala tuning";
+  const declaredCount = parseInt(nonComment[1].split(/\s+/)[0], 10);
+  const pitchLines = nonComment.slice(2);
+
+  if (isNaN(declaredCount) || declaredCount !== 12 || pitchLines.length < 12) {
+    const found = !isNaN(declaredCount) && declaredCount !== 12 ? declaredCount : pitchLines.length;
+    return { ok: false, error: `Scala file must have 12 notes (found ${found}).` };
+  }
+
+  const pitchesCents: number[] = [];
+  for (let i = 0; i < 12; i++) {
+    const token = pitchLines[i].split(/\s+/)[0];
+    if (!token) return { ok: false, error: `Invalid pitch on step ${i + 1}.` };
+    if (token.includes(".")) {
+      const val = parseFloat(token);
+      if (!Number.isFinite(val)) return { ok: false, error: `Invalid cent value "${token}" on step ${i + 1}.` };
+      pitchesCents.push(val);
+    } else if (token.includes("/")) {
+      const [numStr, denStr] = token.split("/");
+      const num = parseFloat(numStr);
+      const den = parseFloat(denStr);
+      if (!Number.isFinite(num) || !Number.isFinite(den) || num <= 0 || den <= 0) {
+        return { ok: false, error: `Invalid ratio "${token}" on step ${i + 1}.` };
+      }
+      pitchesCents.push(1200 * Math.log2(num / den));
+    } else {
+      const n = parseFloat(token);
+      if (!Number.isFinite(n) || n <= 0) return { ok: false, error: `Invalid pitch "${token}" on step ${i + 1}.` };
+      pitchesCents.push(1200 * Math.log2(n));
+    }
+  }
+
+  // Standard 12-note .scl files have implicit 1/1 (0¢) at degree 0, steps 1..11 on lines 0..10, and 2/1 (1200¢) on line 11.
+  // Also support files where line 0 is already unison (0.0 or 1/1) or where lines are direct cent offsets in [-100, 100].
+  const allSmallOffsets = pitchesCents.every((c) => Math.abs(c) <= 100);
+  const startsWithUnison = Math.abs(pitchesCents[0]) < 35 && pitchesCents[11] > 1000 && pitchesCents[11] < 1180;
+  const offsets = new Array<number>(12).fill(0);
+
+  if (allSmallOffsets) {
+    for (let k = 0; k < 12; k++) offsets[k] = clampCentOffset(pitchesCents[k]);
+  } else if (startsWithUnison) {
+    for (let k = 0; k < 12; k++) offsets[k] = clampCentOffset(pitchesCents[k] - k * 100);
+  } else {
+    offsets[0] = 0;
+    for (let k = 1; k < 12; k++) {
+      offsets[k] = clampCentOffset(pitchesCents[k - 1] - k * 100);
+    }
+  }
+
+  void lines;
+  return { ok: true, offsets, description };
+}
+
 /** Cents offset for a MIDI note under a tuning (root override optional). */
-export function tuningCents(tuningId: string, midi: number, root?: number): number {
+export function tuningCents(tuningId: string, midi: number, root?: number, machineId?: string): number {
   const t = TUNINGS[tuningId];
   if (!t) return 0;
-  const r = root === undefined ? t.root : root;
-  return t.offsets[(((midi - r) % 12) + 12) % 12];
+  const r = root === undefined ? t.tonic : root;
+  const deg = (((midi - r) % 12) + 12) % 12;
+  if (tuningId === "custom") {
+    const custom = machineId ? getCustomTuning(machineId) : t.offsets;
+    return custom[deg] ?? 0;
+  }
+  return t.offsets[deg] ?? 0;
 }
 
 export function synthDefaults(): SynthPatch {
@@ -204,3 +393,4 @@ export function synthDenorm(key: string, n: number): number {
   if (d.curve === "log") return d.min * Math.pow(d.max / d.min, n);
   return d.min + n * (d.max - d.min);
 }
+

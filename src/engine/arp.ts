@@ -21,7 +21,7 @@ export interface ArpHooks {
 
 let hooks: ArpHooks | null = null;
 const held: { midi: number; vel: number }[] = [];  // in played order
-let physical = 0;
+const physicalSet = new Set<number>();
 let timer: ReturnType<typeof setInterval> | null = null;
 let nextTime = 0;
 let stepIndex = 0;
@@ -106,19 +106,22 @@ function stop(): void {
 
 export function arpNoteOn(midi: number, vel: number): void {
   const latch = hooks?.getPatch().hold === "on";
-  if (latch && physical === 0 && held.length) {
-    // a new chord replaces the latched one and starts from the beginning
-    held.length = 0;
-    pos = -1;
-    dir = 1;
+  if (latch && !physicalSet.has(midi)) {
+    const idx = held.findIndex((n) => n.midi === midi);
+    if (idx >= 0) {
+      held.splice(idx, 1);
+      if (!held.length) stop();
+      return;
+    }
   }
-  physical++;
+  physicalSet.add(midi);
   if (!held.some((n) => n.midi === midi)) held.push({ midi, vel });
   ensureRunning();
 }
 
 export function arpNoteOff(midi: number): void {
-  physical = Math.max(0, physical - 1);
+  if (!physicalSet.has(midi)) return;
+  physicalSet.delete(midi);
   const latch = hooks?.getPatch().hold === "on";
   if (!latch) {
     const i = held.findIndex((n) => n.midi === midi);
@@ -128,16 +131,31 @@ export function arpNoteOff(midi: number): void {
 }
 
 /** Latch turned off: drop notes that are no longer physically held. */
-export function arpReleaseLatched(): void {
-  if (physical === 0) {
-    held.length = 0;
-    stop();
+export function arpReleaseLatched(): number[] {
+  const dropped: number[] = [];
+  for (let i = held.length - 1; i >= 0; i--) {
+    if (!physicalSet.has(held[i].midi)) {
+      dropped.push(held[i].midi);
+      held.splice(i, 1);
+    }
   }
+  if (!held.length) stop();
+  return dropped;
+}
+
+/** Window blur / tab hidden: release physically held notes while preserving latched notes if hold is on. */
+export function arpReleasePhysical(keepLatched: boolean): number[] {
+  physicalSet.clear();
+  if (keepLatched) return [];
+  const dropped = held.map((n) => n.midi);
+  held.length = 0;
+  stop();
+  return dropped;
 }
 
 export function arpAllOff(): void {
   held.length = 0;
-  physical = 0;
+  physicalSet.clear();
   stop();
 }
 

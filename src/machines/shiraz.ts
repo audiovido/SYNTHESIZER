@@ -75,7 +75,7 @@ export const SHIRAZ: MachineDef = {
   ],
   base: {
     // Subtractive pluck fallback if AudioWorklet is still loading
-    polyMode: "poly", legato: "off", glide: 0,
+    polyMode: "poly", legato: "off", glide: 0, scoop: 0, tahrir: 0,
     osc1Wave: "triangle", osc2Wave: "square", osc2Oct: 1, oscMix: 0.3, sub: 0, noise: 0,
     cutoff: 2400, res: 2.5, envAmt: 0.65, fA: 0.002, fD: 0.28, fS: 0.05,
     aA: 0.002, aD: 0.85, aS: 0, aR: 0.55,
@@ -85,7 +85,7 @@ export const SHIRAZ: MachineDef = {
     strCourses: 3, strDetune: 4,
     strBody: 0.45, strTone: 0.5, strBuzz: 0,
     riz: "off", rizRate: 11,
-    tuning: "shur", tuneRoot: 7, velSens: 0.65,
+    oriental: "off", tuning: "shur", tuneRoot: 7, velSens: 0.65,
     revMix: 0.28, revSize: 2.8, delayMix: 0.12, delayTime: 0.34, delayFb: 0.3
   },
   presets: [
@@ -95,7 +95,7 @@ export const SHIRAZ: MachineDef = {
       name: "Santur · Shur",
       group: "Santur",
       patch: {
-        strModel: "santur", tuning: "shur", tuneRoot: 7,
+        oriental: "on", strModel: "santur", tuning: "shur", tuneRoot: 7,
         strCourses: 3, strDetune: 4, strHard: 0.62, strPos: 0.16,
         strDecay: 4.5, strDamp: 0.22, strBright: 0.75, strStiff: 0.38,
         strBody: 0.45, strTone: 0.52, strBuzz: 0, riz: "off"
@@ -106,7 +106,7 @@ export const SHIRAZ: MachineDef = {
       name: "Santur Riz · Shur",
       group: "Santur",
       patch: {
-        strModel: "santur", tuning: "shur", tuneRoot: 7,
+        oriental: "on", strModel: "santur", tuning: "shur", tuneRoot: 7,
         riz: "on", rizRate: 11.5,
         strCourses: 3, strDetune: 5, strHard: 0.58, strPos: 0.18,
         strDecay: 3.8, strDamp: 0.26, strBright: 0.7, strStiff: 0.35,
@@ -118,7 +118,7 @@ export const SHIRAZ: MachineDef = {
       name: "Bright Santur · Mahur",
       group: "Santur",
       patch: {
-        strModel: "santur", tuning: "12tet", tuneRoot: 0,
+        oriental: "on", strModel: "santur", tuning: "12tet", tuneRoot: 0,
         strCourses: 3, strDetune: 3, strHard: 0.78, strPos: 0.12,
         strDecay: 5.0, strDamp: 0.15, strBright: 0.88, strStiff: 0.45,
         strBody: 0.4, strTone: 0.62, strBuzz: 0, riz: "off"
@@ -129,7 +129,7 @@ export const SHIRAZ: MachineDef = {
       name: "Night Santur · Homayoun",
       group: "Santur",
       patch: {
-        strModel: "santur", tuning: "homayoun", tuneRoot: 7,
+        oriental: "on", strModel: "santur", tuning: "homayoun", tuneRoot: 7,
         strCourses: 3, strDetune: 6, strHard: 0.42, strPos: 0.24,
         strDecay: 6.2, strDamp: 0.35, strBright: 0.55, strStiff: 0.3,
         strBody: 0.55, strTone: 0.42, strBuzz: 0, riz: "off",
@@ -143,7 +143,7 @@ export const SHIRAZ: MachineDef = {
       name: "Setar · Segah",
       group: "Setar & Tar",
       patch: {
-        strModel: "setar", tuning: "segah", tuneRoot: 4,
+        oriental: "on", strModel: "setar", tuning: "segah", tuneRoot: 4,
         strCourses: 2, strDetune: 3, strHard: 0.52, strPos: 0.14,
         strDecay: 2.8, strDamp: 0.32, strBright: 0.68, strStiff: 0.15,
         strBody: 0.55, strTone: 0.58, strBuzz: 0.38, riz: "off"
@@ -154,7 +154,7 @@ export const SHIRAZ: MachineDef = {
       name: "Setar · Bayat-e Tork",
       group: "Setar & Tar",
       patch: {
-        strModel: "setar", tuning: "shur", tuneRoot: 5,
+        oriental: "on", strModel: "setar", tuning: "shur", tuneRoot: 5,
         strCourses: 2, strDetune: 2, strHard: 0.48, strPos: 0.16,
         strDecay: 3.2, strDamp: 0.3, strBright: 0.65, strStiff: 0.14,
         strBody: 0.52, strTone: 0.55, strBuzz: 0.32, riz: "off"
@@ -165,7 +165,7 @@ export const SHIRAZ: MachineDef = {
       name: "Tar · Chahargah",
       group: "Setar & Tar",
       patch: {
-        strModel: "tar", tuning: "chahargah", tuneRoot: 0,
+        oriental: "on", strModel: "tar", tuning: "chahargah", tuneRoot: 0,
         strCourses: 2, strDetune: 4, strHard: 0.65, strPos: 0.13,
         strDecay: 2.5, strDamp: 0.36, strBright: 0.72, strStiff: 0.2,
         strBody: 0.62, strTone: 0.48, strBuzz: 0.48, riz: "off"
@@ -176,7 +176,7 @@ export const SHIRAZ: MachineDef = {
       name: "Tar Low · Homayoun",
       group: "Setar & Tar",
       patch: {
-        strModel: "tar", tuning: "homayoun", tuneRoot: 7,
+        oriental: "on", strModel: "tar", tuning: "homayoun", tuneRoot: 7,
         strCourses: 2, strDetune: 5, strHard: 0.55, strPos: 0.18,
         strDecay: 3.4, strDamp: 0.42, strBright: 0.58, strStiff: 0.18,
         strBody: 0.68, strTone: 0.36, strBuzz: 0.42, riz: "off"
@@ -189,7 +189,7 @@ export const SHIRAZ: MachineDef = {
       name: "Kanun · Rast",
       group: "Kanun & Oud",
       patch: {
-        strModel: "kanun", tuning: "rast", tuneRoot: 0,
+        oriental: "on", strModel: "kanun", tuning: "rast", tuneRoot: 0,
         strCourses: 3, strDetune: 3, strHard: 0.7, strPos: 0.11,
         strDecay: 3.6, strDamp: 0.24, strBright: 0.82, strStiff: 0.22,
         strBody: 0.5, strTone: 0.6, strBuzz: 0.08, riz: "off"
@@ -200,7 +200,7 @@ export const SHIRAZ: MachineDef = {
       name: "Kanun · Bayati",
       group: "Kanun & Oud",
       patch: {
-        strModel: "kanun", tuning: "bayati", tuneRoot: 2,
+        oriental: "on", strModel: "kanun", tuning: "bayati", tuneRoot: 2,
         strCourses: 3, strDetune: 4, strHard: 0.62, strPos: 0.14,
         strDecay: 4.0, strDamp: 0.28, strBright: 0.76, strStiff: 0.2,
         strBody: 0.52, strTone: 0.54, strBuzz: 0.06, riz: "off",
@@ -212,7 +212,7 @@ export const SHIRAZ: MachineDef = {
       name: "Oud · Hijaz",
       group: "Kanun & Oud",
       patch: {
-        strModel: "oud", tuning: "hijaz", tuneRoot: 2,
+        oriental: "on", strModel: "oud", tuning: "hijaz", tuneRoot: 2,
         strCourses: 2, strDetune: 3, strHard: 0.42, strPos: 0.22,
         strDecay: 2.2, strDamp: 0.52, strBright: 0.48, strStiff: 0.06,
         strBody: 0.72, strTone: 0.35, strBuzz: 0.05, riz: "off"
@@ -223,7 +223,7 @@ export const SHIRAZ: MachineDef = {
       name: "Oud Soft · Bayati",
       group: "Kanun & Oud",
       patch: {
-        strModel: "oud", tuning: "bayati", tuneRoot: 2,
+        oriental: "on", strModel: "oud", tuning: "bayati", tuneRoot: 2,
         strCourses: 2, strDetune: 2, strHard: 0.3, strPos: 0.28,
         strDecay: 2.6, strDamp: 0.62, strBright: 0.38, strStiff: 0.04,
         strBody: 0.76, strTone: 0.3, strBuzz: 0, riz: "off"
@@ -236,7 +236,7 @@ export const SHIRAZ: MachineDef = {
       name: "Harp Glass",
       group: "Other",
       patch: {
-        strModel: "harp", tuning: "12tet", tuneRoot: 0,
+        oriental: "off", strModel: "harp", tuning: "12tet", tuneRoot: 0,
         strCourses: 1, strDetune: 0, strHard: 0.38, strPos: 0.32,
         strDecay: 6.5, strDamp: 0.2, strBright: 0.75, strStiff: 0.12,
         strBody: 0.38, strTone: 0.55, strBuzz: 0, riz: "off",
@@ -248,7 +248,7 @@ export const SHIRAZ: MachineDef = {
       name: "Muted Pluck",
       group: "Other",
       patch: {
-        strModel: "harp", tuning: "12tet", tuneRoot: 0,
+        oriental: "off", strModel: "harp", tuning: "12tet", tuneRoot: 0,
         strCourses: 1, strDetune: 0, strHard: 0.35, strPos: 0.26,
         strDecay: 0.55, strDamp: 0.78, strBright: 0.42, strStiff: 0.05,
         strBody: 0.42, strTone: 0.45, strBuzz: 0, riz: "off",

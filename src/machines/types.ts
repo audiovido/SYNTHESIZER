@@ -109,12 +109,13 @@ export const ARP_MODE_OPTS: ChoiceOption[] = [
 export const TUNING_OPTS: ChoiceOption[] = [
   ["12tet", "Equal"],
   ["shur", "Shur"],
-  ["homayoun", "Homayoun"],
+  ["homayoun", "Homayoun (approx.)"],
   ["chahargah", "Chahargah"],
-  ["segah", "Segah"],
+  ["segah", "Segah (approx.)"],
   ["bayati", "Bayati"],
   ["rast", "Rast"],
-  ["hijaz", "Hijaz"]
+  ["hijaz", "Hijaz"],
+  ["custom", "Custom"]
 ];
 
 export const choice = (key: string, options: ChoiceOption[]): ChoiceDef => ({ kind: "choice", key, options });
