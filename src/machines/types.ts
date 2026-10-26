@@ -64,6 +64,7 @@ export interface MachineDef {
   role: string;
   skin: string;
   kind: "synth" | "drums";
+  engine?: "hq" | "strings";
   /** Shows the tempo control (arpeggiator, synced LFO, sequencer). */
   tempo?: boolean;
   pages: { id: string; label: string }[];

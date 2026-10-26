@@ -3,7 +3,7 @@
  */
 
 export interface ParamDef {
-  type?: "wave" | "filter" | "lfo" | "poly" | "onoff" | "lfoShape" | "arpMode" | "tuning";
+  type?: "wave" | "filter" | "lfo" | "poly" | "onoff" | "lfoShape" | "arpMode" | "tuning" | "strModel";
   min?: number;
   max?: number;
   step?: number;
@@ -22,7 +22,8 @@ export const PARAM_CHOICES: Record<string, string[]> = {
   onoff: ["off", "on"],
   lfoShape: ["sine", "triangle", "square", "sawtooth", "sh"],
   arpMode: ["up", "down", "updown", "random", "played"],
-  tuning: ["12tet", "shur", "homayoun", "chahargah", "segah", "bayati", "rast", "hijaz"]
+  tuning: ["12tet", "shur", "homayoun", "chahargah", "segah", "bayati", "rast", "hijaz"],
+  strModel: ["santur", "setar", "tar", "kanun", "oud", "harp"]
 };
 
 /** Musical note divisions used by tempo-synced LFO and arpeggiator (beats per step). */
@@ -127,7 +128,23 @@ export const SYNTH_PARAMS: Record<string, ParamDef> = {
   vibDepth:   { min: 0, max: 1, def: 0, fmt: (v) => Math.round(v * 50) + "¢" },
   vibRate:    { min: 2, max: 9, def: 5.5, fmt: (v) => v.toFixed(1) + "Hz" },
   tahrir:     { min: 0, max: 1, def: 0, fmt: (v) => Math.round(v * 100) + "%" },
-  tahrirSpeed:{ min: 6, max: 22, def: 12, fmt: (v) => v.toFixed(0) + "Hz" }
+  tahrirSpeed:{ min: 6, max: 22, def: 12, fmt: (v) => v.toFixed(0) + "Hz" },
+
+  // physical-modelling strings (Shiraz)
+  strModel:   { type: "strModel", def: "santur" },
+  strHard:    { min: 0, max: 1, def: 0.55, fmt: (v) => Math.round(v * 100) + "%" },
+  strPos:     { min: 0.05, max: 0.5, def: 0.18, fmt: (v) => Math.round(v * 100) + "%" },
+  strDecay:   { min: 0.2, max: 12, curve: "log", def: 3.5, fmt: fmtSec },
+  strDamp:    { min: 0, max: 1, def: 0.3, fmt: (v) => Math.round(v * 100) + "%" },
+  strBright:  { min: 0, max: 1, def: 0.65, fmt: (v) => Math.round(v * 100) + "%" },
+  strStiff:   { min: 0, max: 1, def: 0.25, fmt: (v) => Math.round(v * 100) + "%" },
+  strCourses: { min: 1, max: 3, step: 1, def: 2, fmt: (v) => String(Math.round(v)) },
+  strDetune:  { min: 0, max: 20, def: 4, fmt: (v) => Math.round(v) + "¢" },
+  strBody:    { min: 0, max: 1, def: 0.45, fmt: (v) => Math.round(v * 100) + "%" },
+  strTone:    { min: 0, max: 1, def: 0.5, fmt: (v) => Math.round(v * 100) + "%" },
+  strBuzz:    { min: 0, max: 1, def: 0, fmt: (v) => Math.round(v * 100) + "%" },
+  riz:        { type: "onoff", def: "off" },
+  rizRate:    { min: 4, max: 20, def: 11, fmt: (v) => v.toFixed(1) + "Hz" }
 };
 
 // Drum machine voice params (Kerman): TUNE, DECAY, TONE, LEVEL per voice

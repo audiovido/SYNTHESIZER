@@ -797,3 +797,178 @@
   [data-skin="isfahan"] .kb-area { padding-top: 8px; }
   [data-skin="isfahan"] .kb-area::before { height: 4px; }
 }
+
+
+/* ------------------------------------------------------------
+   SHIRAZ — Persian santur & lutes (oiled oak, dark walnut, brass)
+   Oiled oak and dark walnut wood grain panels, engraved brass
+   knobs, brass section plates with dark engraved headings,
+   leather strip above the keyboard, ivory and ebony keys.
+   ------------------------------------------------------------ */
+[data-skin="shiraz"] {
+  --kb-btn-ink: #241606;
+  --midi-btn-ink: #f4e6c8;
+  --walnut-grain:
+    repeating-linear-gradient(179deg, rgba(22,10,3,0.28) 0 2px, transparent 2px 6px, rgba(255,215,150,0.04) 6px 9px),
+    repeating-linear-gradient(181deg, rgba(16,7,2,0.22) 0 4px, transparent 4px 13px),
+    linear-gradient(180deg, #3c2211 0%, #2b170b 52%, #211107 100%);
+  --oak-grain:
+    repeating-linear-gradient(178.5deg, rgba(50,24,7,0.18) 0 2px, transparent 2px 7px, rgba(255,220,160,0.05) 7px 11px),
+    repeating-linear-gradient(181.5deg, rgba(38,18,5,0.14) 0 3px, transparent 3px 15px),
+    linear-gradient(180deg, #6b4220 0%, #583518 55%, #492b13 100%);
+  --brass-plate:
+    repeating-linear-gradient(90deg, rgba(255,255,255,0.06) 0 1px, transparent 1px 3px),
+    linear-gradient(180deg, #e7c675 0%, #cba14a 52%, #a87d28 100%);
+  --leather-strip:
+    repeating-linear-gradient(90deg, rgba(0,0,0,0.18) 0 2px, rgba(255,220,170,0.04) 2px 4px),
+    linear-gradient(180deg, #2d180d 0%, #432515 45%, #1e0f07 100%);
+
+  --font-ui: "Gill Sans", "Optima", "Segoe UI", sans-serif;
+  --font-head: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+
+  --page-bg: #150c06;
+  --ink: #f7ebd2;
+  --ink-dim: #dfc89e;
+  --ink-faint: #b89e74;
+
+  --accent: #e5b95c;
+  --accent-2: #b88628;
+  --accent-ink: #221404;
+  --accent-glow: rgba(229,185,92,0.75);
+  --accent-glow-soft: rgba(229,185,92,0.32);
+
+  --shell-bg: var(--walnut-grain);
+  --panel-bg: var(--walnut-grain);
+  --panel-border: #8f6829;
+  --panel-radius: 10px;
+  --panel-shadow: inset 0 1px 0 rgba(255,230,175,0.18), inset 0 0 0 2px #1c0e06, 0 14px 30px rgba(0,0,0,0.65);
+
+  --sec-bg: var(--oak-grain);
+  --sec-border: #a87e33;
+  --sec-radius: 7px;
+  --sec-shadow: inset 0 1px 0 rgba(255,235,190,0.2), inset 0 -2px 6px rgba(0,0,0,0.45), 0 3px 7px rgba(0,0,0,0.45);
+  --sec-head: #231505;
+
+  --btn-bg: var(--brass-plate);
+  --btn-ink: #241606;
+  --btn-border: #7a5718;
+  --ctl-bg: linear-gradient(180deg, #351e0f 0%, #251409 100%);
+  --ctl-ink: #f4e6c8;
+  --choice-active-bg: var(--brass-plate);
+  --choice-active-ink: #231505;
+
+  --scope-bg: radial-gradient(ellipse at 50% 50%, #2a190b 0%, #120a04 82%);
+  --scope-border: #a87e33;
+  --scope-line: #f2c96d;
+  --scope-grid: rgba(242,201,109,0.18);
+
+  --knob-face:
+    radial-gradient(circle at 35% 28%, rgba(255,250,225,0.75) 0%, rgba(255,250,225,0) 36%),
+    repeating-conic-gradient(rgba(60,36,6,0.32) 0deg 4deg, rgba(255,238,185,0.12) 4deg 8deg),
+    radial-gradient(circle, #f1d488 0%, #cfa349 48%, #9b7021 82%, #5e400e 100%);
+  --knob-gap: #231308;
+  --knob-edge: #b88b3a;
+  --knob-arc: #f5ca69;
+  --knob-track: rgba(245,202,105,0.16);
+  --knob-arc-filter: drop-shadow(0 0 2px rgba(245,202,105,0.65));
+  --knob-ind: #241505;
+  --knob-ind-glow: rgba(255,240,200,0.35);
+  --label-ink: #f8ecd2;
+  --value-ink: #f3cf82;
+
+  --key-white: linear-gradient(180deg, #fdfaf0 0%, #f4ebd4 82%, #dfd1b0 100%);
+  --key-white-ink: #6e5226;
+  --key-black: linear-gradient(180deg, #140f0a 0%, #281f16 88%, #3d3022 100%);
+  --key-black-ink: #d4b26e;
+  --key-line: #2a180b;
+  --key-pressed: linear-gradient(180deg, #f7d98c 0%, #d89e36 100%);
+  --key-pressed-ink: #231404;
+
+  --led-off: #2c1a0c;
+  --led-off-edge: #a87e33;
+}
+/* Brass section plates with dark engraved headings */
+[data-skin="shiraz"] .synth-sec {
+  padding-top: 0;
+  overflow: hidden;
+}
+[data-skin="shiraz"] .synth-sec h4 {
+  margin: 0 -8px 7px;
+  padding: 3px 10px;
+  background: var(--brass-plate);
+  border-bottom: 1px solid #6b4c14;
+  box-shadow: inset 0 1px 0 rgba(255,250,225,0.65), 0 1px 2px rgba(0,0,0,0.35);
+  color: #231505;
+  text-shadow: 0 1px 0 rgba(255,245,210,0.55);
+  text-align: center;
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+}
+/* Keep RIZ toggle and SPEED knob on one compact row inside STRIKE */
+[data-skin="shiraz"] .synth-choice[data-param="strModel"] .synth-choice-btn {
+  font-size: 0.68rem;
+  letter-spacing: 0.02em;
+  padding: 0 2px;
+}
+[data-skin="shiraz"] .synth-sec > .sk-row:has(+ .synth-toggles) {
+  flex: 1 1 100%;
+}
+[data-skin="shiraz"] .synth-sec > .sk-row + .synth-toggles {
+  flex: 1 1 42%;
+  align-self: center;
+  margin-bottom: 0;
+}
+[data-skin="shiraz"] .synth-sec > .synth-toggles + .sk-row {
+  flex: 1 1 42%;
+}
+/* Stitched dark leather strip above the keyboard */
+[data-skin="shiraz"] .kb-area {
+  position: relative;
+  padding-top: 10px;
+}
+[data-skin="shiraz"] .kb-area::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--leather-strip);
+  border-top: 1px solid #9c742c;
+  border-bottom: 1px solid #140a04;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.55);
+  pointer-events: none;
+}
+[data-skin="shiraz"] .synth-midi-bar {
+  background: rgba(30,16,8,0.72);
+  border-color: #7d5b22;
+}
+[data-skin="shiraz"] .kb {
+  border-width: 3px;
+  box-shadow: 0 0 0 1px #8f6829, 0 8px 20px rgba(0,0,0,0.6);
+}
+@media (max-height: 720px) and (min-width: 761px) {
+  [data-skin="shiraz"] .kb-area { padding-top: 6px; }
+  [data-skin="shiraz"] .kb-area::before { height: 4px; }
+  [data-skin="shiraz"] .synth-sec h4 { margin-bottom: 4px; padding: 2px 8px; }
+}
+@media (max-width: 760px), (max-height: 560px) and (orientation: landscape) {
+  [data-skin="shiraz"] .kb-area { padding-top: 7px; }
+  [data-skin="shiraz"] .kb-area::before { height: 4px; }
+  [data-skin="shiraz"] .synth-sec h4 { margin-bottom: 5px; font-size: 0.7rem; }
+}
+@media (max-height: 560px) and (orientation: landscape) {
+  [data-skin="shiraz"] .kb-area { padding-top: 0; }
+  [data-skin="shiraz"] .kb-area::before { display: none; }
+  [data-skin="shiraz"] .synth-sec h4 { margin-bottom: 3px; padding: 2px 6px; font-size: 0.66rem; }
+  [data-skin="shiraz"] .synth-sec > .sk-row:has(+ .synth-toggles) { flex: 1 1 auto; }
+  [data-skin="shiraz"] .synth-sec > .sk-row + .synth-toggles { flex: 0 1 auto; }
+  [data-skin="shiraz"] .synth-sec > .synth-toggles + .sk-row { flex: 0 1 auto; }
+}
+@media (max-width: 760px) and (orientation: portrait) and (max-height: 640px) {
+  [data-skin="shiraz"] .kb-area { padding-top: 6px; }
+  [data-skin="shiraz"] .synth-sec h4 { margin-bottom: 3px; padding: 2px 6px; font-size: 0.68rem; }
+}
+

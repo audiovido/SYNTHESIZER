@@ -11,6 +11,7 @@
 import { getAudioCtx, getAudioCtxIfAny, getSynthBus, makeDriveCurve, makeReverbImpulse, unlockAudio } from "./bus";
 import { SYNC_DIVS, SYNTH_PARAMS, SynthPatch, synthDefaults, TUNINGS, tuningCents } from "./params";
 import { createHQVoice, EngineId, hqPost, initHQ, setEngine, useHQ } from "./hq";
+import { createStringsVoice, initStrings, stringsPost, useStrings } from "./strings";
 import {
   activeSynthVoices,
   createSynthVoice,
@@ -194,6 +195,7 @@ export function setSynthParam(
 
   activeSynthVoices.forEach((vc) => vc.update(key));
   hqPost({ t: "param", key, value: synthPatch[key] });
+  stringsPost({ t: "param", key, value: synthPatch[key] });
   paramChangeListeners.forEach((cb) => cb(key, synthPatch[key]));
   savePatchSoon();
 }
@@ -268,24 +270,32 @@ export function setMachine(id: string): void {
 // ------------------------------------------------------- pitch bend etc. ----
 export function setPitchBend(norm: number): void {
   setVoicePitchBend(norm);
-  hqPost({ t: "bend", v: getVoicePitchBend() });
+  const v = getVoicePitchBend();
+  hqPost({ t: "bend", v });
+  stringsPost({ t: "bend", v });
 }
 export function getPitchBend(): number {
   return getVoicePitchBend();
 }
 export function setModWheel(norm: number): void {
   setVoiceModWheel(norm);
-  hqPost({ t: "mod", v: getVoiceModWheel() });
+  const v = getVoiceModWheel();
+  hqPost({ t: "mod", v });
+  stringsPost({ t: "mod", v });
 }
 export function getModWheel(): number {
   return getVoiceModWheel();
 }
 
-/** Unlock audio and start loading the HQ engine. Call on any user gesture. */
+/** Unlock audio and start loading the HQ and Strings engines. Call on any user gesture. */
 export function prepareAudio(): void {
   unlockAudio();
   const ctx = getAudioCtx();
-  if (ctx) initHQ(ctx, getSynthBus(ctx, synthPatch).input, () => synthPatch);
+  if (ctx) {
+    const input = getSynthBus(ctx, synthPatch).input;
+    initHQ(ctx, input, () => synthPatch);
+    initStrings(ctx, input, () => synthPatch);
+  }
 }
 
 /** Switch engines (releases every note first so nothing hangs). */
@@ -319,6 +329,9 @@ function holding(): boolean {
 
 function startVoice(midi: number, vel: number, at: number, fromHz = 0, glide = 0): SynthVoice {
   const ctx = getAudioCtx();
+  if (machine.engine === "strings" && useStrings()) {
+    return createStringsVoice(midi, centsFor(midi), vel, at, fromHz, glide);
+  }
   if (useHQ()) return createHQVoice(midi, centsFor(midi), vel, at, fromHz, glide);
   return createSynthVoice(ctx, freqFor(midi), Math.max(at, ctx.currentTime), synthPatch, vel, fromHz, glide);
 }
@@ -472,6 +485,7 @@ function releaseEverything(): void {
   monoStack.length = 0;
   monoMidi = -1;
   hqPost({ t: "alloff" });
+  stringsPost({ t: "alloff" });
   document.querySelectorAll(".key.is-pressed").forEach((el) => el.classList.remove("is-pressed"));
 }
 
@@ -480,6 +494,7 @@ export function allNotesOff(): void {
   downKeys.clear();
   setVoicePitchBend(0);
   hqPost({ t: "bend", v: 0 });
+  stringsPost({ t: "bend", v: 0 });
   releaseEverything();
 }
 
