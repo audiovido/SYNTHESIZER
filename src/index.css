@@ -89,8 +89,8 @@
   --k-small: 32px;    /* small knob diameter */
   --sk-w: 54px;       /* knob column width */
   --scope-h: 56px;
-  --kb-min: 120px;
-  --kb-max: clamp(200px, 32vh, 340px);
+  --kb-min: 100px;
+  --kb-max: clamp(150px, 24vh, 250px);
   --sec-gap: 10px;
 }
 
@@ -663,7 +663,7 @@ html, body {
   .synth-hint { display: none; }
 }
 @media (max-height: 720px) {
-  :root { --k: 32px; --k-small: 26px; --scope-h: 36px; --kb-min: 100px; --shell-pad: 10px; }
+  :root { --k: 32px; --k-small: 26px; --scope-h: 36px; --kb-min: 90px; --shell-pad: 10px; }
   .sk-label { margin-top: 3px; }
   .synth-choice-btn { min-height: 28px; }
   .synth-param-select { min-height: 28px; }
@@ -674,7 +674,7 @@ html, body {
 
 /* Small screens (phones, narrow windows, phone landscape): pages + tabs */
 @media (max-width: 760px), (max-height: 560px) and (orientation: landscape), (pointer: coarse) and (min-width: 761px) and (max-height: 900px) and (orientation: landscape) {
-  :root { --shell-pad: 8px; --k: 38px; --k-small: 30px; --sk-w: 46px; --scope-h: 34px; --kb-min: 110px; --kb-max: 220px; }
+  :root { --shell-pad: 8px; --k: 38px; --k-small: 30px; --sk-w: 46px; --scope-h: 34px; --kb-min: 96px; --kb-max: 170px; }
   .synth-panel { padding: 8px; }
   .synth-hint { display: none; }
 
@@ -702,7 +702,7 @@ html, body {
 /* Phone portrait: octave row above the keys; Effects page stacks
    Delay and Reverb beside Drive/EQ so it fits without scrolling */
 @media (max-width: 760px) and (orientation: portrait) {
-  :root { --kb-min: 150px; --kb-max: 280px; }
+  :root { --kb-min: 120px; --kb-max: 210px; }
   .kb-area { flex-direction: column; gap: 6px; margin-top: 8px; }
   .kb-bar { width: auto; flex-direction: row; justify-content: space-between; align-items: center; }
   .kb-btn { min-width: 76px; }
@@ -737,7 +737,7 @@ html, body {
 
 /* Phone landscape and other very short screens: wider pages, compact keyboard */
 @media (max-height: 560px) and (orientation: landscape) {
-  :root { --k: 32px; --k-small: 26px; --scope-h: 28px; --kb-min: 84px; --kb-max: 150px; }
+  :root { --k: 32px; --k-small: 26px; --scope-h: 28px; --kb-min: 76px; --kb-max: 120px; }
   .synth-top { margin-bottom: 4px; flex-wrap: nowrap; }
   .synth-brand { display: none; }
   .synth-sec { padding: 5px 6px 6px; }
@@ -1195,7 +1195,7 @@ html, body {
 
 /* Touch tablets: bigger, more piano-like keys */
 @media (pointer: coarse) and (min-width: 761px) {
-  :root { --kb-min: 210px; --kb-max: 360px; }
+  :root { --kb-min: 150px; --kb-max: 250px; }
   .kb-wheel { width: 36px; }
   .kb-btn { min-height: 44px; }
   .key { font-size: 0.8rem; padding-bottom: 12px; }
@@ -1543,6 +1543,7 @@ html, body {
 }
 .kb-bar #oct-down, .kb-bar #oct-up { white-space: nowrap; font-size: 0.76rem; padding: 0 2px; }
 @media (max-height: 340px) and (orientation: landscape) {
+  :root { --kb-min: 86px; }
   .kb-bar { gap: 3px; }
   .kb-bar .kb-btn { min-height: 25px; }
   .kb-oriental-sub { display: none; }
@@ -1563,4 +1564,34 @@ body { touch-action: manipulation; }
 .sy1-shell {
   padding-left: max(var(--shell-pad), env(safe-area-inset-left, 0px));
   padding-right: max(var(--shell-pad), env(safe-area-inset-right, 0px));
+}
+
+/* ============================================================
+   Use the room the smaller keyboard frees up: on tablets and
+   larger screens the knobs, scope and buttons grow with the
+   available height (and never wider than their column).
+   ============================================================ */
+@media (min-width: 761px) and (min-height: 740px) {
+  :root {
+    --k: min(clamp(40px, 5.2dvh, 52px), calc((min(100vw, 1200px) - 140px) / 16));
+    --k-small: calc(var(--k) * 0.8);
+    --sk-w: calc(var(--k) + 10px);
+    --scope-h: clamp(44px, 6dvh, 72px);
+  }
+  .synth-choice-btn { min-height: clamp(30px, 4dvh, 40px); }
+}
+
+/* Knobs never spill out of their section: each section is a size
+   container and a knob shrinks only when its row is too narrow
+   (e.g. four knobs in a row on a portrait tablet). */
+.synth-sec { container-type: inline-size; }
+.sk-row { --k-in: var(--k); --cols: 3; }
+.sk-row:has(> .sk:nth-child(4)) { --cols: 4; }
+.sk-row:has(> .sk:nth-child(5)) { --cols: 5; }
+.sk-row:has(> .sk:nth-child(6)) { --cols: 6; }
+.sk-row > .sk {
+  --fit: calc((100cqw - (var(--cols) - 1) * 4px) / var(--cols));
+  --k: min(var(--k-in), calc(var(--fit) - 10px));
+  width: min(var(--sk-w), var(--fit));
+  min-width: 0;
 }
