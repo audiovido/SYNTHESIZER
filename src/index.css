@@ -1547,3 +1547,20 @@ html, body {
   .kb-bar .kb-btn { min-height: 25px; }
   .kb-oriental-sub { display: none; }
 }
+
+/* ============================================================
+   App feel (installed PWA / home-screen): no bounce, no text
+   selection or callouts, no double-tap zoom, notch-safe edges.
+   ============================================================ */
+html, body {
+  overscroll-behavior: none;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+body { touch-action: manipulation; }
+.sy1-shell {
+  padding-left: max(var(--shell-pad), env(safe-area-inset-left, 0px));
+  padding-right: max(var(--shell-pad), env(safe-area-inset-right, 0px));
+}

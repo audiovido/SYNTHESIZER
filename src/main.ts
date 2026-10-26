@@ -92,3 +92,10 @@ if (document.readyState === "loading") {
 } else {
   initApp();
 }
+
+// PWA: offline support. Only in the production build (the dev server must not cache anything).
+if (import.meta.env.PROD && "serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./sw.js").catch(() => {});
+  });
+}
