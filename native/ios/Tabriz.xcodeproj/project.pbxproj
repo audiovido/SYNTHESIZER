@@ -1,0 +1,298 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		33528ECC6AE43A6A19F89477 /* TabrizApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C59F35AAA8AE81DB2577561 /* TabrizApp.swift */; };
+		62ADFAF7EDC910F8379C61C6 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A4C8F32E95A9FD25E99B0F8 /* ContentView.swift */; };
+		FAB24D62B3A8F02837F7612A /* SynthModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 259B4484BFE5FF1B0DF581CD /* SynthModel.swift */; };
+		19D20F8DACC791EB5FDC21E9 /* KeyboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F4CCB809E199A35D578B2CC /* KeyboardView.swift */; };
+		DCBA6A744E26809791552B75 /* SynthEngine.mm in Sources */ = {isa = PBXBuildFile; fileRef = 917D1BFCDDA55BE39EC7C515 /* SynthEngine.mm */; };
+		D0C92EB3D844D0700E949D7E /* presets.json in Resources */ = {isa = PBXBuildFile; fileRef = 8C7DF4E9616FDE504F4AD33C /* presets.json */; };
+		47924AE9FA1B4508F2B1EEED /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5A8D3564B2132AF036213036 /* AVFoundation.framework */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		2C59F35AAA8AE81DB2577561 /* TabrizApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TabrizApp.swift"; sourceTree = "<group>"; };
+		1A4C8F32E95A9FD25E99B0F8 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ContentView.swift"; sourceTree = "<group>"; };
+		259B4484BFE5FF1B0DF581CD /* SynthModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SynthModel.swift"; sourceTree = "<group>"; };
+		3F4CCB809E199A35D578B2CC /* KeyboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "KeyboardView.swift"; sourceTree = "<group>"; };
+		917D1BFCDDA55BE39EC7C515 /* SynthEngine.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = "SynthEngine.mm"; sourceTree = "<group>"; };
+		0860EDBF1577239F9DB49E3E /* SynthEngine.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "SynthEngine.h"; sourceTree = "<group>"; };
+		CFEF2786035654F407721034 /* Tabriz-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Tabriz-Bridging-Header.h"; sourceTree = "<group>"; };
+		8C7DF4E9616FDE504F4AD33C /* presets.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "presets.json"; sourceTree = "<group>"; };
+		5A8D3564B2132AF036213036 /* AVFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFoundation.framework; path = System/Library/Frameworks/AVFoundation.framework; sourceTree = SDKROOT; };
+		7956FE5BC62358262873304A /* Tabriz.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Tabriz.app; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		E7A61CFEA03B2D2A3A0D27C7 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				47924AE9FA1B4508F2B1EEED /* AVFoundation.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		6CB36D34074C10A6153CF9BC = {
+			isa = PBXGroup;
+			children = (
+				93071634F525DF7480148634 /* Tabriz */,
+				795D91F7D1C0169D9EAE5EE5 /* Frameworks */,
+				3EEF9D4B52FAB14020558098 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		93071634F525DF7480148634 /* Tabriz */ = {
+			isa = PBXGroup;
+			children = (
+				2C59F35AAA8AE81DB2577561 /* TabrizApp.swift */,
+				1A4C8F32E95A9FD25E99B0F8 /* ContentView.swift */,
+				259B4484BFE5FF1B0DF581CD /* SynthModel.swift */,
+				3F4CCB809E199A35D578B2CC /* KeyboardView.swift */,
+				917D1BFCDDA55BE39EC7C515 /* SynthEngine.mm */,
+				0860EDBF1577239F9DB49E3E /* SynthEngine.h */,
+				CFEF2786035654F407721034 /* Tabriz-Bridging-Header.h */,
+				8C7DF4E9616FDE504F4AD33C /* presets.json */,
+			);
+			path = Tabriz;
+			sourceTree = "<group>";
+		};
+		795D91F7D1C0169D9EAE5EE5 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				5A8D3564B2132AF036213036 /* AVFoundation.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		3EEF9D4B52FAB14020558098 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				7956FE5BC62358262873304A /* Tabriz.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		42AEFBAE01D2DFD981F7DA7D /* Tabriz */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 486AEA505A17A1249389F938 /* Build configuration list for PBXNativeTarget "Tabriz" */;
+			buildPhases = (
+				4BE3BF6C9528F7C4F292F67A /* Sources */,
+				E7A61CFEA03B2D2A3A0D27C7 /* Frameworks */,
+				CCD626E08A8A3DCF380CCDC9 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Tabriz;
+			productName = Tabriz;
+			productReference = 7956FE5BC62358262873304A /* Tabriz.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		46F86FAA6BBF9AC94A7E4595 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1500;
+				LastUpgradeCheck = 1500;
+				TargetAttributes = {
+					42AEFBAE01D2DFD981F7DA7D = {
+						CreatedOnToolsVersion = 15.0;
+					};
+				};
+			};
+			buildConfigurationList = 8BFEA3FAFA52EA4FAF3C0463 /* Build configuration list for PBXProject "Tabriz" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 6CB36D34074C10A6153CF9BC;
+			productRefGroup = 3EEF9D4B52FAB14020558098 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				42AEFBAE01D2DFD981F7DA7D /* Tabriz */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		CCD626E08A8A3DCF380CCDC9 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D0C92EB3D844D0700E949D7E /* presets.json in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		4BE3BF6C9528F7C4F292F67A /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				33528ECC6AE43A6A19F89477 /* TabrizApp.swift in Sources */,
+				62ADFAF7EDC910F8379C61C6 /* ContentView.swift in Sources */,
+				FAB24D62B3A8F02837F7612A /* SynthModel.swift in Sources */,
+				19D20F8DACC791EB5FDC21E9 /* KeyboardView.swift in Sources */,
+				DCBA6A744E26809791552B75 /* SynthEngine.mm in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		F76F2F5070883F96D43CA7E8 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++17";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = NO;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_OPTIMIZATION_LEVEL = 3;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		4E275D5B35DE93CBAFEFB34F /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++17";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = NO;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_OPTIMIZATION_LEVEL = 3;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		2A343E603A2D64755C73B150 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SRCROOT)/../dsp",
+				);
+				INFOPLIST_KEY_CFBundleDisplayName = Tabriz;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UIRequiresFullScreen = YES;
+				INFOPLIST_KEY_UIStatusBarHidden = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 0.1;
+				PRODUCT_BUNDLE_IDENTIFIER = com.audiovido.tabriz;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_OBJC_BRIDGING_HEADER = "Tabriz/Tabriz-Bridging-Header.h";
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		3C5975784EB8C8C214FAC427 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SRCROOT)/../dsp",
+				);
+				INFOPLIST_KEY_CFBundleDisplayName = Tabriz;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UIRequiresFullScreen = YES;
+				INFOPLIST_KEY_UIStatusBarHidden = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 0.1;
+				PRODUCT_BUNDLE_IDENTIFIER = com.audiovido.tabriz;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_OBJC_BRIDGING_HEADER = "Tabriz/Tabriz-Bridging-Header.h";
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		8BFEA3FAFA52EA4FAF3C0463 /* Build configuration list for PBXProject "Tabriz" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F76F2F5070883F96D43CA7E8 /* Debug */,
+				4E275D5B35DE93CBAFEFB34F /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		486AEA505A17A1249389F938 /* Build configuration list for PBXNativeTarget "Tabriz" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				2A343E603A2D64755C73B150 /* Debug */,
+				3C5975784EB8C8C214FAC427 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 46F86FAA6BBF9AC94A7E4595 /* Project object */;
+}
