@@ -1498,3 +1498,52 @@ html, body {
   .kb-perf { gap: 2px; }
   .kb-perf .kb-btn { font-size: 0.56rem; padding: 0 1px; letter-spacing: 0; }
 }
+
+/* ============================================================
+   Performance bar layout (octave + HOLD / ARP / ORIENTAL)
+   Wide screens, tablets, phone landscape: compact 2-column grid
+   beside the keys. Phone portrait: a single row above the keys.
+   ============================================================ */
+.kb-bar {
+  width: 104px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-auto-rows: min-content;
+  align-content: center;
+  justify-items: stretch;
+  gap: 6px;
+}
+.kb-perf { display: contents; }
+.kb-bar .kb-btn { min-width: 0; padding: 0 4px; }
+#kb-hold { grid-area: 1 / 1; }
+#kb-arp { grid-area: 1 / 2; }
+#kb-oriental { grid-area: 2 / 1 / 3 / 3; padding: 0 8px; }
+#oct-down { grid-area: 3 / 1; }
+#oct-up { grid-area: 3 / 2; }
+.kb-range { grid-area: 4 / 1 / 5 / 3; }
+
+@media (max-height: 560px) and (orientation: landscape) {
+  .kb-bar { width: 96px; gap: 4px; }
+  .kb-range { display: none; }
+  .kb-bar .kb-btn { min-height: 28px; font-size: 0.66rem; }
+  #kb-oriental { padding: 0 5px; }
+  .kb-oriental-lbl { font-size: 0.62rem; }
+}
+
+@media (max-width: 760px) and (orientation: portrait) {
+  .kb-bar { width: auto; display: flex; flex-direction: row; align-items: center; justify-content: space-between; gap: 4px; }
+  .kb-perf { display: flex; flex: 1 1 auto; min-width: 0; gap: 4px; }
+  .kb-bar #oct-down, .kb-bar #oct-up { flex: none; width: 58px; }
+  .kb-range { flex: none; }
+  .kb-perf #kb-hold, .kb-perf #kb-arp { flex: 0 0 46px; }
+  .kb-perf #kb-oriental { flex: 1 1 auto; min-width: 0; padding: 0 6px; }
+}
+@media (max-width: 420px) and (orientation: portrait) {
+  .kb-range { display: none; }
+}
+.kb-bar #oct-down, .kb-bar #oct-up { white-space: nowrap; font-size: 0.76rem; padding: 0 2px; }
+@media (max-height: 340px) and (orientation: landscape) {
+  .kb-bar { gap: 3px; }
+  .kb-bar .kb-btn { min-height: 25px; }
+  .kb-oriental-sub { display: none; }
+}
