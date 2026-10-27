@@ -875,6 +875,110 @@ async function main() {
           sHold.getAttribute("aria-pressed") === "false" && !sC4.classList.contains("is-pressed"),
           "Switching machine must turn HOLD off and release latched notes"
         );
+
+        // ARP <-> HOLD handover test on SY-1 (poly) and Tabriz (mono) via window.SY1 and UI
+        const SY1 = (window as any).SY1;
+        for (const mId of ["sy1", "tabriz"]) {
+          SY1.setMachine(mId);
+          SY1.setParam("arpOn", "off");
+          SY1.setParam("hold", "on");
+          const kC = document.querySelector('.key[data-midi="60"]')!;
+          const kE = document.querySelector('.key[data-midi="64"]')!;
+          const kG = document.querySelector('.key[data-midi="67"]')!;
+          const hBtn = document.getElementById("kb-hold")!;
+
+          // Play C-E-G, lift -> sounding & latched
+          SY1.noteOn(60);
+          SY1.noteOn(64);
+          SY1.noteOn(67);
+          SY1.noteOff(60);
+          SY1.noteOff(64);
+          SY1.noteOff(67);
+          check(
+            SY1.getPatch().hold === "on" &&
+              hBtn.getAttribute("aria-pressed") === "true" &&
+              kC.classList.contains("is-pressed") &&
+              kE.classList.contains("is-pressed") &&
+              kG.classList.contains("is-pressed"),
+            `[${mId}] HOLD on, play C-E-G, lift -> C-E-G latched & highlighted`
+          );
+
+          // ARP on -> arpeggio of C-E-G, HOLD still on
+          SY1.setParam("arpOn", "on");
+          check(
+            SY1.getPatch().arpOn === "on" &&
+              SY1.getPatch().hold === "on" &&
+              hBtn.getAttribute("aria-pressed") === "true" &&
+              kC.classList.contains("is-pressed") &&
+              kE.classList.contains("is-pressed") &&
+              kG.classList.contains("is-pressed"),
+            `[${mId}] ARP on -> C-E-G handed over to arp, HOLD still on`
+          );
+
+          // ARP off -> C-E-G sustained voices (or priority note in mono), HOLD still on, notes still latched
+          SY1.setParam("arpOn", "off");
+          check(
+            SY1.getPatch().arpOn === "off" &&
+              SY1.getPatch().hold === "on" &&
+              hBtn.getAttribute("aria-pressed") === "true" &&
+              kC.classList.contains("is-pressed") &&
+              kE.classList.contains("is-pressed") &&
+              kG.classList.contains("is-pressed"),
+            `[${mId}] ARP off -> C-E-G stay latched, HOLD still on`
+          );
+
+          // Re-press E -> only E stops
+          SY1.noteOn(64);
+          SY1.noteOff(64);
+          check(
+            kC.classList.contains("is-pressed") &&
+              !kE.classList.contains("is-pressed") &&
+              kG.classList.contains("is-pressed"),
+            `[${mId}] Re-pressing E removes only E while C and G stay latched`
+          );
+
+          // HOLD off -> silence
+          SY1.setParam("hold", "off");
+          check(
+            SY1.getPatch().hold === "off" &&
+              hBtn.getAttribute("aria-pressed") === "false" &&
+              !kC.classList.contains("is-pressed") &&
+              !kE.classList.contains("is-pressed") &&
+              !kG.classList.contains("is-pressed"),
+            `[${mId}] HOLD off releases all latched notes`
+          );
+
+          // Physically held keys across ARP on -> off -> on, and PANIC cleanup
+          SY1.noteOn(60);
+          SY1.noteOn(64);
+          SY1.setParam("arpOn", "on");
+          check(
+            kC.classList.contains("is-pressed") && kE.classList.contains("is-pressed"),
+            `[${mId}] Physically held C & E stay active when ARP turned on`
+          );
+          SY1.setParam("arpOn", "off");
+          if (mId === "tabriz") {
+            check(
+              kE.classList.contains("is-pressed"),
+              `[${mId}] Physically held priority note E stays active when ARP turned off`
+            );
+            SY1.noteOff(64);
+            check(
+              kC.classList.contains("is-pressed") && !kE.classList.contains("is-pressed"),
+              `[${mId}] Releasing E falls back to physically held C in mono mode`
+            );
+          } else {
+            check(
+              kC.classList.contains("is-pressed") && kE.classList.contains("is-pressed"),
+              `[${mId}] Physically held C & E stay active when ARP turned off`
+            );
+          }
+          SY1.allNotesOff();
+          check(
+            !kC.classList.contains("is-pressed") && !kE.classList.contains("is-pressed"),
+            `[${mId}] No stuck notes after PANIC (allNotesOff)`
+          );
+        }
       }
       return { checks, issues };
     });

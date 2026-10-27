@@ -214,3 +214,31 @@ export function arpAllOff(): void {
 export function arpHeldNotes(): number[] {
   return held.map((n) => n.midi);
 }
+
+/** Hand over currently held/latched notes from plain synth mode to the arpeggiator (preserving played order). */
+export function arpHandover(notes: { midi: number; vel: number; physical: boolean }[]): void {
+  stop();
+  held.length = 0;
+  physicalSet.clear();
+  for (const n of notes) {
+    if (!held.some((h) => h.midi === n.midi)) {
+      held.push({ midi: n.midi, vel: n.vel });
+    }
+    if (n.physical) physicalSet.add(n.midi);
+  }
+  if (held.length) ensureRunning();
+}
+
+/** Stop the arpeggiator and return the held/latched notes (in played order) for handover back to plain voices. */
+export function arpTakeState(): { midi: number; vel: number; physical: boolean }[] {
+  const out = held.map((n) => ({
+    midi: n.midi,
+    vel: n.vel,
+    physical: physicalSet.has(n.midi)
+  }));
+  held.length = 0;
+  physicalSet.clear();
+  stop();
+  return out;
+}
+

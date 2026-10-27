@@ -24,7 +24,7 @@ import {
   setVoicePitchBend,
   SynthVoice
 } from "./voice";
-import { arpAllOff, arpHeldNotes, arpNoteOff, arpNoteOn, arpReleaseLatched, arpReleasePhysical, configureArp } from "./arp";
+import { arpAllOff, arpHandover, arpHeldNotes, arpNoteOff, arpNoteOn, arpReleaseLatched, arpReleasePhysical, arpTakeState, configureArp } from "./arp";
 import { getTempo, onTempoChange, setTempo } from "./tempo";
 import {
   configureDrums,
@@ -150,6 +150,9 @@ export function setSynthParam(
   if (key === "hold" && synthPatch.hold !== "on" && before === "on") {
     releaseHeldByHold();
     arpReleaseLatched().forEach((m) => markKey(m, false));
+    if (synthPatch.arpOn === "on" && !arpHeldNotes().length) {
+      stopArpStepVoices();
+    }
   }
 
   // Side effects of performance params
@@ -163,7 +166,7 @@ export function setSynthParam(
       const r = syncedLfoRate();
       if (r !== null) setSynthParam("lfoRate", r, { internal: true });
     }
-    if (key === "arpOn" && value !== before) releaseEverything();
+    if (key === "arpOn" && synthPatch.arpOn !== before) handleArpToggle(synthPatch.arpOn === "on");
     if (key === "polyMode" && value !== before) releaseEverything();
   }
 
@@ -363,8 +366,10 @@ export function switchEngine(id: EngineId): void {
 
 // ------------------------------------------------------------------ notes ----
 const heldVoices = new Map<number, SynthVoice>(); // midi -> voice
+const heldNotesOrder = new Map<number, number>(); // midi -> vel in played order
 const physicallyHeld = new Set<number>();
 const sustainedNotes = new Set<number>();
+const pendingHandoverVoices: SynthVoice[] = [];
 let sustainPedal = false;
 // mono mode
 const monoStack: number[] = [];
@@ -399,7 +404,10 @@ function retuneActiveVoices(): void {
 
 export function isNoteSounding(midi: number): boolean {
   if (synthPatch.arpOn === "on") return arpHeldNotes().includes(midi);
-  if (synthPatch.polyMode === "mono") return monoVoice !== null && !monoVoice.isReleased() && monoMidi === midi;
+  if (synthPatch.polyMode === "mono") {
+    if (holding() && (sustainedNotes.has(midi) || physicallyHeld.has(midi))) return true;
+    return monoVoice !== null && !monoVoice.isReleased() && monoMidi === midi;
+  }
   const v = heldVoices.get(midi);
   return !!v && !v.isReleased();
 }
@@ -431,6 +439,107 @@ function markKey(midi: number, on: boolean): void {
   if (el) el.classList.toggle("is-pressed", on);
 }
 
+function syncKeyHighlights(): void {
+  document.querySelectorAll<HTMLElement>(".key[data-midi]").forEach((el) => {
+    const m = Number(el.dataset.midi);
+    el.classList.toggle("is-pressed", isNoteSounding(m));
+  });
+}
+
+function flushPendingHandoverVoices(at: number): void {
+  if (!pendingHandoverVoices.length) return;
+  for (const v of pendingHandoverVoices) {
+    if (!v.isReleased()) v.release(at);
+  }
+  pendingHandoverVoices.length = 0;
+}
+
+function stopArpStepVoices(): void {
+  flushPendingHandoverVoices(getAudioCtxIfAny()?.currentTime || 0);
+  Array.from(activeSynthVoices).forEach((v) => v.kill());
+  hqPost({ t: "alloff" });
+  stringsPost({ t: "alloff" });
+  fmPost({ t: "alloff" });
+  analogPost({ t: "alloff" });
+  vectorPost({ t: "alloff" });
+}
+
+function handleArpToggle(toOn: boolean): void {
+  if (machine.kind === "drums") return;
+  if (toOn) {
+    const notes: { midi: number; vel: number; physical: boolean }[] = [];
+    heldNotesOrder.forEach((vel, midi) => {
+      const physical = physicallyHeld.has(midi);
+      if (
+        physical ||
+        sustainedNotes.has(midi) ||
+        heldVoices.has(midi) ||
+        (monoVoice && !monoVoice.isReleased() && monoMidi === midi)
+      ) {
+        notes.push({ midi, vel, physical });
+      }
+    });
+    heldVoices.forEach((v) => {
+      if (!v.isReleased()) pendingHandoverVoices.push(v);
+    });
+    heldVoices.clear();
+    if (monoVoice && !monoVoice.isReleased()) {
+      pendingHandoverVoices.push(monoVoice);
+    }
+    monoVoice = null;
+    monoMidi = -1;
+    monoStack.length = 0;
+    physicallyHeld.clear();
+    sustainedNotes.clear();
+    heldNotesOrder.clear();
+
+    if (notes.length > 0) {
+      arpHandover(notes);
+      if (pendingHandoverVoices.length > 0) {
+        flushPendingHandoverVoices((getAudioCtxIfAny()?.currentTime ?? 0) + 0.02);
+      }
+    } else {
+      flushPendingHandoverVoices(getAudioCtxIfAny()?.currentTime ?? 0);
+      arpAllOff();
+    }
+    syncKeyHighlights();
+  } else {
+    const notes = arpTakeState();
+    stopArpStepVoices();
+    const keep = notes.filter((n) => n.physical || holding());
+    if (keep.length > 0) {
+      prepareAudio();
+      const ctx = getAudioCtx();
+      const now = ctx ? ctx.currentTime : 0;
+      for (const n of keep) {
+        heldNotesOrder.set(n.midi, n.vel);
+        if (n.physical) physicallyHeld.add(n.midi);
+        else sustainedNotes.add(n.midi);
+      }
+      if (synthPatch.polyMode === "mono") {
+        monoStack.length = 0;
+        for (const n of keep) {
+          if (n.physical) monoStack.push(n.midi);
+        }
+        const priorityMidi = monoStack.length > 0 ? monoStack[monoStack.length - 1] : keep[keep.length - 1].midi;
+        const priorityNote = keep.find((n) => n.midi === priorityMidi) || keep[keep.length - 1];
+        if (ctx) {
+          monoVoice = startVoice(priorityNote.midi, priorityNote.vel, now);
+        }
+        monoMidi = priorityNote.midi;
+        lastMonoHz = freqFor(priorityNote.midi);
+      } else {
+        for (const n of keep) {
+          if (ctx) {
+            heldVoices.set(n.midi, startVoice(n.midi, n.vel, now));
+          }
+        }
+      }
+    }
+    syncKeyHighlights();
+  }
+}
+
 function releaseVoiceNow(midi: number): void {
   const v = heldVoices.get(midi);
   if (v) {
@@ -438,19 +547,47 @@ function releaseVoiceNow(midi: number): void {
     const ctx = getAudioCtxIfAny();
     if (ctx) v.release(ctx.currentTime);
   }
+  if (!physicallyHeld.has(midi) && !sustainedNotes.has(midi)) {
+    heldNotesOrder.delete(midi);
+  }
   markKey(midi, false);
 }
 
 function releaseHeldByHold(): void {
   if (holding()) return;
-  sustainedNotes.forEach((m) => { if (!physicallyHeld.has(m)) releaseVoiceNow(m); });
+  const ctx = getAudioCtxIfAny();
+  flushPendingHandoverVoices(ctx ? ctx.currentTime : 0);
+  sustainedNotes.forEach((m) => {
+    if (!physicallyHeld.has(m)) {
+      heldNotesOrder.delete(m);
+      if (synthPatch.polyMode === "mono") markKey(m, false);
+      else releaseVoiceNow(m);
+    }
+  });
   sustainedNotes.clear();
-  if (synthPatch.polyMode === "mono" && monoVoice && monoStack.length === 0) {
-    const ctx = getAudioCtxIfAny();
-    if (ctx) monoVoice.release(ctx.currentTime);
-    monoVoice = null;
-    markKey(monoMidi, false);
-    monoMidi = -1;
+  if (synthPatch.polyMode === "mono") {
+    if (monoStack.length === 0) {
+      if (monoVoice && ctx) monoVoice.release(ctx.currentTime);
+      monoVoice = null;
+      if (monoMidi >= 0) markKey(monoMidi, false);
+      monoMidi = -1;
+    } else {
+      const top = monoStack[monoStack.length - 1];
+      if (monoMidi !== top && ctx) {
+        const hz = freqFor(top);
+        const glide = synthPatch.glide || 0;
+        if (monoVoice && !monoVoice.isReleased() && synthPatch.legato === "on" && monoVoice.retune) {
+          monoVoice.retune(hz, Math.max(0.003, glide), ctx.currentTime);
+        } else {
+          if (monoVoice) monoVoice.release(ctx.currentTime, 0.01);
+          monoVoice = startVoice(top, heldNotesOrder.get(top) ?? 0.8, ctx.currentTime, glide > 0.004 ? lastMonoHz : 0, glide);
+        }
+        if (monoMidi >= 0) markKey(monoMidi, false);
+        monoMidi = top;
+        lastMonoHz = hz;
+      }
+      markKey(top, true);
+    }
   }
 }
 
@@ -465,14 +602,38 @@ export function getSustainPedal(): boolean {
 // mono/legato voice handling
 function monoOn(midi: number, vel: number): void {
   const ctx = getAudioCtx();
-  // Pressing the currently HOLD-latched mono note stops it (toggle)
-  if (synthPatch.hold === "on" && monoVoice && !monoVoice.isReleased() && monoMidi === midi && monoStack.length === 0) {
-    monoVoice.release(ctx.currentTime);
-    monoVoice = null;
-    markKey(monoMidi, false);
-    monoMidi = -1;
+  // Pressing a HOLD-latched note stops that note (toggle)
+  if (synthPatch.hold === "on" && sustainedNotes.has(midi) && !physicallyHeld.has(midi)) {
+    sustainedNotes.delete(midi);
+    heldNotesOrder.delete(midi);
+    markKey(midi, false);
+    if (midi === monoMidi) {
+      const remaining = Array.from(heldNotesOrder.keys());
+      const nextMidi = monoStack.length > 0 ? monoStack[monoStack.length - 1] : remaining.length > 0 ? remaining[remaining.length - 1] : -1;
+      if (nextMidi >= 0) {
+        const hz = freqFor(nextMidi);
+        const glide = synthPatch.glide || 0;
+        if (monoVoice && !monoVoice.isReleased() && synthPatch.legato === "on" && monoVoice.retune) {
+          monoVoice.retune(hz, Math.max(0.003, glide), ctx.currentTime);
+        } else {
+          if (monoVoice) monoVoice.release(ctx.currentTime, 0.01);
+          monoVoice = startVoice(nextMidi, heldNotesOrder.get(nextMidi) ?? 0.8, ctx.currentTime, glide > 0.004 ? lastMonoHz : 0, glide);
+        }
+        monoMidi = nextMidi;
+        lastMonoHz = hz;
+        markKey(nextMidi, true);
+      } else {
+        if (monoVoice) monoVoice.release(ctx.currentTime);
+        monoVoice = null;
+        monoMidi = -1;
+      }
+    }
     return;
   }
+  physicallyHeld.add(midi);
+  sustainedNotes.delete(midi);
+  heldNotesOrder.delete(midi);
+  heldNotesOrder.set(midi, vel);
   const i = monoStack.indexOf(midi);
   if (i >= 0) monoStack.splice(i, 1);
   monoStack.push(midi);
@@ -484,16 +645,23 @@ function monoOn(midi: number, vel: number): void {
     if (monoVoice) monoVoice.release(ctx.currentTime, 0.01);
     monoVoice = startVoice(midi, vel, ctx.currentTime, glide > 0.004 && lastMonoHz ? lastMonoHz : 0, glide);
   }
-  if (monoMidi >= 0) markKey(monoMidi, false);
+  if (monoMidi >= 0 && monoMidi !== midi && !holding()) markKey(monoMidi, false);
   monoMidi = midi;
   lastMonoHz = hz;
   markKey(midi, true);
 }
 
 function monoOff(midi: number): void {
+  if (!physicallyHeld.has(midi)) return;
+  physicallyHeld.delete(midi);
   const ctx = getAudioCtxIfAny();
   const i = monoStack.indexOf(midi);
   if (i >= 0) monoStack.splice(i, 1);
+  if (holding()) {
+    if (heldNotesOrder.has(midi)) sustainedNotes.add(midi);
+    return;
+  }
+  heldNotesOrder.delete(midi);
   if (midi !== monoMidi) return;
   if (monoStack.length && ctx) {
     // fall back to the previous held note (classic mono behaviour)
@@ -504,7 +672,7 @@ function monoOff(midi: number): void {
       monoVoice.retune(hz, Math.max(0.003, glide), ctx.currentTime);
     } else {
       if (monoVoice) monoVoice.release(ctx.currentTime, 0.01);
-      monoVoice = startVoice(prev, 0.8, ctx.currentTime, glide > 0.004 ? lastMonoHz : 0, glide);
+      monoVoice = startVoice(prev, heldNotesOrder.get(prev) ?? 0.8, ctx.currentTime, glide > 0.004 ? lastMonoHz : 0, glide);
     }
     markKey(monoMidi, false);
     monoMidi = prev;
@@ -512,7 +680,6 @@ function monoOff(midi: number): void {
     markKey(prev, true);
     return;
   }
-  if (holding()) return;
   if (monoVoice && ctx) monoVoice.release(ctx.currentTime);
   monoVoice = null;
   markKey(monoMidi, false);
@@ -523,23 +690,31 @@ function polyOn(midi: number, vel: number): void {
   const ctx = getAudioCtx();
   if (synthPatch.hold === "on" && sustainedNotes.has(midi) && !physicallyHeld.has(midi)) {
     sustainedNotes.delete(midi);
+    heldNotesOrder.delete(midi);
     releaseVoiceNow(midi);
     return;
   }
   physicallyHeld.add(midi);
   sustainedNotes.delete(midi);
+  heldNotesOrder.delete(midi);
+  heldNotesOrder.set(midi, vel);
   const prev = heldVoices.get(midi);
-  if (prev) prev.release(ctx.currentTime);
+  if (prev) {
+    prev.release(ctx.currentTime);
+    heldVoices.delete(midi);
+  }
   heldVoices.set(midi, startVoice(midi, vel, ctx.currentTime));
   markKey(midi, true);
 }
 
 function polyOff(midi: number): void {
+  if (!physicallyHeld.has(midi)) return;
   physicallyHeld.delete(midi);
   if (holding()) {
     if (heldVoices.has(midi)) sustainedNotes.add(midi);
     return;
   }
+  heldNotesOrder.delete(midi);
   releaseVoiceNow(midi);
 }
 
@@ -556,6 +731,7 @@ export function noteOn(midi: number, velocity = 1): void {
   }
   if (synthPatch.arpOn === "on") {
     arpNoteOn(midi, velocity);
+    if (!arpHeldNotes().length) stopArpStepVoices();
     markKey(midi, isNoteSounding(midi));
     return;
   }
@@ -570,6 +746,7 @@ export function noteOff(midi: number): void {
   }
   if (synthPatch.arpOn === "on") {
     arpNoteOff(midi);
+    if (!arpHeldNotes().length) stopArpStepVoices();
     markKey(midi, isNoteSounding(midi));
     return;
   }
@@ -584,12 +761,10 @@ export function releasePhysicalNotes(): void {
   fromKeys.forEach((m) => noteOff(m));
 
   const heldArr = Array.from(physicallyHeld);
-  heldArr.forEach((m) => polyOff(m));
-
-  if (synthPatch.polyMode === "mono" && monoStack.length > 0) {
-    const top = monoStack[monoStack.length - 1];
-    monoStack.length = 0;
-    monoOff(top);
+  if (synthPatch.polyMode === "mono") {
+    heldArr.forEach((m) => monoOff(m));
+  } else {
+    heldArr.forEach((m) => polyOff(m));
   }
 
   if (synthPatch.arpOn === "on") {
@@ -601,14 +776,17 @@ export function releasePhysicalNotes(): void {
 /** Stop every sound and forget held state (keeps the sustain pedal flag off too). */
 function releaseEverything(): void {
   arpAllOff();
+  const ctx = getAudioCtxIfAny();
+  flushPendingHandoverVoices(ctx ? ctx.currentTime : 0);
   physicallyHeld.clear();
   sustainedNotes.clear();
+  heldNotesOrder.clear();
   Array.from(heldVoices.keys()).forEach((m) => releaseVoiceNow(m));
-  const ctx = getAudioCtxIfAny();
   if (monoVoice && ctx) monoVoice.release(ctx.currentTime);
   monoVoice = null;
   monoStack.length = 0;
   monoMidi = -1;
+  Array.from(activeSynthVoices).forEach((v) => v.kill());
   hqPost({ t: "alloff" });
   stringsPost({ t: "alloff" });
   fmPost({ t: "alloff" });
@@ -633,6 +811,7 @@ export function allNotesOff(): void {
 configureArp({
   getPatch: () => synthPatch,
   play: (midi, vel, at, off) => {
+    flushPendingHandoverVoices(at);
     const v = startVoice(midi, vel, at);
     v.release(off);
   }
