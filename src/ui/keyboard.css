@@ -2,6 +2,14 @@
 
 :root {
   --keys-h: clamp(150px, 34vh, 320px);
+  --kb-white-top: #dfdad0;
+  --kb-white-bottom: #beb39e;
+  --kb-black-top: #4c4c55;
+  --kb-black-bottom: #141418;
+  --kb-accent: var(--accent, #f2b33d);
+  --kb-pattern: none;
+  --kb-frame: #09090c;
+  --kb-wheel: #2f2f38;
 }
 
 @media (max-width: 599px) {
@@ -64,8 +72,8 @@
   height: 100%;
   border-radius: 10px;
   overflow: hidden;
-  border: 2px solid #09090c;
-  background: #09090c;
+  border: 2px solid var(--kb-frame, #09090c);
+  background: var(--kb-frame, #09090c);
   box-shadow:
     inset 0 3px 6px rgba(0, 0, 0, 0.85),
     0 -1px 0 rgba(255, 255, 255, 0.08),
@@ -98,19 +106,19 @@
   border-radius: 0 0 6px 6px;
   background: linear-gradient(
     180deg,
-    #dfdad0 0%,
-    #f6f2e8 6%,
+    var(--kb-white-top, #dfdad0) 0%,
+    color-mix(in srgb, var(--kb-white-top, #f6f2e8) 60%, #ffffff 40%) 6%,
     #fdfbf5 22%,
     #f5f0e4 74%,
-    #e8e0d0 90%,
-    #d4cbb9 95%,
-    #beb39e 100%
+    color-mix(in srgb, var(--kb-white-bottom, #e8e0d0) 70%, #ffffff 30%) 90%,
+    var(--kb-white-bottom, #d4cbb9) 95%,
+    color-mix(in srgb, var(--kb-white-bottom, #beb39e) 80%, #000000 20%) 100%
   );
   box-shadow:
     inset 0 4px 5px rgba(0, 0, 0, 0.28),
     inset 1px 0 0 rgba(255, 255, 255, 0.92),
     inset -1px 0 2px rgba(0, 0, 0, 0.18),
-    inset 0 -7px 0 #c7bda8,
+    inset 0 -7px 0 color-mix(in srgb, var(--kb-white-bottom, #c7bda8) 85%, #000000 15%),
     inset 0 -8px 0 rgba(255, 255, 255, 0.8),
     0 2px 4px rgba(0, 0, 0, 0.4);
   display: flex;
@@ -125,25 +133,41 @@
   transition: transform 45ms ease, background 60ms ease, box-shadow 60ms ease;
 }
 
-/* Pressed White Key: sinks 2px, slight darkening, thin bottom accent glow, NO color flood */
+/* Optional motif on the lower third of white keys (max 6% opacity) */
+.key:not(.black):not(.pad)::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 33%;
+  background: var(--kb-pattern, none);
+  opacity: 0.05;
+  pointer-events: none;
+  border-radius: 0 0 6px 6px;
+  z-index: 1;
+}
+
+/* Pressed White Key: sinks 2px, filled with vivid gradient of machine accent (30% top -> 70% bottom), bright bottom accent line, soft outer glow */
 .key:not(.black):not(.pad).is-pressed {
   transform: translateY(2px);
   background: linear-gradient(
     180deg,
-    #cfc9be 0%,
-    #e5dfd2 12%,
-    #ebe5d8 68%,
-    #ddd5c5 90%,
-    #c8beab 100%
+    color-mix(in srgb, var(--kb-accent, var(--accent)) 30%, var(--kb-white-top, #dfdad0)) 0%,
+    color-mix(in srgb, var(--kb-accent, var(--accent)) 42%, #f5f0e4) 30%,
+    color-mix(in srgb, var(--kb-accent, var(--accent)) 58%, #ede2cb) 65%,
+    color-mix(in srgb, var(--kb-accent, var(--accent)) 70%, var(--kb-white-bottom, #d4cbb9)) 90%,
+    var(--kb-accent, var(--accent)) 100%
   ) !important;
-  color: #3d3932 !important;
+  color: #1a1612 !important;
   box-shadow:
-    inset 0 6px 9px rgba(0, 0, 0, 0.38),
-    inset 1px 0 0 rgba(255, 255, 255, 0.55),
-    inset -2px 0 3px rgba(0, 0, 0, 0.28),
-    inset 0 -3px 0 var(--accent),
-    inset 0 -9px 14px var(--accent-glow-soft),
-    0 1px 2px rgba(0, 0, 0, 0.45) !important;
+    inset 0 4px 6px rgba(0, 0, 0, 0.35),
+    inset 1px 0 0 rgba(255, 255, 255, 0.65),
+    inset -1px 0 2px rgba(0, 0, 0, 0.25),
+    inset 0 -3px 0 #ffffff,
+    inset 0 -6px 0 var(--kb-accent, var(--accent)),
+    0 0 16px var(--accent-glow, rgba(242, 179, 61, 0.75)),
+    0 2px 5px rgba(0, 0, 0, 0.5) !important;
 }
 
 /* 3D Black Keys: 62% of white key height, 58% of white key width */
@@ -158,10 +182,10 @@
   border-radius: 0 0 6px 6px;
   background: linear-gradient(
     180deg,
-    #141418 0%,
-    #1f1f25 72%,
+    var(--kb-black-bottom, #141418) 0%,
+    color-mix(in srgb, var(--kb-black-bottom, #1f1f25) 80%, #000000 20%) 72%,
     #0c0c10 88%,
-    #25252c 96%,
+    color-mix(in srgb, var(--kb-black-top, #25252c) 70%, #000000 30%) 96%,
     #08080a 100%
   );
   color: #b8b5ad;
@@ -194,10 +218,10 @@
   border-radius: 0 0 3.5px 3.5px;
   background: linear-gradient(
     180deg,
-    #4c4c55 0%,
-    #35353d 14%,
-    #24242a 80%,
-    #3e3e47 95%,
+    var(--kb-black-top, #4c4c55) 0%,
+    color-mix(in srgb, var(--kb-black-top, #35353d) 80%, #000000 20%) 14%,
+    var(--kb-black-bottom, #24242a) 80%,
+    color-mix(in srgb, var(--kb-black-top, #3e3e47) 90%, #ffffff 10%) 95%,
     #1b1b20 100%
   );
   box-shadow:
@@ -209,34 +233,37 @@
   z-index: 0;
 }
 
-/* Pressed Black Key: sinks 2px, shadow tightens, thin bottom accent glow, NO color flood */
+/* Pressed Black Key: sinks 2px, accent colour on top face (::before) plus glow */
 .key.black.is-pressed {
   transform: translateY(2px);
   background: linear-gradient(
     180deg,
-    #101014 0%,
-    #19191f 75%,
-    #09090c 90%,
-    #1e1e24 100%
+    #0a0a0d 0%,
+    #141418 75%,
+    #08080a 90%,
+    var(--kb-black-bottom, #141418) 100%
   ) !important;
-  color: #e6e1d6 !important;
+  color: #ffffff !important;
   box-shadow:
-    1px 3px 4px rgba(0, 0, 0, 0.65),
-    0 2px 8px var(--accent-glow-soft),
-    inset 0 -2.5px 0 var(--accent),
+    1px 3px 4px rgba(0, 0, 0, 0.75),
+    0 0 16px var(--accent-glow, rgba(242, 179, 61, 0.75)),
+    inset 0 -3px 0 var(--kb-accent, var(--accent)),
     inset 0 -6px 0 #070709,
-    inset 1px 0 0 rgba(255, 255, 255, 0.1) !important;
+    inset 1px 0 0 rgba(255, 255, 255, 0.2) !important;
 }
 
 .key.black.is-pressed::before {
   background: linear-gradient(
     180deg,
-    #3c3c44 0%,
-    #28282f 18%,
-    #1c1c21 82%,
-    #313139 96%,
-    #141418 100%
-  );
+    color-mix(in srgb, var(--kb-accent, var(--accent)) 70%, #ffffff 30%) 0%,
+    var(--kb-accent, var(--accent)) 30%,
+    color-mix(in srgb, var(--kb-accent, var(--accent)) 85%, #000000 15%) 80%,
+    color-mix(in srgb, var(--kb-accent, var(--accent)) 65%, #000000 35%) 100%
+  ) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.75),
+    inset 1px 0 0 rgba(255, 255, 255, 0.35),
+    0 0 12px var(--accent-glow, rgba(242, 179, 61, 0.75)) !important;
 }
 
 /* ============================================================
@@ -250,7 +277,11 @@
   gap: var(--sp-1);
   padding: 4px;
   border-radius: 9px;
-  background: linear-gradient(180deg, #16161a 0%, #0e0e11 100%);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--kb-frame, #16161a) 85%, #ffffff 15%) 0%,
+    var(--kb-frame, #0e0e11) 100%
+  );
   border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow:
     inset 0 2px 5px rgba(0, 0, 0, 0.85),
@@ -275,10 +306,10 @@
     linear-gradient(
       180deg,
       #050507 0%,
-      #1b1b21 20%,
-      #2f2f38 48%,
-      #383842 52%,
-      #1b1b21 80%,
+      color-mix(in srgb, var(--kb-wheel, #1b1b21) 70%, #000000 30%) 20%,
+      var(--kb-wheel, #2f2f38) 48%,
+      color-mix(in srgb, var(--kb-wheel, #383842) 85%, #ffffff 15%) 52%,
+      color-mix(in srgb, var(--kb-wheel, #1b1b21) 70%, #000000 30%) 80%,
       #050507 100%
     );
   box-shadow:
