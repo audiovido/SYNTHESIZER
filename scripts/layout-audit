@@ -1,0 +1,431 @@
+#!/usr/bin/env bun
+/**
+ * SY-1 Automated Layout & Spacing Audit (scripts/layout-audit)
+ *
+ * Tests every machine × every page/tab × 10 target viewports using
+ * getBoundingClientRect in headless Chromium:
+ * - No page scroll, no element overflowing its section card or the viewport
+ * - Gap between a section title's bottom and the top of the nearest control
+ *   (including knob value-ring overflow) >= 6px
+ * - No two controls overlapping; no control closer than 4px to its card border
+ * - Knobs in the same row: top difference <= 1px
+ * - Cards in the same grid row: aligned tops and equal height (<= 1px diff)
+ * - Section titles per machine: consistent font-size, weight, letter-spacing
+ */
+
+import { spawn } from "node:child_process";
+
+const VIEWPORTS = [
+  { width: 1440, height: 900 },
+  { width: 1280, height: 720 },
+  { width: 1024, height: 700 },
+  { width: 768, height: 1000 },
+  { width: 390, height: 664 },
+  { width: 390, height: 844 },
+  { width: 360, height: 560 },
+  { width: 412, height: 780 },
+  { width: 740, height: 340 },
+  { width: 932, height: 400 }
+];
+
+async function loadPlaywright() {
+  const candidates = [
+    "playwright",
+    "/root/.bun/install/global/node_modules/playwright/index.mjs"
+  ];
+  for (const mod of candidates) {
+    try {
+      return await import(mod);
+    } catch {}
+  }
+  throw new Error("Playwright not found");
+}
+
+async function isServerUp(url) {
+  try {
+    const res = await fetch(url);
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
+async function ensureServer() {
+  const base = process.env.AUDIT_URL || "http://localhost:3000";
+  if (await isServerUp(base)) {
+    return { url: base, close: async () => {} };
+  }
+  const port = 4173;
+  const url = `http://localhost:${port}`;
+  const proc = spawn("npx", ["vite", "--port", String(port), "--host", "127.0.0.1"], {
+    stdio: "ignore"
+  });
+  for (let i = 0; i < 40; i++) {
+    if (await isServerUp(url)) {
+      return {
+        url,
+        close: async () => {
+          proc.kill("SIGTERM");
+        }
+      };
+    }
+    await new Promise((r) => setTimeout(r, 250));
+  }
+  proc.kill("SIGTERM");
+  throw new Error("Failed to start Vite server for layout audit");
+}
+
+async function main() {
+  const { chromium } = await loadPlaywright();
+  const server = await ensureServer();
+  const browser = await chromium.launch();
+  const context = await browser.newContext();
+  const page = await context.newPage();
+
+  let totalStates = 0;
+  let totalChecks = 0;
+  const failures = [];
+
+  try {
+    await page.setViewportSize(VIEWPORTS[0]);
+    await page.goto(server.url, { waitUntil: "networkidle" });
+
+    for (const vp of VIEWPORTS) {
+      await page.setViewportSize(vp);
+      const vpTag = `${vp.width}x${vp.height}`;
+
+      const vpReport = await page.evaluate((vpTagIn) => {
+        const EPS = 0.5;
+        let states = 0;
+        let checks = 0;
+        const issues = [];
+
+        const sel = document.getElementById("machine-select");
+        const machines = sel ? Array.from(sel.options).map((o) => o.value) : [];
+
+        const getControlBox = (el) => {
+          const r = el.getBoundingClientRect();
+          let top = r.top;
+          let left = r.left;
+          let right = r.right;
+          let bottom = r.bottom;
+          if (el.classList.contains("sk")) {
+            const dial = el.querySelector(".sk-dial");
+            if (dial) {
+              const dr = dial.getBoundingClientRect();
+              const before = getComputedStyle(dial, "::before");
+              const insetTop = parseFloat(before.top) || 0;
+              const ringPad = insetTop < 0 ? -insetTop : 0;
+              top = Math.min(top, dr.top - ringPad);
+              left = Math.min(left, dr.left - ringPad);
+              right = Math.max(right, dr.right + ringPad);
+            }
+          }
+          return {
+            el,
+            label:
+              el.getAttribute("data-param") ||
+              (el.getAttribute("class") || "").split(" ")[0] ||
+              el.tagName,
+            top,
+            left,
+            right,
+            bottom
+          };
+        };
+
+        for (const machineId of machines) {
+          const machineSel = document.getElementById("machine-select");
+          if (machineSel && machineSel.value !== machineId) {
+            machineSel.value = machineId;
+            machineSel.dispatchEvent(new Event("change", { bubbles: true }));
+          }
+
+          const pageIds = Array.from(document.querySelectorAll(".synth-tab")).map((t) =>
+            t.getAttribute("data-page")
+          );
+
+          for (const pageId of pageIds) {
+            const tab = document.querySelector(`.synth-tab[data-page="${pageId}"]`);
+            if (tab) tab.click();
+
+            states++;
+            const prefix = `[${vpTagIn}] [${machineId}/${pageId}] `;
+            const check = (cond, msg) => {
+              checks++;
+              if (!cond) issues.push(prefix + msg);
+            };
+
+            const vw = window.innerWidth;
+            const vh = window.innerHeight;
+            const docEl = document.documentElement;
+
+            // 1. Page scroll & viewport overflow
+            check(
+              docEl.scrollHeight <= vh + EPS,
+              `page vertical scroll: scrollHeight=${docEl.scrollHeight.toFixed(1)} > vh=${vh}`
+            );
+            check(
+              docEl.scrollWidth <= vw + EPS,
+              `page horizontal scroll: scrollWidth=${docEl.scrollWidth.toFixed(1)} > vw=${vw}`
+            );
+
+            const shell = document.querySelector(".sy1-shell");
+            if (shell) {
+              const sr = shell.getBoundingClientRect();
+              check(
+                sr.top >= -EPS &&
+                  sr.left >= -EPS &&
+                  sr.right <= vw + EPS &&
+                  sr.bottom <= vh + EPS,
+                `shell overflows viewport: [${sr.left.toFixed(1)}, ${sr.top.toFixed(1)}, ${sr.right.toFixed(1)}, ${sr.bottom.toFixed(1)}]`
+              );
+            }
+
+            const secsContainer = document.querySelector(".synth-sections");
+            if (secsContainer) {
+              check(
+                secsContainer.scrollHeight <= secsContainer.clientHeight + 1,
+                `.synth-sections vertical overflow: scrollHeight=${secsContainer.scrollHeight} > clientHeight=${secsContainer.clientHeight}`
+              );
+              check(
+                secsContainer.scrollWidth <= secsContainer.clientWidth + 1,
+                `.synth-sections horizontal overflow: scrollWidth=${secsContainer.scrollWidth} > clientWidth=${secsContainer.clientWidth}`
+              );
+            }
+
+            const kbArea = document.querySelector(".kb-area");
+            if (kbArea) {
+              const kr = kbArea.getBoundingClientRect();
+              check(
+                kr.bottom <= vh + EPS && kr.right <= vw + EPS && kr.left >= -EPS,
+                `.kb-area overflows viewport: bottom=${kr.bottom.toFixed(1)} (vh=${vh})`
+              );
+            }
+
+            // Visible sections
+            const visibleSecs = Array.from(document.querySelectorAll(".synth-sec")).filter(
+              (s) => getComputedStyle(s).display !== "none"
+            );
+
+            // Section title consistency across the machine
+            let refTitleStyle = null;
+            for (const sec of visibleSecs) {
+              const h4 = sec.querySelector("h4");
+              if (!h4) continue;
+              const cs = getComputedStyle(h4);
+              const sr = sec.getBoundingClientRect();
+              const hr = h4.getBoundingClientRect();
+              const cur = {
+                fontSize: cs.fontSize,
+                fontWeight: cs.fontWeight,
+                letterSpacing: cs.letterSpacing,
+                relTop: hr.top - sr.top
+              };
+              if (!refTitleStyle) {
+                refTitleStyle = cur;
+              } else {
+                check(
+                  cur.fontSize === refTitleStyle.fontSize &&
+                    cur.fontWeight === refTitleStyle.fontWeight &&
+                    cur.letterSpacing === refTitleStyle.letterSpacing &&
+                    Math.abs(cur.relTop - refTitleStyle.relTop) <= 1.2,
+                  `section title "${h4.textContent}" style/pos mismatch`
+                );
+              }
+            }
+
+            // Group visible sections by grid row (top within 6px)
+            const secRows = [];
+            for (const sec of visibleSecs) {
+              const r = sec.getBoundingClientRect();
+              const existingRow = secRows.find((row) => Math.abs(row[0].rect.top - r.top) < 6);
+              if (existingRow) existingRow.push({ sec, rect: r });
+              else secRows.push([{ sec, rect: r }]);
+            }
+            for (const row of secRows) {
+              if (row.length > 1) {
+                const top0 = row[0].rect.top;
+                const h0 = row[0].rect.height;
+                for (let i = 1; i < row.length; i++) {
+                  check(
+                    Math.abs(row[i].rect.top - top0) <= 1.2,
+                    `cards in row top mismatch: ${row[i].rect.top.toFixed(1)} vs ${top0.toFixed(1)}`
+                  );
+                  const span0 = getComputedStyle(row[0].sec).gridRowEnd;
+                  const spanI = getComputedStyle(row[i].sec).gridRowEnd;
+                  if (span0 === spanI) {
+                    check(
+                      Math.abs(row[i].rect.height - h0) <= 1.5,
+                      `cards in row height mismatch: ${row[i].rect.height.toFixed(1)} vs ${h0.toFixed(1)}`
+                    );
+                  }
+                }
+              }
+            }
+
+            for (const sec of visibleSecs) {
+              const secTitle = sec.querySelector("h4")?.textContent || "sec";
+              const sr = sec.getBoundingClientRect();
+
+              check(
+                sr.top >= -EPS &&
+                  sr.left >= -EPS &&
+                  sr.right <= vw + EPS &&
+                  sr.bottom <= vh + EPS,
+                `section "${secTitle}" overflows viewport`
+              );
+
+              const h4 = sec.querySelector("h4");
+              const hr = h4 ? h4.getBoundingClientRect() : null;
+
+              if (hr) {
+                check(
+                  hr.top - sr.top >= 4 - EPS &&
+                    hr.left - sr.left >= 4 - EPS &&
+                    sr.right - hr.right >= 4 - EPS,
+                  `section "${secTitle}" title closer than 4px to card border (T=${(hr.top - sr.top).toFixed(1)}, L=${(hr.left - sr.left).toFixed(1)}, R=${(sr.right - hr.right).toFixed(1)})`
+                );
+              }
+
+              const controls = Array.from(
+                sec.querySelectorAll(
+                  ".synth-choice, .synth-param-select-wrap, .sk, .fm-lcd, .eu-svg, .eu-hint, .drum-transport, .drum-voices, .drum-steps, .drum-voice-name"
+                )
+              ).filter((el) => {
+                if (el.classList.contains("synth-choice") && el.closest(".drum-transport")) {
+                  return false;
+                }
+                return getComputedStyle(el).display !== "none";
+              });
+
+              const boxes = controls.map(getControlBox);
+
+              for (const box of boxes) {
+                if (hr) {
+                  const titleGap = box.top - hr.bottom;
+                  check(
+                    titleGap >= 6 - EPS,
+                    `section "${secTitle}" -> "${box.label}" title gap ${titleGap.toFixed(1)}px < 6px`
+                  );
+                }
+
+                const dTop = box.top - sr.top;
+                const dLeft = box.left - sr.left;
+                const dRight = sr.right - box.right;
+                const dBottom = sr.bottom - box.bottom;
+                check(
+                  dTop >= 4 - EPS &&
+                    dLeft >= 4 - EPS &&
+                    dRight >= 4 - EPS &&
+                    dBottom >= 4 - EPS,
+                  `section "${secTitle}" control "${box.label}" closer than 4px to card border (T=${dTop.toFixed(1)}, L=${dLeft.toFixed(1)}, R=${dRight.toFixed(1)}, B=${dBottom.toFixed(1)})`
+                );
+              }
+
+              for (let i = 0; i < boxes.length; i++) {
+                const a = boxes[i];
+                for (let j = i + 1; j < boxes.length; j++) {
+                  const b = boxes[j];
+                  const overlapX = Math.min(a.right, b.right) - Math.max(a.left, b.left);
+                  const overlapY = Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top);
+                  check(
+                    !(overlapX > 1 && overlapY > 1),
+                    `section "${secTitle}" controls overlap (${a.label} vs ${b.label}: ${overlapX.toFixed(1)}x${overlapY.toFixed(1)})`
+                  );
+                }
+              }
+
+              // Check vertical gap between stacked control rows inside the section
+              const rowEls = Array.from(
+                sec.querySelectorAll(
+                  ":scope > .synth-choice, :scope > .synth-param-select-wrap, :scope > .sk-caption, :scope > .sk-row, :scope > .synth-custom > *"
+                )
+              ).filter((el) => getComputedStyle(el).display !== "none");
+              for (let i = 0; i < rowEls.length - 1; i++) {
+                const rA = rowEls[i].getBoundingClientRect();
+                const rB = rowEls[i + 1].getBoundingClientRect();
+                // Only check rows that are stacked vertically (not side-by-side)
+                if (rB.top >= rA.bottom - 2) {
+                  const rowGap = rB.top - rA.bottom;
+                  check(
+                    rowGap >= 6 - EPS,
+                    `section "${secTitle}" control row gap ${rowGap.toFixed(1)}px < 6px`
+                  );
+                }
+              }
+
+              const rows = Array.from(sec.querySelectorAll(".sk-row")).filter(
+                (r) => getComputedStyle(r).display !== "none"
+              );
+              for (const row of rows) {
+                const knobs = Array.from(row.querySelectorAll(":scope > .sk"));
+                if (knobs.length > 1) {
+                  const tops = knobs.map((k) => k.getBoundingClientRect().top);
+                  const dialTops = knobs.map((k) =>
+                    k.querySelector(".sk-dial")!.getBoundingClientRect().top
+                  );
+                  const diff = Math.max(...tops) - Math.min(...tops);
+                  const dialDiff = Math.max(...dialTops) - Math.min(...dialTops);
+                  check(
+                    diff <= 1 && dialDiff <= 1,
+                    `section "${secTitle}" knob row top diff=${Math.max(diff, dialDiff).toFixed(2)}px > 1px`
+                  );
+                }
+                for (const k of knobs) {
+                  const dial = k.querySelector(".sk-dial");
+                  const lbl = k.querySelector(".sk-label");
+                  const val = k.querySelector(".sk-val");
+                  if (dial && lbl && val) {
+                    const dr = dial.getBoundingClientRect();
+                    const lr = lbl.getBoundingClientRect();
+                    const vr = val.getBoundingClientRect();
+                    const dCenter = (dr.left + dr.right) / 2;
+                    const lCenter = (lr.left + lr.right) / 2;
+                    const vCenter = (vr.left + vr.right) / 2;
+                    check(
+                      Math.abs(dCenter - lCenter) <= 1.5 &&
+                        Math.abs(dCenter - vCenter) <= 1.5,
+                      `section "${secTitle}" knob label/value not centered under dial`
+                    );
+                  }
+                }
+              }
+            }
+          }
+        }
+
+        return { states, checks, issues };
+      }, vpTag);
+
+      totalStates += vpReport.states;
+      totalChecks += vpReport.checks;
+      failures.push(...vpReport.issues);
+    }
+  } finally {
+    await browser.close();
+    await server.close();
+  }
+
+  console.log(
+    `Layout Audit Summary: ${totalStates} states (${VIEWPORTS.length} viewports), ${totalChecks} checks run, ${failures.length} failures.`
+  );
+  if (failures.length > 0) {
+    console.log("\nSample failures:");
+    const seen = new Set();
+    for (const f of failures) {
+      const key = f.replace(/^\[[^\]]+\]\s+\[[^\]]+\]\s+/, "");
+      if (!seen.has(key)) {
+        seen.add(key);
+        console.log("  - " + f);
+        if (seen.size >= 30) break;
+      }
+    }
+    process.exit(1);
+  }
+}
+
+main().catch((err) => {
+  console.error(err);
+  process.exit(1);
+});

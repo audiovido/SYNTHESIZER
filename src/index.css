@@ -14,18 +14,33 @@
 }
 
 /* ============================================================
-   Design tokens. These defaults are the "Classic" skin.
-   Every skin in skins.css only redefines tokens (plus a few
-   material details), so layout and behaviour never change.
+   Design & Spacing Tokens.
+   - Shared 8px grid spacing tokens (--sp-1 .. --sp-5)
+   - Unified type scale (--fs-title, --fs-label, --fs-val)
+   - Three knob sizes (--k-lg, --k, --k-small) + ring reserve (--ring-pad)
+   Skins in skins.css may change colours, textures, shadows,
+   radii, and fonts — NEVER the spacing tokens.
    ============================================================ */
 :root {
+  /* Shared spacing scale */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 24px;
+
+  /* Unified type scale */
+  --fs-title: 0.7rem;
+  --fs-label: 0.62rem;
+  --fs-val: 0.66rem;
+
   --font-ui: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-head: var(--font-ui);
 
   --page-bg: #0b0a10;
   --ink: #ECE6DA;
-  --ink-dim: #9b93b0;
-  --ink-faint: #8a83a0;
+  --ink-dim: #b0a8c4;
+  --ink-faint: #968eb0;
 
   --accent: #F2B33D;
   --accent-2: #e09a1a;
@@ -38,21 +53,21 @@
   --panel-bg: #121019;
   --panel-border: #3a3450;
   --panel-radius: 14px;
-  --panel-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 8px 24px rgba(0,0,0,0.35);
+  --panel-shadow: inset 0 1px 0 rgba(255,255,255,0.06), 0 8px 24px rgba(0,0,0,0.38);
 
   --sec-bg: #1a1724;
   --sec-border: #2c2740;
   --sec-radius: 10px;
-  --sec-shadow: none;
+  --sec-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 2px 6px rgba(0,0,0,0.28);
   --sec-head: #F2B33D;
 
   --btn-bg: #1d1a27;
-  --btn-ink: #cfc8dd;
+  --btn-ink: #dbd4e8;
   --btn-border: #3a3450;
   --ctl-bg: #120f19;
   --kb-btn-ink: var(--ink);
   --midi-btn-ink: var(--btn-ink);
-  --ctl-ink: #b9b1cc;
+  --ctl-ink: #c8c0da;
   --choice-active-bg: #2f2944;
   --choice-active-ink: #F2B33D;
 
@@ -65,17 +80,17 @@
   --knob-gap: #120f19;
   --knob-edge: #2c2740;
   --knob-arc: #F2B33D;
-  --knob-track: transparent;
+  --knob-track: rgba(255,255,255,0.08);
   --knob-arc-filter: none;
   --knob-ind: #F2B33D;
   --knob-ind-glow: rgba(242,179,61,0.8);
-  --label-ink: #9b93b0;
+  --label-ink: #b8b0cc;
   --value-ink: #ECE6DA;
 
   --key-white: linear-gradient(180deg, #e9e4d8 0%, #cfc8b8 100%);
-  --key-white-ink: #6b6478;
+  --key-white-ink: #575064;
   --key-black: linear-gradient(180deg, #0d0b12 0%, #2b2738 100%);
-  --key-black-ink: #9b93b0;
+  --key-black-ink: #b0a8c4;
   --key-line: #0d0b12;
   --key-pressed: linear-gradient(180deg, #F2B33D 0%, #e09a1a 100%);
   --key-pressed-ink: #1F1A2E;
@@ -83,15 +98,20 @@
   --led-off: #2c2740;
   --led-off-edge: #4a4460;
 
-  /* Layout tokens (set by the responsive rules at the end, never by skins) */
-  --shell-pad: 16px;
-  --k: 40px;          /* knob diameter */
-  --k-small: 32px;    /* small knob diameter */
-  --sk-w: 54px;       /* knob column width */
-  --scope-h: 56px;
-  --kb-min: 100px;
-  --kb-max: clamp(150px, 24vh, 250px);
-  --sec-gap: 10px;
+  /* Layout & component sizing tokens (responsive, never overridden by skins) */
+  --shell-pad: var(--sp-3);
+  --panel-pad: var(--sp-3);
+  --sec-pad: var(--sp-3);
+  --sec-gap: var(--sp-2);
+  --sec-row-gap: var(--sp-2);
+  --ring-pad: 6px;            /* reserved space for knob outer value ring */
+  --k-lg: 44px;               /* large knob diameter */
+  --k: 34px;                  /* normal knob diameter */
+  --k-small: 26px;            /* small knob diameter */
+  --sk-w: 54px;               /* knob column width */
+  --scope-h: 48px;
+  --kb-min: 96px;
+  --kb-max: clamp(140px, 22vh, 240px);
 }
 
 html, body {
@@ -100,68 +120,179 @@ html, body {
   color: var(--ink);
   font-family: var(--font-ui);
   overflow-x: clip;
+  overscroll-behavior: none;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  touch-action: manipulation;
 }
 
 .sy1-shell {
   max-width: 1200px;
   margin: 0 auto;
   padding: var(--shell-pad);
+  padding-left: max(var(--shell-pad), env(safe-area-inset-left, 0px));
+  padding-right: max(var(--shell-pad), env(safe-area-inset-right, 0px));
   padding-bottom: calc(var(--shell-pad) + env(safe-area-inset-bottom, 0px));
   background: var(--shell-bg);
   color: var(--ink);
-  /* The whole instrument fits the screen: panel on top, keyboard takes the rest */
   height: 100vh;
   height: 100dvh;
   display: flex;
   flex-direction: column;
   justify-content: center;
+  gap: var(--sp-2);
 }
 
 #sy1-panel {
   display: contents;
 }
 
-/* keyboard */
-/* Keyboard area: octave controls in a column beside the keys (wide screens)
-   or in a row above them (phone portrait). Takes the space the panel leaves. */
+/* ============================================================
+   Interactive States & Accessibility Focus
+   120ms transitions, clear hover/pressed/active/playing states,
+   focus-visible outlines, zero layout shift on press.
+   ============================================================ */
+.synth-tab,
+.synth-preset-btn,
+.synth-choice-btn,
+.synth-midi-btn,
+.synth-midi-select,
+.synth-machine-select,
+.preset-display,
+.drum-play,
+.drum-slot,
+.drum-voice-btn,
+.drum-step,
+.kb-btn,
+.key,
+.or-chip,
+.or-btn,
+.or-close,
+.or-switch {
+  transition:
+    background-color 120ms ease,
+    border-color 120ms ease,
+    box-shadow 120ms ease,
+    color 120ms ease,
+    opacity 120ms ease;
+}
+
+:is(
+  .synth-tab,
+  .synth-preset-btn,
+  .synth-choice-btn,
+  .synth-midi-btn,
+  .synth-midi-select,
+  .synth-machine-select,
+  .preset-display,
+  .drum-play,
+  .drum-slot,
+  .drum-voice-btn,
+  .drum-step,
+  .kb-btn,
+  .key,
+  .or-chip,
+  .or-btn,
+  .or-close,
+  .or-switch
+):focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+:is(
+  .synth-preset-btn,
+  .synth-choice-btn,
+  .synth-midi-btn,
+  .preset-display,
+  .drum-play,
+  .drum-slot,
+  .drum-voice-btn,
+  .kb-btn
+):hover:not(:disabled):not(.active) {
+  border-color: var(--accent);
+}
+
+:is(
+  .synth-preset-btn,
+  .synth-choice-btn,
+  .synth-midi-btn,
+  .drum-play,
+  .drum-slot,
+  .drum-voice-btn,
+  .kb-btn
+):active:not(:disabled) {
+  filter: brightness(0.95);
+}
+
+/* ============================================================
+   Keyboard & Performance Bar
+   ============================================================ */
 .kb-area {
   flex: 1 1 auto;
   min-height: var(--kb-min);
   display: flex;
-  gap: 8px;
-  margin-top: 10px;
+  gap: var(--sp-2);
+  margin: 0;
 }
 
 .kb-bar {
   flex: none;
-  width: 78px;
-  display: flex;
-  flex-direction: column-reverse;
-  align-items: stretch;
-  justify-content: center;
-  gap: 6px;
+  width: 104px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-auto-rows: min-content;
+  align-content: center;
+  justify-items: stretch;
+  gap: var(--sp-1);
+}
+
+.kb-perf {
+  display: contents;
+}
+
+.kb-bar .kb-btn {
+  min-width: 0;
+  padding: 0 var(--sp-1);
+}
+
+#kb-hold { grid-area: 1 / 1; }
+#kb-arp { grid-area: 1 / 2; }
+.kb-orient-group { grid-area: 2 / 1 / 3 / 3; }
+#oct-down { grid-area: 3 / 1; }
+#oct-up { grid-area: 3 / 2; }
+.kb-range { grid-area: 4 / 1 / 5 / 3; }
+
+.kb-bar #oct-down,
+.kb-bar #oct-up {
+  white-space: nowrap;
+  font-size: 0.76rem;
+  padding: 0 2px;
 }
 
 .kb-range {
   text-align: center;
-  font-size: 0.78rem;
-}
-
-.kb-btn {
-  min-height: 34px;
-  padding: 0 10px;
-  border-radius: 10px;
-  border: 1px solid var(--btn-border);
-  background: var(--btn-bg);
-  color: var(--kb-btn-ink);
-  font-weight: 800;
-  cursor: pointer;
-}
-
-.kb-range {
+  font-size: 0.76rem;
   font-weight: 800;
   color: var(--ink-dim);
   font-variant-numeric: tabular-nums;
+}
+
+.kb-btn {
+  min-height: 32px;
+  padding: 0 var(--sp-2);
+  border-radius: 8px;
+  border: 1px solid var(--btn-border);
+  background: var(--btn-bg);
+  color: var(--kb-btn-ink);
+  font-size: 0.72rem;
+  font-weight: 800;
+  cursor: pointer;
 }
 
 .kb {
@@ -189,7 +320,7 @@ html, body {
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  padding-bottom: 8px;
+  padding-bottom: var(--sp-2);
   font-size: 0.7rem;
   font-weight: 800;
   color: var(--key-white-ink);
@@ -215,18 +346,22 @@ html, body {
   color: var(--key-pressed-ink);
 }
 
-/* ---------- Synth panel ---------- */
+/* ============================================================
+   Synth Panel & Top Bar
+   ============================================================ */
 .synth-panel[hidden] {
   display: none;
 }
 
 .synth-panel {
+  position: relative;
   flex: 0 1 auto;
   min-height: 0;
   display: flex;
   flex-direction: column;
+  gap: var(--sp-2);
   margin: 0;
-  padding: 12px;
+  padding: var(--panel-pad);
   border-radius: var(--panel-radius);
   background: var(--panel-bg);
   border: 1px solid var(--panel-border);
@@ -239,12 +374,16 @@ html, body {
   flex: none;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--sp-2);
   flex-wrap: wrap;
-  margin-bottom: 10px;
+  margin: 0;
 }
 
 .synth-brand {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-1);
+  min-width: 0;
   font-weight: 800;
   letter-spacing: 0.14em;
   font-size: 0.8rem;
@@ -257,8 +396,8 @@ html, body {
 }
 
 .synth-scope {
-  flex: 1 1 180px;
-  min-width: 140px;
+  flex: 1 1 160px;
+  min-width: 120px;
   max-width: 100%;
   height: var(--scope-h);
   border-radius: 8px;
@@ -269,12 +408,12 @@ html, body {
 .synth-presets {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: var(--sp-1);
 }
 
 .synth-preset-btn {
-  min-height: 34px;
-  padding: 4px 10px;
+  min-height: 32px;
+  padding: var(--sp-1) var(--sp-2);
   border-radius: 8px;
   border: 1px solid var(--btn-border);
   background: var(--btn-bg);
@@ -297,16 +436,16 @@ html, body {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 6px;
-  padding: 4px 6px;
+  gap: var(--sp-1);
+  padding: var(--sp-1) var(--sp-2);
   border-radius: 8px;
   background: var(--sec-bg);
   border: 1px solid var(--sec-border);
 }
 
 .synth-midi-btn {
-  min-height: 30px;
-  padding: 2px 10px;
+  min-height: 28px;
+  padding: 2px var(--sp-2);
   border-radius: 6px;
   border: 1px solid var(--btn-border);
   background: var(--ctl-bg);
@@ -330,9 +469,9 @@ html, body {
 }
 
 .synth-midi-select {
-  min-height: 30px;
+  min-height: 28px;
   max-width: 170px;
-  padding: 2px 6px;
+  padding: 2px var(--sp-1);
   border-radius: 6px;
   border: 1px solid var(--btn-border);
   background: var(--ctl-bg);
@@ -372,38 +511,48 @@ html, body {
   font-weight: 700;
 }
 
-/* Skin picker sits at the end of the MIDI bar */
 .synth-skin {
-  margin-left: 6px;
+  margin-left: var(--sp-1);
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--sp-1);
   font-size: 0.72rem;
   font-weight: 700;
   color: var(--ink-dim);
 }
 
+/* ============================================================
+   Section Grid & Shared Section Card Rules (Part 1)
+   - Inner padding: --sp-3 (--sp-2 under 480px width)
+   - Title -> first control row gap: --sec-row-gap (>= --sp-2)
+   - Gap between control rows: --sec-row-gap (>= --sp-2)
+   - Cards in a row share equal height and aligned tops
+   ============================================================ */
 .synth-sections {
   flex: 1 1 auto;
   min-height: 0;
-  overflow-y: auto;          /* safety net only; layouts below are sized to fit */
+  overflow-y: auto;
   overscroll-behavior: contain;
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
+  align-items: stretch;
   align-content: start;
   gap: var(--sec-gap);
 }
 
-/* Page tabs only appear on small screens */
-.synth-tabs {
-  display: none;
+/* Tabriz has 10 sections: on desktop use 5x2 so all sections fit in 2 rows */
+@media (min-width: 761px) and (min-height: 561px) {
+  .synth-sections:has(> .synth-sec:nth-child(9)) {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
 }
 
 .synth-tabs {
+  display: none;
   flex: none;
-  gap: 4px;
-  margin-bottom: 8px;
-  padding: 3px;
+  gap: var(--sp-1);
+  margin: 0;
+  padding: var(--sp-1);
   border-radius: 10px;
   background: var(--sec-bg);
   border: 1px solid var(--sec-border);
@@ -411,10 +560,10 @@ html, body {
 
 .synth-tab {
   flex: 1;
-  min-height: 36px;
+  min-height: 34px;
   border-radius: 7px;
   color: var(--ctl-ink);
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   font-weight: 800;
   font-family: var(--font-head);
   cursor: pointer;
@@ -426,36 +575,38 @@ html, body {
   box-shadow: 0 0 10px var(--accent-glow-soft);
 }
 
-.synth-tab:focus-visible,
-.synth-preset-btn:focus-visible,
-.synth-choice-btn:focus-visible,
-.kb-btn:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-}
-
 .synth-sec {
   background: var(--sec-bg);
   border: 1px solid var(--sec-border);
   border-radius: var(--sec-radius);
   box-shadow: var(--sec-shadow);
-  padding: 8px 8px 10px;
+  padding: var(--sec-pad);
   min-width: 0;
   display: flex;
   flex-wrap: wrap;
   align-content: flex-start;
-  column-gap: 6px;
+  row-gap: var(--sec-row-gap);
+  column-gap: var(--sp-2);
+  container-type: inline-size;
 }
 
 .synth-sec > h4,
-.synth-sec > .synth-choice {
+.synth-sec > .synth-choice,
+.synth-sec > .synth-param-select-wrap,
+.synth-sec > .sk-caption,
+.synth-sec > .sk-row,
+.synth-sec > .synth-custom {
   flex: 1 1 100%;
+  margin: 0;
 }
 
 .synth-sec h4 {
-  margin: 0 0 6px;
-  font-size: 0.7rem;
-  letter-spacing: 0.16em;
+  margin: 0;
+  padding: 2px var(--sp-1);
+  border-radius: 4px;
+  font-size: var(--fs-title);
+  line-height: 1.25;
+  letter-spacing: 0.14em;
   color: var(--sec-head);
   font-weight: 800;
   font-family: var(--font-head);
@@ -464,21 +615,26 @@ html, body {
 .synth-choice {
   position: relative;
   display: flex;
-  gap: 4px;
-  margin-bottom: 6px;
+  gap: var(--sp-1);
+  margin: 0;
+  min-width: 0;
 }
 
 .synth-choice-btn {
-  flex: 1;
-  min-height: 32px;
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: 30px;
   border-radius: 6px;
   border: 1px solid var(--btn-border);
   background: var(--ctl-bg);
   color: var(--ctl-ink);
-  font-size: 0.82rem;
+  font-size: clamp(0.6rem, 5.2cqw, 0.78rem);
   font-weight: 800;
   cursor: pointer;
-  padding: 0 4px;
+  padding: 0 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .synth-choice-btn.active {
@@ -488,18 +644,44 @@ html, body {
   box-shadow: 0 0 8px var(--accent-glow-soft);
 }
 
+/* ============================================================
+   Knob System (Part 1 & Part 3)
+   - Reserved space (--ring-pad) for outer value ring & glow
+   - 3 sizes: .sk-row-lg (--k-lg), .sk-row (--k), .sk-row-small (--k-small)
+   - Shared baseline across row, centered label & value under dial
+   ============================================================ */
 .sk-row {
-  flex: 1 1 auto;
+  --k-in: var(--k);
+  --cols: 3;
   display: flex;
+  align-items: flex-start;
   justify-content: space-around;
-  gap: 4px;
+  gap: var(--sp-1);
 }
 
+.sk-row-lg {
+  --k: var(--k-lg);
+  --k-in: var(--k-lg);
+}
+
+.sk-row-small {
+  --k: var(--k-small);
+  --k-in: var(--k-small);
+}
+
+.sk-row:has(> .sk:nth-child(4)) { --cols: 4; }
+.sk-row:has(> .sk:nth-child(5)) { --cols: 5; }
+.sk-row:has(> .sk:nth-child(6)) { --cols: 6; }
+
 .sk {
+  --fit: calc((100cqw - (var(--cols) - 1) * var(--sp-1)) / var(--cols));
+  --k: min(var(--k-in), calc(var(--fit) - (var(--ring-pad) * 2 + 2px)));
   display: flex;
   flex-direction: column;
   align-items: center;
-  width: var(--sk-w);
+  width: min(var(--sk-w), var(--fit));
+  min-width: 0;
+  padding: var(--ring-pad) var(--ring-pad) 0;
   cursor: ns-resize;
   touch-action: none;
   user-select: none;
@@ -512,30 +694,42 @@ html, body {
   position: relative;
   width: var(--k);
   height: var(--k);
+  flex: none;
   border-radius: 50%;
   background: var(--knob-face);
-  box-shadow: 0 2px 4px rgba(0,0,0,0.6), 0 0 0 3px var(--knob-gap), 0 0 0 4px var(--knob-edge);
+  box-shadow:
+    0 2px 4px rgba(0,0,0,0.55),
+    inset 0 1px 0 rgba(255,255,255,0.18),
+    0 0 0 2px var(--knob-gap),
+    0 0 0 3.5px var(--knob-edge);
+  transition: box-shadow 120ms ease;
 }
 
 .sk-dial::before {
   content: "";
   position: absolute;
-  inset: -6px;
+  inset: calc(-1 * var(--ring-pad));
   border-radius: 50%;
-  background: conic-gradient(from 225deg, var(--knob-arc) calc(var(--n) * 270deg), var(--knob-track) 0 270deg, transparent 0);
+  background: conic-gradient(
+    from 225deg,
+    var(--knob-arc) calc(var(--n) * 270deg),
+    var(--knob-track) 0 270deg,
+    transparent 0
+  );
   -webkit-mask: radial-gradient(closest-side, transparent calc(100% - 3px), #000 calc(100% - 2px));
   mask: radial-gradient(closest-side, transparent calc(100% - 3px), #000 calc(100% - 2px));
-  opacity: 0.9;
+  opacity: 0.92;
   filter: var(--knob-arc-filter);
+  pointer-events: none;
 }
 
 .sk-ind {
   position: absolute;
   left: 50%;
   top: calc(var(--k) * 0.1);
-  width: 3px;
-  height: calc(var(--k) * 0.325);
-  margin-left: -1.5px;
+  width: 2.5px;
+  height: calc(var(--k) * 0.33);
+  margin-left: -1.25px;
   border-radius: 2px;
   background: var(--knob-ind);
   transform-origin: 50% calc(var(--k) * 0.4);
@@ -561,14 +755,27 @@ html, body {
   display: block;
 }
 
+.sk:hover .sk-dial {
+  box-shadow:
+    0 2px 5px rgba(0,0,0,0.6),
+    inset 0 1px 0 rgba(255,255,255,0.24),
+    0 0 0 2px var(--knob-gap),
+    0 0 0 4px var(--accent);
+}
+
 .sk.dragging .sk-dial,
 .sk:focus-visible .sk-dial,
 .sk.is-learning .sk-dial {
-  box-shadow: 0 0 0 3px var(--knob-gap), 0 0 0 5px var(--accent);
+  box-shadow:
+    0 0 0 2px var(--knob-gap),
+    0 0 0 4.5px var(--accent);
 }
 
 .sk.is-learning .sk-dial {
-  box-shadow: 0 0 0 3px var(--knob-gap), 0 0 0 5px var(--accent), 0 0 14px var(--accent-glow);
+  box-shadow:
+    0 0 0 2px var(--knob-gap),
+    0 0 0 4.5px var(--accent),
+    0 0 14px var(--accent-glow);
 }
 
 .synth-choice.is-learning {
@@ -578,34 +785,44 @@ html, body {
 }
 
 .sk-label {
-  margin-top: 6px;
-  font-size: 0.62rem;
-  letter-spacing: 0.08em;
+  margin-top: var(--sp-1);
+  font-size: var(--fs-label);
+  line-height: 1.15;
+  letter-spacing: 0.06em;
   font-weight: 800;
   color: var(--label-ink);
+  text-align: center;
+  white-space: nowrap;
 }
 
 .sk-val {
-  font-size: 0.66rem;
+  font-size: var(--fs-val);
+  line-height: 1.15;
   color: var(--value-ink);
   font-variant-numeric: tabular-nums;
-  min-height: 1em;
-}
-
-.sk-row-small {
-  --k: var(--k-small);
+  min-height: 1.15em;
+  text-align: center;
+  white-space: nowrap;
 }
 
 .sk-caption {
-  flex: 1 1 100%;
-  margin-top: 6px;
   text-align: center;
-  font-size: 0.58rem;
+  font-size: 0.56rem;
+  line-height: 1;
   letter-spacing: 0.16em;
   font-weight: 800;
   color: var(--label-ink);
-  opacity: 0.75;
+  opacity: 0.8;
   font-family: var(--font-head);
+}
+
+/* Keep Shiraz's RIZ toggle and SPEED knob on one compact row inside STRIKE */
+.synth-sec > .synth-toggles:has(+ .sk-row-small) {
+  flex: 1 1 42%;
+  align-self: center;
+}
+.synth-sec > .synth-toggles + .sk-row-small {
+  flex: 1 1 42%;
 }
 
 .synth-midi-btn.is-unavailable {
@@ -615,171 +832,21 @@ html, body {
 
 .synth-hint {
   flex: none;
-  margin-top: 8px;
-  font-size: 0.74rem;
+  margin: 0;
+  font-size: 0.72rem;
+  line-height: 1.2;
   color: var(--ink-faint);
   text-align: center;
 }
 
 /* ============================================================
-   Responsive layout. Goal: the whole instrument fits on screen
-   with no page scroll on phone, tablet and desktop.
-   - Large screens: all 8 sections at once (4 x 2).
-   - Small screens: sections become 4 pages with tabs; the
-     keyboard is always visible.
-   Sizes scale with height so short laptop screens still fit.
-   ============================================================ */
-
-/* Medium width (small laptops, tablets): sections in 4 columns, tighter */
-@media (max-width: 1100px) {
-  :root { --sk-w: 48px; --sec-gap: 8px; }
-}
-
-/* Short desktop / laptop screens: shrink knobs, scope and hint */
-@media (max-height: 860px) {
-  :root { --k: 36px; --k-small: 28px; --scope-h: 44px; }
-  .synth-hint { display: none; }
-}
-@media (max-height: 720px) {
-  :root { --k: 32px; --k-small: 26px; --scope-h: 36px; --kb-min: 90px; --shell-pad: 10px; }
-  .sk-label { margin-top: 3px; }
-  .synth-choice-btn { min-height: 28px; }
-  .synth-param-select { min-height: 28px; }
-  .kb-btn { min-height: 30px; }
-  .synth-sec { padding: 6px 7px 7px; }
-  .synth-choice, .synth-param-select-wrap { margin-bottom: 4px; }
-}
-
-/* Small screens (phones, narrow windows, phone landscape): pages + tabs */
-@media (max-width: 760px), (max-height: 560px) and (orientation: landscape), (pointer: coarse) and (min-width: 761px) and (max-height: 900px) and (orientation: landscape) {
-  :root { --shell-pad: 8px; --k: 38px; --k-small: 30px; --sk-w: 46px; --scope-h: 34px; --kb-min: 96px; --kb-max: 170px; }
-  .synth-panel { padding: 8px; }
-  .synth-hint { display: none; }
-
-  .synth-top { gap: 6px 8px; margin-bottom: 8px; }
-  .synth-brand { flex: none; font-size: 0.8rem; }
-  .synth-brand-maker { display: none; }
-  html[data-skin] .synth-brand { font-size: 0.82rem; letter-spacing: 0.06em; }
-  .synth-scope { flex: 1 1 auto; min-width: 60px; }
-  .synth-preset-nav { flex: 1 1 auto; min-width: 0; }
-  .synth-preset-select { max-width: none; }
-
-  .synth-midi-bar { flex: 1 1 100%; margin-left: 0; padding: 3px 6px; }
-  .synth-skin { margin-left: auto; font-size: 0; gap: 0; }
-  .synth-skin > select { max-width: 112px; }
-
-  .synth-tabs { display: flex; }
-
-  .synth-sections { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
-  .synth-sec { display: none; }
-  .synth-sec.is-on-page { display: flex; }
-
-  .kb-btn { min-height: 36px; }
-}
-
-/* Phone portrait: octave row above the keys; Effects page stacks
-   Delay and Reverb beside Drive/EQ so it fits without scrolling */
-@media (max-width: 760px) and (orientation: portrait) {
-  :root { --kb-min: 120px; --kb-max: 210px; }
-  .kb-area { flex-direction: column; gap: 6px; margin-top: 8px; }
-  .kb-bar { width: auto; flex-direction: row; justify-content: space-between; align-items: center; }
-  .kb-btn { min-width: 76px; }
-  .synth-panel[data-count="3"] .synth-sections { grid-template-columns: 1fr 1fr; }
-  .synth-panel[data-count="3"] .synth-sec.is-page-first:not(.sec-wide) { grid-row: span 2; }
-  .synth-sec.sec-wide { grid-column: 1 / -1; }
-}
-
-/* Very narrow phones */
-@media (max-width: 370px) {
-  :root { --sk-w: 42px; }
-  .synth-midi-bar { gap: 4px; padding: 3px 4px; }
-  .synth-midi-btn { padding: 2px 6px; font-size: 0.66rem; letter-spacing: 0.02em; }
-  .synth-tempo .synth-midi-btn { padding: 2px 5px; }
-  .synth-tempo-val { min-width: 28px; }
-}
-
-/* Short phones held upright (small Androids, browsers with big toolbars) */
-@media (max-width: 760px) and (orientation: portrait) and (max-height: 640px) {
-  :root { --kb-min: 112px; --k: 30px; --k-small: 24px; --scope-h: 28px; }
-  .sk-caption { display: none; }
-  .synth-sec h4 { margin-bottom: 3px; }
-  .synth-choice { margin-bottom: 4px; }
-  .synth-param-select-wrap { margin-bottom: 4px; }
-  .synth-param-select { min-height: 28px; }
-  .synth-tab { min-height: 32px; }
-  .synth-choice-btn { min-height: 28px; }
-  .synth-sec { padding: 6px 6px 7px; }
-  .sk-label { margin-top: 2px; }
-  .sk-caption { margin-top: 2px; }
-}
-
-/* Phone landscape and other very short screens: wider pages, compact keyboard */
-@media (max-height: 560px) and (orientation: landscape) {
-  :root { --k: 32px; --k-small: 26px; --scope-h: 28px; --kb-min: 76px; --kb-max: 120px; }
-  .synth-top { margin-bottom: 4px; flex-wrap: nowrap; }
-  .synth-brand { display: none; }
-  .synth-sec { padding: 5px 6px 6px; }
-  .synth-sec h4 { margin-bottom: 3px; }
-  .synth-choice { margin-bottom: 3px; }
-  .synth-choice-btn { min-height: 26px; }
-  .synth-midi-btn { min-height: 28px; }
-  .synth-midi-select { min-height: 28px; }
-  .synth-midi-bar { flex: 0 1 auto; margin-left: auto; padding: 2px 4px; }
-  .synth-skin > select { max-width: 110px; }
-  /* Tabs become a vertical rail beside the page */
-  .synth-panel {
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr);
-    grid-template-rows: auto minmax(0, 1fr);
-    column-gap: 6px;
-  }
-  .synth-top { grid-column: 1 / -1; }
-  .synth-tabs { flex-direction: column; justify-content: flex-start; margin-bottom: 0; min-width: 84px; }
-  .synth-tab { flex: 0 0 auto; min-height: 34px; padding: 0 8px; }
-  .synth-sections { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); }
-  .synth-tabs { overflow-y: auto; min-height: 0; }
-  /* button rows share a line when the section is wide enough */
-  .synth-sec { align-items: center; }
-  .synth-preset-select { width: 128px; }
-  .synth-scope { min-width: 24px; }
-  .synth-midi-bar { flex-wrap: nowrap; }
-  .synth-sec > .synth-choice,
-  .synth-sec > .synth-param-select-wrap { flex: 1 1 40%; min-width: 0; }
-  .synth-sec > .synth-toggles { flex: 0 1 auto; }
-  .synth-param-select-wrap > span { display: none; }
-  :root { --sk-w: 40px; }
-  .sk-row { gap: 2px; }
-  .sk-caption { display: none; }
-  .synth-sections { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
-  .sk-label { margin-top: 2px; }
-  .kb-area { margin-top: 6px; }
-  .kb-bar { width: 72px; gap: 4px; }
-  .kb-range { display: none; }
-  .kb-wheel { width: 22px; }
-  .kb-btn { min-height: 32px; }
-  .kb-range { font-size: 0.7rem; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .midi-led { transition: none; }
-}
-
-
-/* ============================================================
    Machines: top bar, preset browser, tempo, toggles, menus
    ============================================================ */
-.synth-brand {
-  display: flex;
-  align-items: baseline;
-  gap: 6px;
-  min-width: 0;
-}
-
 .synth-machine-select {
   appearance: none;
   -webkit-appearance: none;
   max-width: 100%;
-  padding: 2px 22px 2px 6px;
+  padding: 2px 22px 2px var(--sp-1);
   border-radius: 6px;
   border: 1px solid transparent;
   background:
@@ -796,7 +863,6 @@ html, body {
 .synth-machine-select:hover,
 .synth-machine-select:focus-visible {
   border-color: var(--btn-border);
-  outline: none;
 }
 
 .synth-machine-select option {
@@ -807,31 +873,31 @@ html, body {
 .synth-preset-nav {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: var(--sp-1);
   flex: 0 1 auto;
   min-width: 0;
 }
 
 .synth-preset-nav .synth-midi-btn {
-  min-width: 30px;
-  padding: 2px 6px;
+  min-width: 28px;
+  padding: 2px var(--sp-1);
 }
 
 .synth-preset-select {
-  min-height: 32px;
+  min-height: 30px;
   min-width: 0;
-  width: 190px;
+  width: 184px;
   max-width: 100%;
 }
 
 .synth-tempo {
   display: flex;
   align-items: center;
-  gap: 3px;
+  gap: var(--sp-1);
 }
 
 .synth-tempo .synth-midi-btn {
-  padding: 2px 7px;
+  padding: 2px var(--sp-2);
 }
 
 .synth-tempo-val {
@@ -840,23 +906,22 @@ html, body {
   font-weight: 800;
   font-variant-numeric: tabular-nums;
   color: var(--ink);
-  font-size: 0.8rem;
+  font-size: 0.78rem;
 }
 
 .synth-tempo-val::after {
   content: " BPM";
-  font-size: 0.55rem;
+  font-size: 0.54rem;
   color: var(--ink-dim);
   letter-spacing: 0.08em;
 }
 
 .synth-param-select-wrap {
-  flex: 1 1 100%;
   display: flex;
   align-items: center;
-  gap: 6px;
-  margin-bottom: 6px;
-  font-size: 0.66rem;
+  gap: var(--sp-2);
+  min-width: 0;
+  font-size: var(--fs-label);
   font-weight: 800;
   letter-spacing: 0.08em;
   color: var(--label-ink);
@@ -867,9 +932,11 @@ html, body {
 }
 
 .synth-param-select {
-  flex: 1 1 auto;
-  max-width: none;
-  min-height: 32px;
+  flex: 1 1 0;
+  min-width: 0;
+  width: 0;
+  max-width: 100%;
+  min-height: 30px;
 }
 
 .synth-toggles .synth-choice-btn {
@@ -878,25 +945,27 @@ html, body {
 }
 
 /* ============================================================
-   Drum machine (Kerman)
+   Drum machines (Kerman, Bushehr, Rasht, Hormoz)
    ============================================================ */
 .synth-sec-custom > .synth-custom {
-  flex: 1 1 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sec-row-gap);
   min-width: 0;
 }
 
 .drum-transport {
   display: flex;
   align-items: center;
-  gap: 6px;
-  margin-bottom: 6px;
+  gap: var(--sp-1);
+  margin: 0;
 }
 
 .drum-play {
   flex: none;
-  min-width: 84px;
-  min-height: 36px;
-  padding: 0 12px;
+  min-width: 78px;
+  min-height: 32px;
+  padding: 0 var(--sp-3);
   border-radius: 8px;
   border: 1px solid var(--btn-border);
   background: var(--ctl-bg);
@@ -914,21 +983,26 @@ html, body {
 
 .drum-slots {
   flex: 1 1 auto;
+  min-width: 0;
   display: grid;
   grid-template-columns: repeat(8, minmax(0, 1fr));
-  gap: 3px;
+  gap: var(--sp-1);
 }
 
 .drum-slot,
 .drum-voice-btn {
-  min-height: 32px;
-  padding: 0;
+  min-width: 0;
+  min-height: 30px;
+  padding: 0 1px;
   border-radius: 6px;
   border: 1px solid var(--btn-border);
   background: var(--ctl-bg);
   color: var(--ctl-ink);
-  font-size: 0.72rem;
+  font-size: clamp(0.56rem, 4cqw, 0.7rem);
   font-weight: 800;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   cursor: pointer;
 }
 
@@ -946,33 +1020,35 @@ html, body {
 }
 
 .drum-transport-2 .drum-len .synth-choice-btn {
-  min-width: 40px;
+  min-width: 34px;
 }
 
 .drum-transport-2 > .synth-choice-btn {
-  flex: 1 1 auto;
+  flex: 1 1 0;
+  min-width: 0;
 }
 
 .drum-voices {
+  min-width: 0;
   display: grid;
   grid-template-columns: repeat(8, minmax(0, 1fr));
-  gap: 3px;
-  margin-bottom: 6px;
+  gap: var(--sp-1);
+  margin: 0;
 }
 
 .drum-steps {
+  min-width: 0;
   display: grid;
   grid-template-columns: repeat(var(--len), minmax(0, 1fr));
-  gap: 4px;
+  gap: var(--sp-1);
 }
 
 .drum-step {
-  height: 38px;
+  height: 34px;
   border-radius: 6px;
   border: 1px solid var(--btn-border);
   background: var(--ctl-bg);
   cursor: pointer;
-  transition: background-color 60ms;
 }
 
 .drum-step.beat {
@@ -982,7 +1058,7 @@ html, body {
 .drum-step.on {
   background: var(--accent);
   border-color: var(--accent);
-  opacity: 0.7;
+  opacity: 0.78;
 }
 
 .drum-step.accent {
@@ -996,40 +1072,60 @@ html, body {
 }
 
 .drum-voice-name {
-  font-size: 0.7rem;
+  font-size: var(--fs-label);
   font-weight: 800;
   letter-spacing: 0.12em;
   color: var(--label-ink);
-  margin-bottom: 4px;
+  margin: 0;
 }
 
-/* Pads replace the keyboard on the drum machine */
-.kb-area.is-drums .kb-bar {
+/* Pads replace the keyboard on the drum machines */
+.kb-area.is-drums .kb-bar,
+.kb-area.is-drums .kb-wheels,
+.kb-area.is-drums .kb-perf {
   display: none;
 }
 
 .kb.is-pads {
-  gap: 6px;
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  gap: var(--sp-2);
   border: 0;
   overflow: visible;
+  container-type: size;
 }
 
 .kb.is-pads .key.pad {
-  flex: 1 1 0;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 2px;
+  gap: var(--sp-1);
   padding: 0;
   border: 1px solid var(--sec-border);
   border-radius: 10px;
   background: var(--sec-bg);
   box-shadow: var(--sec-shadow);
   color: var(--label-ink);
+  min-width: 0;
+  min-height: 0;
+}
+
+@container (min-height: 220px) {
+  .kb.is-pads {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@container (max-width: 560px) {
+  .kb.is-pads {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--sp-1);
+  }
 }
 
 .pad-name {
   font-size: 0.72rem;
+  font-weight: 800;
   letter-spacing: 0.08em;
 }
 
@@ -1038,69 +1134,33 @@ html, body {
   color: var(--ink-faint);
 }
 
-/* Wide sections on large screens (drum steps, pattern) */
+/* Wide sections on large screens: keep drum machine sections on an exact 4x2 grid */
 @media (min-width: 761px) and (min-height: 561px) {
   .sec-span-2 { grid-column: span 2; }
-  .sec-span-3 { grid-column: span 3; }
+  .sec-span-3 { grid-column: span 2; }
   .sec-span-4 { grid-column: 1 / -1; }
 }
 
-@media (max-width: 760px), (max-height: 560px) and (orientation: landscape) {
-  .synth-machine-select { font-size: 0.85rem; padding-right: 18px; max-width: 150px; text-overflow: ellipsis; }
-  .drum-steps { grid-template-columns: repeat(calc(var(--len) / 2), minmax(0, 1fr)); }
-  .drum-step { height: 34px; }
-  .drum-voices { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-  .drum-slot, .drum-voice-btn { min-height: 30px; }
-  .kb.is-pads { flex-wrap: wrap; gap: 4px; }
-  .kb.is-pads .key.pad { flex: 1 1 calc(25% - 4px); }
-}
-
-@media (max-width: 760px) {
-  .synth-tempo .tempo-tap-btn { display: none; }
-  .synth-tempo-val { cursor: pointer; }
-  .synth-tempo-val::after { content: ""; }
-}
-
-@media (max-height: 560px) and (orientation: landscape) {
-  .drum-steps { grid-template-columns: repeat(var(--len), minmax(0, 1fr)); gap: 3px; }
-  .drum-step { height: 28px; }
-  .drum-voices { grid-template-columns: repeat(8, minmax(0, 1fr)); }
-  .drum-voice-btn, .drum-slot { min-height: 26px; font-size: 0.62rem; }
-  .drum-play { min-height: 28px; min-width: 64px; }
-  .drum-transport { margin-bottom: 4px; }
-}
-
-/* Drum machine on short phones: smaller pads and step buttons */
-@media (max-width: 760px) and (orientation: portrait) and (max-height: 700px) {
-  .kb.is-pads .key.pad { min-height: 0; }
-  .kb-area.is-drums { --kb-min: 88px; }
-  .drum-step { height: 28px; }
-  .drum-slot, .drum-voice-btn { min-height: 26px; }
-  .drum-play { min-height: 30px; }
-  .drum-transport { margin-bottom: 4px; }
-  .drum-voices { margin-bottom: 4px; }
-}
-
 /* ============================================================
-   Keyboard extras: HOLD, pitch bend and mod wheels
+   Keyboard extras: HOLD, pitch bend and mod wheels, Oriental
    ============================================================ */
 .kb-main {
   flex: 1 1 auto;
   min-width: 0;
   min-height: 0;
   display: flex;
-  gap: 6px;
+  gap: var(--sp-2);
 }
 
 .kb-wheels {
   flex: none;
   display: flex;
-  gap: 5px;
+  gap: var(--sp-1);
 }
 
 .kb-wheel {
   position: relative;
-  width: 30px;
+  width: 28px;
   border-radius: 8px;
   border: 1px solid var(--btn-border);
   background: var(--ctl-bg);
@@ -1161,55 +1221,18 @@ html, body {
   box-shadow: 0 0 10px var(--accent-glow-soft);
 }
 
-.kb-area.is-drums .kb-wheels,
-.kb-area.is-drums .kb-perf {
-  display: none;
-}
-
-@media (max-width: 760px) and (orientation: portrait) {
-  .kb-wheel { width: 24px; }
-  .kb-btn { min-width: 64px; }
-}
-
-/* Touch tablets: bigger, more piano-like keys */
-@media (pointer: coarse) and (min-width: 761px) {
-  :root { --kb-min: 150px; --kb-max: 250px; }
-  .kb-wheel { width: 36px; }
-  .kb-btn { min-height: 44px; }
-  .key { font-size: 0.8rem; padding-bottom: 12px; }
-}
-
-/* ============================================================
-   HOLD + ARP pair, arpeggiator panel
-   ============================================================ */
-.kb-perf {
-  display: flex;
-  gap: 4px;
-}
-
-.kb-perf .kb-btn {
-  flex: 1 1 0;
-  min-width: 0;
-  padding: 0 4px;
-  font-size: 0.72rem;
-}
-
 .kb-arp.is-open {
   outline: 2px solid var(--accent);
   outline-offset: 1px;
 }
 
-.synth-panel {
-  position: relative;
-}
-
 .arp-pop {
   position: absolute;
   z-index: 6;
-  left: 8px;
-  right: 8px;
-  bottom: 8px;
-  max-height: calc(100% - 16px);
+  left: var(--sp-2);
+  right: var(--sp-2);
+  bottom: var(--sp-2);
+  max-height: calc(100% - var(--sp-4));
   overflow-y: auto;
   border-radius: var(--sec-radius);
   border: 1px solid var(--accent);
@@ -1221,8 +1244,8 @@ html, body {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 6px;
-  padding: 10px;
+  gap: var(--sp-2);
+  padding: var(--sp-3);
   background: var(--sec-bg);
 }
 
@@ -1230,13 +1253,13 @@ html, body {
   flex: 1 1 100%;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--sp-2);
 }
 
 .arp-pop-head h4 {
   flex: 1 1 auto;
   margin: 0;
-  font-size: 0.72rem;
+  font-size: var(--fs-title);
   letter-spacing: 0.16em;
   font-weight: 800;
   color: var(--label-ink);
@@ -1284,13 +1307,20 @@ html, body {
   background: rgba(0, 0, 0, 0.7);
 }
 
-.kb-oriental {
+.kb-orient-group {
+  display: flex;
+  gap: var(--sp-1);
+  min-width: 0;
+}
+
+.kb-orient-group .kb-oriental {
+  flex: 1 1 auto;
+  min-width: 0;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 4px;
-  min-width: 0;
-  padding: 0 6px;
+  justify-content: center;
+  gap: var(--sp-1);
+  padding: 0 var(--sp-1);
 }
 
 .kb-oriental.active {
@@ -1303,15 +1333,15 @@ html, body {
 .kb-oriental-main {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
   min-width: 0;
-  text-align: left;
+  text-align: center;
   line-height: 1.1;
 }
 
 .kb-oriental-lbl {
-  font-size: 0.68rem;
+  font-size: 0.66rem;
   font-weight: 800;
 }
 
@@ -1329,153 +1359,26 @@ html, body {
   color: var(--accent-ink);
 }
 
-
-
-
-@media (max-height: 560px) and (orientation: landscape) {
-  .kb-perf { gap: 2px; }
-  .kb-perf .kb-btn { font-size: 0.56rem; padding: 0 1px; letter-spacing: 0; }
-}
-
-/* ============================================================
-   Performance bar layout (octave + HOLD / ARP / ORIENTAL)
-   Wide screens, tablets, phone landscape: compact 2-column grid
-   beside the keys. Phone portrait: a single row above the keys.
-   ============================================================ */
-.kb-bar {
-  width: 104px;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  grid-auto-rows: min-content;
-  align-content: center;
-  justify-items: stretch;
-  gap: 6px;
-}
-.kb-perf { display: contents; }
-.kb-bar .kb-btn { min-width: 0; padding: 0 4px; }
-#kb-hold { grid-area: 1 / 1; }
-#kb-arp { grid-area: 1 / 2; }
-.kb-orient-group { grid-area: 2 / 1 / 3 / 3; }
-#oct-down { grid-area: 3 / 1; }
-#oct-up { grid-area: 3 / 2; }
-.kb-range { grid-area: 4 / 1 / 5 / 3; }
-
-@media (max-height: 560px) and (orientation: landscape) {
-  .kb-bar { width: 96px; gap: 4px; }
-  .kb-range { display: none; }
-  .kb-bar .kb-btn { min-height: 28px; font-size: 0.66rem; }
-  .kb-oriental-lbl { font-size: 0.62rem; }
-}
-
-@media (max-width: 760px) and (orientation: portrait) {
-  .kb-bar { width: auto; display: flex; flex-direction: row; align-items: center; justify-content: space-between; gap: 4px; }
-  .kb-perf { display: flex; flex: 1 1 auto; min-width: 0; gap: 4px; }
-  .kb-bar #oct-down, .kb-bar #oct-up { flex: none; width: 58px; }
-  .kb-range { flex: none; }
-  .kb-perf #kb-hold, .kb-perf #kb-arp { flex: 0 0 46px; }
-  .kb-perf .kb-orient-group { flex: 1 1 auto; min-width: 0; }
-}
-@media (max-width: 420px) and (orientation: portrait) {
-  .kb-range { display: none; }
-}
-.kb-bar #oct-down, .kb-bar #oct-up { white-space: nowrap; font-size: 0.76rem; padding: 0 2px; }
-@media (max-height: 340px) and (orientation: landscape) {
-  :root { --kb-min: 86px; }
-  .kb-bar { gap: 3px; }
-  .kb-bar .kb-btn { min-height: 25px; }
-  .kb-oriental-sub { display: none; }
-}
-
-/* ============================================================
-   App feel (installed PWA / home-screen): no bounce, no text
-   selection or callouts, no double-tap zoom, notch-safe edges.
-   ============================================================ */
-html, body {
-  overscroll-behavior: none;
-  -webkit-tap-highlight-color: transparent;
-  -webkit-touch-callout: none;
-  -webkit-text-size-adjust: 100%;
-  text-size-adjust: 100%;
-}
-body { touch-action: manipulation; }
-.sy1-shell {
-  padding-left: max(var(--shell-pad), env(safe-area-inset-left, 0px));
-  padding-right: max(var(--shell-pad), env(safe-area-inset-right, 0px));
-}
-
-/* ============================================================
-   Use the room the smaller keyboard frees up: on tablets and
-   larger screens the knobs, scope and buttons grow with the
-   available height (and never wider than their column).
-   ============================================================ */
-@media (min-width: 761px) and (min-height: 740px) {
-  :root {
-    --k: min(clamp(40px, 5.2dvh, 52px), calc((min(100vw, 1200px) - 140px) / 16));
-    --k-small: calc(var(--k) * 0.8);
-    --sk-w: calc(var(--k) + 10px);
-    --scope-h: clamp(44px, 6dvh, 72px);
-  }
-  .synth-choice-btn { min-height: clamp(30px, 4dvh, 40px); }
-}
-
-/* Knobs never spill out of their section: each section is a size
-   container and a knob shrinks only when its row is too narrow
-   (e.g. four knobs in a row on a portrait tablet). */
-.synth-sec { container-type: inline-size; }
-.sk-row { --k-in: var(--k); --cols: 3; }
-.sk-row:has(> .sk:nth-child(4)) { --cols: 4; }
-.sk-row:has(> .sk:nth-child(5)) { --cols: 5; }
-.sk-row:has(> .sk:nth-child(6)) { --cols: 6; }
-.sk-row > .sk {
-  --fit: calc((100cqw - (var(--cols) - 1) * 4px) / var(--cols));
-  --k: min(var(--k-in), calc(var(--fit) - 10px));
-  width: min(var(--sk-w), var(--fit));
-  min-width: 0;
-}
-
-
-/* ============================================================
-   ORIENTAL on/off + tuning settings button
-   ============================================================ */
-.kb-orient-group {
-  display: flex;
-  gap: 4px;
-  min-width: 0;
-}
-.kb-orient-group .kb-oriental {
-  flex: 1 1 auto;
-  min-width: 0;
-  justify-content: center;
-  padding: 0 4px;
-}
-.kb-oriental-main { align-items: center; }
 .kb-orient-group .kb-tune {
-  flex: 0 0 36px;
+  flex: 0 0 34px;
   display: flex;
   align-items: center;
   justify-content: center;
   min-width: 0;
   padding: 0;
 }
-.kb-tune svg { display: block; }
+
+.kb-tune svg {
+  display: block;
+}
+
 .kb-orient-group .kb-tune.is-open {
   background: var(--accent);
   border-color: var(--accent);
   color: var(--accent-ink);
   box-shadow: 0 0 10px var(--accent-glow-soft);
 }
-@media (max-width: 760px) and (orientation: portrait) {
-  .kb-orient-group .kb-tune { flex-basis: 40px; }
-}
-@media (max-height: 560px) and (orientation: landscape) {
-  .kb-orient-group { gap: 3px; }
-  .kb-orient-group .kb-tune { flex-basis: 30px; }
-  .kb-tune svg { width: 15px; height: 15px; }
-}
 
-/* ============================================================
-   Tuning settings panel
-   ============================================================ */
 .oriental-pop {
   top: auto;
   overscroll-behavior: contain;
@@ -1484,20 +1387,20 @@ body { touch-action: manipulation; }
 .or-inner {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  padding: 12px 14px 14px;
+  gap: var(--sp-3);
+  padding: var(--sp-3);
   background: var(--sec-bg);
   box-sizing: border-box;
 }
 .or-head {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--sp-2);
 }
 .or-head h4 {
   flex: 1 1 auto;
   margin: 0;
-  font-size: 0.74rem;
+  font-size: var(--fs-title);
   letter-spacing: 0.18em;
   font-weight: 800;
   color: var(--label-ink);
@@ -1506,9 +1409,9 @@ body { touch-action: manipulation; }
 .or-switch {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--sp-2);
   min-height: 36px;
-  padding: 0 12px 0 8px;
+  padding: 0 var(--sp-3) 0 var(--sp-2);
   border-radius: 999px;
   border: 1px solid var(--btn-border);
   background: var(--btn-bg);
@@ -1557,24 +1460,24 @@ body { touch-action: manipulation; }
 .or-block {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: var(--sp-2);
 }
 .or-label-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
+  gap: var(--sp-2);
   flex-wrap: wrap;
 }
 .or-label {
-  font-size: 0.64rem;
+  font-size: var(--fs-label);
   font-weight: 800;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--label-ink);
 }
 .or-label small {
-  margin-left: 6px;
+  margin-left: var(--sp-1);
   font-size: 0.6rem;
   letter-spacing: 0.04em;
   text-transform: none;
@@ -1583,16 +1486,16 @@ body { touch-action: manipulation; }
 .or-scales {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
-  gap: 6px;
+  gap: var(--sp-2);
 }
 .or-roots {
   display: grid;
   grid-template-columns: repeat(12, minmax(0, 1fr));
-  gap: 4px;
+  gap: var(--sp-1);
 }
 .or-chip {
-  min-height: 38px;
-  padding: 4px 8px;
+  min-height: 36px;
+  padding: var(--sp-1) var(--sp-2);
   border-radius: 9px;
   border: 1px solid var(--btn-border);
   background: var(--btn-bg);
@@ -1604,15 +1507,11 @@ body { touch-action: manipulation; }
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: var(--sp-1);
   min-width: 0;
 }
 .or-chip-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.or-chip-sub {
-  font-size: 0.62rem;
-  font-weight: 700;
-  opacity: 0.6;
-}
+.or-chip-sub { font-size: 0.62rem; font-weight: 700; opacity: 0.6; }
 .or-approx { margin-left: 2px; opacity: 0.6; }
 .or-root { padding: 0; font-size: 0.72rem; }
 .or-root.is-sharp { font-size: 0.68rem; }
@@ -1622,10 +1521,10 @@ body { touch-action: manipulation; }
   color: var(--accent-ink);
   box-shadow: 0 0 10px var(--accent-glow-soft);
 }
-.or-actions { display: flex; gap: 6px; }
+.or-actions { display: flex; gap: var(--sp-2); }
 .or-btn {
   min-height: 32px;
-  padding: 0 12px;
+  padding: 0 var(--sp-3);
   border-radius: 8px;
   border: 1px solid var(--btn-border);
   background: var(--btn-bg);
@@ -1638,37 +1537,33 @@ body { touch-action: manipulation; }
 .or-cents {
   display: grid;
   grid-template-columns: repeat(12, minmax(0, 1fr));
-  gap: 4px;
+  gap: var(--sp-1);
 }
 .or-cent {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 3px;
-  padding: 5px 2px;
+  gap: var(--sp-1);
+  padding: var(--sp-1) 2px;
   border-radius: 8px;
   border: 1px solid var(--btn-border);
   background: var(--ctl-bg);
   min-width: 0;
 }
 .or-cent.is-set { border-color: var(--accent); }
-.or-cent-note {
-  font-size: 0.64rem;
-  font-weight: 800;
-  color: var(--label-ink);
-}
+.or-cent-note { font-size: var(--fs-label); font-weight: 800; color: var(--label-ink); }
 .or-cent.is-set .or-cent-note { color: var(--accent); }
 .or-cent-input {
   width: 100%;
   min-width: 0;
   box-sizing: border-box;
-  padding: 4px 0;
+  padding: var(--sp-1) 0;
   border: 0;
   border-radius: 5px;
   background: var(--btn-bg);
   color: var(--ink);
   font: inherit;
-  font-size: 16px; /* 16px stops iOS from zooming into the field */
+  font-size: 16px;
   font-weight: 700;
   text-align: center;
   font-variant-numeric: tabular-nums;
@@ -1689,40 +1584,13 @@ body { touch-action: manipulation; }
 }
 .or-info b { color: var(--ink); font-weight: 800; }
 
-@media (max-width: 760px) {
-  .or-inner { padding: 10px; gap: 10px; }
-  .or-scales { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .or-roots, .or-cents { grid-template-columns: repeat(6, minmax(0, 1fr)); }
-}
-@media (max-width: 420px) {
-  .or-chip-sub { display: none; }
-}
-@media (max-height: 560px) and (orientation: landscape) {
-  .or-inner { padding: 8px 10px; gap: 8px; }
-  .or-scales { grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); }
-  .or-chip { min-height: 32px; padding: 2px 6px; }
-  .or-chip-sub { display: none; }
-  .or-info { display: none; }
-}
-
-/* Drum pads: one row of 8 on short areas, a 4 x 2 grid when the area is
-   tall (the keyboard area fills the screen), so pads stay close to square. */
-.kb.is-pads { flex-wrap: wrap; align-content: stretch; container-type: size; }
-.kb.is-pads .key.pad { flex: 1 1 calc(12.5% - 6px); min-width: 0; }
-@container (min-height: 250px) {
-  .kb.is-pads .key.pad { flex-basis: calc(25% - 6px); }
-}
-@container (max-width: 520px) {
-  .kb.is-pads .key.pad { flex-basis: calc(25% - 4px); }
-}
-
 /* ============================================================
-   Kashan: algorithm LCD
+   Kashan: algorithm LCD & Konya: Euclidean rings
    ============================================================ */
 .fm-lcd {
   border-radius: 6px;
-  padding: 6px 8px 4px;
-  margin-bottom: 6px;
+  padding: var(--sp-1) var(--sp-2);
+  margin: 0;
   background: var(--scope-bg);
   border: 1px solid var(--scope-border);
   box-shadow: inset 0 2px 6px rgba(0,0,0,0.35);
@@ -1733,11 +1601,11 @@ body { touch-action: manipulation; }
   align-items: baseline;
   justify-content: space-between;
   font-family: "SF Mono", Menlo, Consolas, monospace;
-  font-size: 0.62rem;
+  font-size: var(--fs-label);
   letter-spacing: 0.16em;
 }
-.fm-lcd-head b { font-size: 1rem; letter-spacing: 0; }
-.fm-lcd svg { display: block; width: 100%; height: clamp(70px, 14vh, 130px); }
+.fm-lcd-head b { font-size: 0.9rem; letter-spacing: 0; }
+.fm-lcd svg { display: block; width: 100%; height: clamp(54px, 10dvh, 96px); }
 .fm-lcd .wires line, .fm-lcd .wires path { stroke: currentColor; stroke-width: 2; fill: none; opacity: 0.85; }
 .fm-lcd .wires .fb { stroke-dasharray: 3 3; }
 .fm-lcd .op rect { fill: none; stroke: currentColor; stroke-width: 2; }
@@ -1746,11 +1614,21 @@ body { touch-action: manipulation; }
 .fm-lcd .op.car text { fill: var(--scope-bg-ink, #0f1a0a); }
 .synth-custom[data-custom="fm-algo"] .synth-choice-btn { min-width: 0; padding: 0; }
 
-/* ============================================================
-   Konya: Euclidean rings
-   ============================================================ */
-.eu-wrap { display: flex; flex-direction: column; align-items: center; gap: 4px; min-height: 0; }
-.eu-svg { width: 100%; max-width: 210px; max-height: 190px; aspect-ratio: 1; display: block; }
+.eu-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-1);
+  min-height: 0;
+}
+.eu-svg {
+  width: auto;
+  height: clamp(82px, 13.5dvh, 136px);
+  max-width: 100%;
+  aspect-ratio: 1;
+  display: block;
+  margin: 0 auto;
+}
 .eu-track { fill: none; stroke: var(--sec-border); stroke-width: 1.5; }
 .eu-dot { fill: var(--ctl-bg); stroke: var(--btn-border); stroke-width: 1; transition: r 80ms; }
 .eu-ring-1 .eu-dot.hit { fill: var(--eu-1, #d6312b); stroke: none; }
@@ -1760,21 +1638,24 @@ body { touch-action: manipulation; }
 .eu-dot.hit.now { r: 7.5px; }
 .eu-ring.is-off { opacity: 0.25; }
 .eu-hub { fill: var(--ink); }
-.eu-hint { margin: 0; font-size: 0.62rem; line-height: 1.35; color: var(--ink-dim); text-align: center; max-width: 260px; }
-@media (max-height: 560px) and (orientation: landscape) {
-  .eu-svg { max-height: 120px; }
-  .eu-hint { display: none; }
+.eu-hint {
+  margin: 0;
+  font-size: 0.58rem;
+  line-height: 1.3;
+  color: var(--ink-dim);
+  text-align: center;
+  max-width: 260px;
 }
 
 /* ============================================================
-   Preset name button (opens the sound library)
+   Preset name button & Sound library
    ============================================================ */
 .preset-display {
   display: flex;
   align-items: center;
-  gap: 8px;
-  min-height: 38px;
-  padding: 3px 10px;
+  gap: var(--sp-2);
+  min-height: 32px;
+  padding: 2px var(--sp-2);
   border-radius: 8px;
   border: 1px solid var(--btn-border);
   background: var(--ctl-bg);
@@ -1784,18 +1665,11 @@ body { touch-action: manipulation; }
   cursor: pointer;
 }
 .preset-display .pd-text { display: flex; flex-direction: column; min-width: 0; flex: 1 1 auto; line-height: 1.15; }
-.preset-display .pd-name { font-size: 0.8rem; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.preset-display .pd-sub { font-size: 0.58rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.preset-display .pd-name { font-size: 0.78rem; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.preset-display .pd-sub { font-size: 0.56rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .preset-display .pd-icon { flex: none; opacity: 0.75; }
 .preset-display[aria-expanded="true"] { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
-@media (max-height: 560px) and (orientation: landscape) {
-  .preset-display { min-height: 30px; padding: 2px 8px; }
-  .preset-display .pd-sub { display: none; }
-}
 
-/* ============================================================
-   Sound library
-   ============================================================ */
 .lib-pop {
   position: absolute;
   inset: 0;
@@ -1820,8 +1694,8 @@ body { touch-action: manipulation; }
 .lib-head {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
+  gap: var(--sp-2);
+  padding: var(--sp-2) var(--sp-3);
   border-bottom: 1px solid var(--sec-border);
 }
 .lib-title { display: flex; flex-direction: column; min-width: 0; line-height: 1.15; }
@@ -1833,9 +1707,9 @@ body { touch-action: manipulation; }
   margin-left: auto;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--sp-1);
   height: 36px;
-  padding: 0 12px;
+  padding: 0 var(--sp-3);
   border-radius: 999px;
   border: 1px solid var(--btn-border);
   background: var(--ctl-bg);
@@ -1849,13 +1723,13 @@ body { touch-action: manipulation; }
   background: transparent;
   color: var(--ink);
   font: inherit;
-  font-size: 16px; /* 16px stops iOS from zooming into the field */
+  font-size: 16px;
 }
 .lib-q::-webkit-search-cancel-button { filter: grayscale(1); }
 .lib-done {
   flex: none;
   min-height: 36px;
-  padding: 0 18px;
+  padding: 0 var(--sp-4);
   border: 0;
   border-radius: 999px;
   background: var(--accent);
@@ -1875,7 +1749,7 @@ body { touch-action: manipulation; }
   min-height: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
-  padding: 8px;
+  padding: var(--sp-2);
   display: flex;
   flex-direction: column;
   gap: 2px;
@@ -1884,9 +1758,9 @@ body { touch-action: manipulation; }
 .lib-cat {
   display: flex;
   align-items: center;
-  gap: 9px;
+  gap: var(--sp-2);
   min-height: 40px;
-  padding: 4px 8px;
+  padding: var(--sp-1) var(--sp-2);
   border: 0;
   border-radius: 9px;
   background: transparent;
@@ -1919,11 +1793,11 @@ body { touch-action: manipulation; }
   overflow-y: auto;
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
-  padding: 10px;
+  padding: var(--sp-2);
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   grid-auto-rows: min-content;
-  gap: 8px;
+  gap: var(--sp-2);
   align-content: start;
 }
 .lib-tile {
@@ -1943,8 +1817,8 @@ body { touch-action: manipulation; }
   min-width: 0;
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 8px 2px 8px 8px;
+  gap: var(--sp-2);
+  padding: var(--sp-2) 2px var(--sp-2) var(--sp-2);
   border: 0;
   background: transparent;
   color: inherit;
@@ -1956,13 +1830,11 @@ body { touch-action: manipulation; }
 .lib-name { font-size: 0.8rem; font-weight: 800; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow-wrap: anywhere; }
 .lib-sub { font-size: 0.62rem; font-weight: 700; color: var(--value-ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .lib-eq { flex: none; display: inline-flex; align-items: flex-end; gap: 2px; height: 14px; }
-.lib-eq i { display: block; width: 3px; border-radius: 1px; background: var(--accent); animation: lib-eq 0.9s ease-in-out infinite; }
+.lib-eq i { display: block; width: 3px; border-radius: 1px; background: var(--accent); animation: lib-eq 0.9s ease-in-out infinite; transform-origin: bottom; }
 .lib-eq i:nth-child(1) { height: 60%; }
 .lib-eq i:nth-child(2) { height: 100%; animation-delay: -0.3s; }
 .lib-eq i:nth-child(3) { height: 45%; animation-delay: -0.6s; }
 @keyframes lib-eq { 0%, 100% { transform: scaleY(0.45); } 50% { transform: scaleY(1); } }
-@media (prefers-reduced-motion: reduce) { .lib-eq i { animation: none; } }
-.lib-eq i { transform-origin: bottom; }
 .lib-fav {
   flex: none;
   width: 42px;
@@ -1977,38 +1849,360 @@ body { touch-action: manipulation; }
 }
 .lib-fav.on { color: #e8b400; opacity: 1; }
 .lib-fav.on svg path { fill: currentColor; }
-.lib-empty { grid-column: 1 / -1; margin: 24px 8px; text-align: center; font-size: 0.8rem; color: var(--ink-dim); }
+.lib-empty { grid-column: 1 / -1; margin: var(--sp-5) var(--sp-2); text-align: center; font-size: 0.8rem; color: var(--ink-dim); }
 
-@media (max-width: 760px) {
-  .lib-head { flex-wrap: wrap; gap: 8px; padding: 8px; }
+/* ============================================================
+   Responsive Breakpoints (All 10 Audit Viewports)
+   ============================================================ */
+
+/* Tall desktop / tablet screens: scale knobs and scope gracefully */
+@media (min-width: 761px) and (min-height: 820px) {
+  :root {
+    --shell-pad: var(--sp-4);
+    --k-lg: 46px;
+    --k: 38px;
+    --k-small: 30px;
+    --sk-w: 56px;
+    --scope-h: 54px;
+    --sec-gap: var(--sp-3);
+  }
+}
+
+/* Medium desktop width */
+@media (max-width: 1100px) {
+  :root {
+    --sk-w: 48px;
+    --sec-gap: var(--sp-2);
+  }
+}
+
+/* Short desktop / laptop screens (e.g. 1280x720, 1024x700) */
+@media (max-height: 860px) {
+  .synth-hint { display: none; }
+}
+
+@media (max-height: 760px) and (min-width: 761px) {
+  :root {
+    --shell-pad: var(--sp-2);
+    --panel-pad: var(--sp-2);
+    --sec-pad: var(--sp-3);
+    --sec-gap: var(--sp-2);
+    --sec-row-gap: var(--sp-2);
+    --ring-pad: 5px;
+    --k-lg: 34px;
+    --k: 28px;
+    --k-small: 22px;
+    --sk-w: 46px;
+    --scope-h: 36px;
+    --kb-min: 92px;
+  }
+  .synth-choice-btn,
+  .synth-param-select,
+  .drum-slot,
+  .drum-voice-btn {
+    min-height: 26px;
+  }
+  .drum-play { min-height: 28px; }
+  .drum-step { height: 28px; }
+  .kb-btn { min-height: 28px; }
+  .eu-svg { height: clamp(72px, 11dvh, 96px); }
+  .eu-hint { display: none; }
+  .fm-lcd svg { height: clamp(46px, 8dvh, 68px); }
+}
+
+/* Touch tablets (768x1000) */
+@media (pointer: coarse) and (min-width: 761px) and (min-height: 761px) {
+  :root {
+    --kb-min: 140px;
+    --kb-max: 240px;
+  }
+  .kb-wheel { width: 34px; }
+  .kb-btn { min-height: 40px; }
+  .key { font-size: 0.8rem; padding-bottom: var(--sp-3); }
+}
+
+/* Paged layout: phones, narrow windows, and phone landscape */
+@media (max-width: 760px), (max-height: 560px) and (orientation: landscape) {
+  :root {
+    --shell-pad: var(--sp-2);
+    --panel-pad: var(--sp-2);
+    --sec-pad: var(--sp-3);
+    --sec-gap: var(--sp-2);
+    --sec-row-gap: var(--sp-2);
+    --ring-pad: 5px;
+    --k-lg: 40px;
+    --k: 34px;
+    --k-small: 26px;
+    --sk-w: 46px;
+    --scope-h: 34px;
+    --kb-min: 96px;
+    --kb-max: 170px;
+  }
+  .synth-hint { display: none; }
+  .synth-brand-maker { display: none; }
+  .synth-machine-select { font-size: 0.85rem; padding-right: 18px; max-width: 150px; text-overflow: ellipsis; }
+  .synth-scope { flex: 1 1 auto; min-width: 56px; }
+  .synth-preset-nav { flex: 1 1 auto; min-width: 0; }
+  .synth-preset-select { max-width: none; }
+
+  .synth-midi-bar { flex: 1 1 100%; margin-left: 0; padding: var(--sp-1) var(--sp-2); }
+  .synth-skin { margin-left: auto; font-size: 0; gap: 0; }
+  .synth-skin > select { max-width: 112px; }
+
+  .synth-tabs { display: flex; }
+
+  .synth-sections { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+  .synth-sec { display: none; }
+  .synth-sec.is-on-page { display: flex; }
+
+  .drum-steps { grid-template-columns: repeat(calc(var(--len) / 2), minmax(0, 1fr)); }
+  .drum-step { height: 32px; }
+  .drum-voices { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .drum-slot, .drum-voice-btn { min-height: 28px; }
+
+  .lib-head { flex-wrap: wrap; gap: var(--sp-2); padding: var(--sp-2); }
   .lib-search { order: 3; flex-basis: 100%; max-width: none; margin-left: 0; }
   .lib-done { margin-left: auto; }
   .lib-body { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); }
-  .lib-cats { flex-direction: row; overflow-x: auto; overflow-y: hidden; border-right: 0; border-bottom: 1px solid var(--sec-border); padding: 6px 8px; gap: 6px; scrollbar-width: none; }
+  .lib-cats { flex-direction: row; overflow-x: auto; overflow-y: hidden; border-right: 0; border-bottom: 1px solid var(--sec-border); padding: var(--sp-1) var(--sp-2); gap: var(--sp-1); scrollbar-width: none; }
   .lib-cats::-webkit-scrollbar { display: none; }
-  .lib-cat { flex: none; min-height: 34px; padding: 3px 10px 3px 4px; border-radius: 999px; border: 1px solid var(--btn-border); }
+  .lib-cat { flex: none; min-height: 34px; padding: var(--sp-1) var(--sp-2); border-radius: 999px; border: 1px solid var(--btn-border); }
   .lib-cat.active { box-shadow: inset 0 0 0 1px var(--accent); border-color: var(--accent); }
   .lib-cat .lib-ico { width: 24px; height: 24px; border-radius: 999px; }
-  .lib-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); padding: 8px; gap: 6px; }
+  .lib-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); padding: var(--sp-2); gap: var(--sp-2); }
   .lib-ico-lg { width: 32px; height: 32px; border-radius: 9px; }
-  .lib-pick { gap: 8px; padding-left: 6px; }
+  .lib-pick { gap: var(--sp-2); padding-left: var(--sp-2); }
   .lib-fav { width: 34px; }
   .lib-name { font-size: 0.76rem; }
 }
+
+/* Under 480px width: section card inner padding --sp-2 (Part 1 rule 2) */
+@media (max-width: 480px) {
+  :root {
+    --sec-pad: var(--sp-2);
+  }
+}
+
+@media (max-width: 760px) {
+  .synth-tempo .tempo-tap-btn { display: none; }
+  .synth-tempo-val { cursor: pointer; }
+  .synth-tempo-val::after { content: ""; }
+  .or-inner { padding: var(--sp-2); gap: var(--sp-2); }
+  .or-scales { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .or-roots, .or-cents { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+}
+
+/* Phone portrait (390x844, 412x780, 390x664, 360x560) */
+@media (max-width: 760px) and (orientation: portrait) {
+  :root {
+    --kb-min: 112px;
+    --kb-max: 200px;
+  }
+  .kb-area { flex-direction: column; gap: var(--sp-2); }
+  .kb-bar { width: auto; display: flex; flex-direction: row; align-items: center; justify-content: space-between; gap: var(--sp-1); }
+  .kb-perf { display: flex; flex: 1 1 auto; min-width: 0; gap: var(--sp-1); }
+  .kb-bar #oct-down, .kb-bar #oct-up { flex: none; width: 58px; }
+  .kb-range { flex: none; }
+  .kb-perf #kb-hold, .kb-perf #kb-arp { flex: 0 0 46px; }
+  .kb-perf .kb-orient-group { flex: 1 1 auto; min-width: 0; }
+  .kb-orient-group .kb-tune { flex-basis: 38px; }
+  .kb-wheel { width: 24px; }
+  .synth-panel[data-count="3"] .synth-sections { grid-template-columns: 1fr 1fr; }
+  .synth-panel[data-count="3"] .synth-sec.is-page-first { grid-column: 1 / -1; }
+  .synth-sec.sec-wide { grid-column: 1 / -1; }
+}
+
+@media (max-width: 420px) and (orientation: portrait) {
+  .kb-range { display: none; }
+  .or-chip-sub { display: none; }
+}
+
+/* Very narrow phones (360x560) */
+@media (max-width: 370px) {
+  :root {
+    --sk-w: 42px;
+  }
+  .synth-midi-bar { gap: var(--sp-1); padding: var(--sp-1); }
+  .synth-midi-btn { padding: 2px var(--sp-1); font-size: 0.66rem; letter-spacing: 0.02em; }
+  .synth-tempo .synth-midi-btn { padding: 2px var(--sp-1); }
+  .synth-tempo-val { min-width: 28px; }
+}
+
+/* Short phones held upright (390x664, 360x560) */
+@media (max-width: 760px) and (orientation: portrait) and (max-height: 700px) {
+  :root {
+    --kb-min: 92px;
+    --k-lg: 30px;
+    --k: 24px;
+    --k-small: 20px;
+    --ring-pad: 4px;
+    --scope-h: 28px;
+  }
+  .sk-caption { display: none; }
+  .synth-tab { min-height: 28px; }
+  .synth-choice-btn,
+  .synth-param-select,
+  .drum-slot,
+  .drum-voice-btn {
+    min-height: 24px;
+  }
+  .drum-play { min-height: 26px; }
+  .drum-step { height: 22px; }
+  .kb-btn { min-height: 28px; }
+  .preset-display { min-height: 28px; }
+  .eu-svg { height: clamp(68px, 12.5dvh, 98px); }
+  .eu-hint { display: none; }
+  .fm-lcd svg { height: clamp(42px, 8dvh, 60px); }
+}
+
+/* Very short portrait phones (360x560) */
+@media (max-width: 760px) and (orientation: portrait) and (max-height: 580px) {
+  :root {
+    --kb-min: 78px;
+    --k-lg: 26px;
+    --k: 21px;
+    --k-small: 18px;
+    --ring-pad: 4px;
+    --scope-h: 24px;
+  }
+  .sy1-shell { gap: var(--sp-1); }
+  .synth-panel { gap: var(--sp-1); }
+  .synth-top { gap: var(--sp-1); }
+  .kb-area { gap: var(--sp-1); }
+  .synth-tab { min-height: 26px; font-size: 0.72rem; }
+  .synth-choice-btn,
+  .synth-param-select,
+  .drum-slot,
+  .drum-voice-btn {
+    min-height: 22px;
+  }
+  .drum-play { min-height: 24px; }
+  .drum-step { height: 19px; }
+  .kb-btn { min-height: 26px; }
+  .preset-display { min-height: 26px; }
+  .synth-midi-btn, .synth-midi-select { min-height: 24px; }
+}
+
+/* Phone landscape and very short screens (740x340, 932x400) */
 @media (max-height: 560px) and (orientation: landscape) {
-  .lib-head { padding: 5px 8px; gap: 8px; flex-wrap: nowrap; }
+  :root {
+    --shell-pad: var(--sp-2);
+    --panel-pad: var(--sp-2);
+    --sec-pad: var(--sp-2);
+    --sec-gap: var(--sp-2);
+    --sec-row-gap: var(--sp-2);
+    --ring-pad: 4px;
+    --k-lg: 30px;
+    --k: 24px;
+    --k-small: 20px;
+    --sk-w: 40px;
+    --scope-h: 26px;
+    --kb-min: 76px;
+    --kb-max: 112px;
+  }
+  .sy1-shell { gap: var(--sp-1); }
+  .synth-top { flex-wrap: nowrap; gap: var(--sp-1); }
+  .synth-brand { display: none; }
+  .synth-choice-btn,
+  .synth-param-select {
+    min-height: 24px;
+    font-size: 0.72rem;
+  }
+  .synth-midi-btn,
+  .synth-midi-select {
+    min-height: 26px;
+  }
+  .synth-midi-bar { flex: 0 1 auto; margin-left: auto; padding: 2px var(--sp-1); }
+  .synth-skin > select { max-width: 110px; }
+  .preset-display { min-height: 26px; width: 128px; padding: 2px var(--sp-2); }
+  .preset-display .pd-sub { display: none; }
+  .synth-scope { min-width: 24px; }
+  .synth-midi-bar { flex-wrap: nowrap; }
+
+  /* Tabs become a vertical rail beside the active page */
+  .synth-panel {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+    column-gap: var(--sp-2);
+    row-gap: var(--sp-1);
+  }
+  .synth-top { grid-column: 1 / -1; }
+  .synth-tabs {
+    flex-direction: column;
+    justify-content: flex-start;
+    margin: 0;
+    min-width: 84px;
+    overflow-y: auto;
+    min-height: 0;
+  }
+  .synth-tab { flex: 0 0 auto; min-height: 30px; padding: 0 var(--sp-2); font-size: 0.72rem; }
+  .synth-sections {
+    grid-template-columns: none;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
+  }
+  .synth-param-select-wrap > span { display: none; }
+  .sk-caption { display: none; }
+
+  .drum-steps { grid-template-columns: repeat(var(--len), minmax(0, 1fr)); gap: var(--sp-1); }
+  .drum-step { height: 24px; }
+  .drum-voices { grid-template-columns: repeat(8, minmax(0, 1fr)); }
+  .drum-voice-btn, .drum-slot { min-height: 24px; font-size: 0.62rem; }
+  .drum-play { min-height: 24px; min-width: 64px; }
+
+  .eu-svg { height: clamp(64px, 20dvh, 96px); }
+  .eu-hint { display: none; }
+  .fm-lcd svg { height: clamp(40px, 13dvh, 62px); }
+
+  .kb-bar { width: 92px; gap: var(--sp-1); }
+  .kb-range { display: none; }
+  .kb-wheel { width: 22px; }
+  .kb-bar .kb-btn { min-height: 26px; font-size: 0.64rem; }
+  .kb-oriental-lbl { font-size: 0.6rem; }
+  .kb-oriental-sub { display: none; }
+  .kb-orient-group .kb-tune { flex-basis: 28px; }
+  .kb-tune svg { width: 14px; height: 14px; }
+
+  .or-inner { padding: var(--sp-2); gap: var(--sp-2); }
+  .or-scales { grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); }
+  .or-chip { min-height: 30px; padding: 2px var(--sp-1); }
+  .or-chip-sub { display: none; }
+  .or-info { display: none; }
+
+  .lib-head { padding: var(--sp-1) var(--sp-2); gap: var(--sp-2); flex-wrap: nowrap; }
   .lib-search { order: 0; flex-basis: auto; max-width: 320px; margin-left: auto; }
   .lib-done { margin-left: 0; }
   .lib-search, .lib-done { height: 30px; min-height: 30px; }
   .lib-body { grid-template-columns: 150px minmax(0, 1fr); grid-template-rows: none; }
-  .lib-cats { flex-direction: column; overflow-y: auto; overflow-x: hidden; border-bottom: 0; border-right: 1px solid var(--sec-border); padding: 4px; }
-  .lib-cat { min-height: 30px; border: 0; border-radius: 7px; padding: 2px 6px; font-size: 0.68rem; }
+  .lib-cats { flex-direction: column; overflow-y: auto; overflow-x: hidden; border-bottom: 0; border-right: 1px solid var(--sec-border); padding: var(--sp-1); }
+  .lib-cat { min-height: 30px; border: 0; border-radius: 7px; padding: 2px var(--sp-1); font-size: 0.68rem; }
   .lib-cat .lib-ico { width: 20px; height: 20px; }
   .lib-tile { min-height: 44px; }
   .lib-ico-lg { width: 28px; height: 28px; border-radius: 8px; }
-  .lib-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); padding: 6px; gap: 5px; }
+  .lib-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); padding: var(--sp-1); gap: var(--sp-1); }
 }
-@media (max-height: 640px) and (orientation: portrait) {
-  .eu-svg { max-height: 150px; }
-  .eu-hint { display: none; }
+
+/* Ultra-short landscape (740x340) */
+@media (max-height: 360px) and (orientation: landscape) {
+  :root {
+    --k-lg: 26px;
+    --k: 21px;
+    --k-small: 18px;
+    --ring-pad: 4px;
+    --kb-min: 68px;
+  }
+  .synth-sec h4 { font-size: 0.64rem; padding: 1px var(--sp-1); }
+  .sk-label { font-size: 0.56rem; margin-top: 2px; }
+  .sk-val { font-size: 0.58rem; }
+  .synth-choice-btn, .synth-param-select { min-height: 22px; font-size: 0.68rem; }
+  .synth-tab { min-height: 26px; }
+  .kb-bar .kb-btn { min-height: 24px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    transition: none !important;
+    animation: none !important;
+  }
 }
