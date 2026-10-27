@@ -266,7 +266,21 @@ export function initKeyboardInteractions(): void {
   if (octDownBtn) octDownBtn.addEventListener("click", () => shiftOctave(-1));
   if (octUpBtn) octUpBtn.addEventListener("click", () => shiftOctave(1));
   const holdBtn = document.getElementById("kb-hold");
-  if (holdBtn) holdBtn.addEventListener("click", () => setSynthParam("hold", getSynthPatch().hold === "on" ? "off" : "on"));
+  if (holdBtn) {
+    const toggleHold = () => setSynthParam("hold", getSynthPatch().hold === "on" ? "off" : "on");
+    holdBtn.addEventListener("pointerdown", (e) => {
+      if (e.pointerType === "mouse" && e.button !== 0) return;
+      e.preventDefault();
+      e.stopPropagation();
+      toggleHold();
+    });
+    holdBtn.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        toggleHold();
+      }
+    });
+  }
   
   onParamChange((k) => {
     if (k === "hold") syncHold();
@@ -284,12 +298,13 @@ export function initKeyboardInteractions(): void {
 
   if (kbEl) {
     kbEl.addEventListener("pointerdown", (e) => {
+      if (e.pointerType === "mouse" && e.button !== 0) return;
+      const m = keyAt(kbEl, e.clientX, e.clientY);
+      if (m == null) return;
       e.preventDefault();
       try {
         kbEl.setPointerCapture(e.pointerId);
       } catch (err) {}
-      const m = keyAt(kbEl, e.clientX, e.clientY);
-      if (m == null) return;
       pointerNotes.set(e.pointerId, m);
       noteOn(m);
     });

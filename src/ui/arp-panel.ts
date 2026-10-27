@@ -55,7 +55,21 @@ function setOpen(v: boolean): void {
 export function initArpPanel(): void {
   setPanelRenderHook(render); // the panel is rebuilt on machine change
   const btn = document.getElementById("kb-arp");
-  if (btn) btn.addEventListener("click", () => setOpen(!open));
+  if (btn) {
+    const toggleArp = () => setOpen(!open);
+    btn.addEventListener("pointerdown", (e) => {
+      if (e.pointerType === "mouse" && e.button !== 0) return;
+      e.preventDefault();
+      e.stopPropagation();
+      toggleArp();
+    });
+    btn.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        toggleArp();
+      }
+    });
+  }
   document.addEventListener("click", (e) => {
     if ((e.target as HTMLElement).closest("[data-arp-close]")) setOpen(false);
   });

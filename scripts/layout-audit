@@ -16,16 +16,19 @@
 import { spawn } from "node:child_process";
 
 const VIEWPORTS = [
-  { width: 1440, height: 900 },
-  { width: 1280, height: 720 },
-  { width: 1024, height: 700 },
-  { width: 768, height: 1000 },
-  { width: 390, height: 664 },
-  { width: 390, height: 844 },
-  { width: 360, height: 560 },
-  { width: 412, height: 780 },
-  { width: 740, height: 340 },
-  { width: 932, height: 400 }
+  { width: 1440, height: 900, coarse: false },
+  { width: 1280, height: 720, coarse: false },
+  { width: 1024, height: 700, coarse: false },
+  { width: 1366, height: 1024, coarse: true },
+  { width: 1180, height: 820, coarse: true },
+  { width: 1024, height: 768, coarse: true },
+  { width: 768, height: 1000, coarse: true },
+  { width: 390, height: 664, coarse: true },
+  { width: 390, height: 844, coarse: true },
+  { width: 360, height: 560, coarse: true },
+  { width: 412, height: 780, coarse: true },
+  { width: 740, height: 340, coarse: true },
+  { width: 932, height: 400, coarse: true }
 ];
 
 async function loadPlaywright() {
@@ -79,22 +82,29 @@ async function main() {
   const { chromium } = await loadPlaywright();
   const server = await ensureServer();
   const browser = await chromium.launch();
-  const context = await browser.newContext();
-  const page = await context.newPage();
+  const fineContext = await browser.newContext({ hasTouch: false });
+  const coarseContext = await browser.newContext({ hasTouch: true });
+  const finePage = await fineContext.newPage();
+  const coarsePage = await coarseContext.newPage();
 
   let totalStates = 0;
   let totalChecks = 0;
   const failures = [];
 
   try {
-    await page.setViewportSize(VIEWPORTS[0]);
-    await page.goto(server.url, { waitUntil: "networkidle" });
+    await finePage.setViewportSize({ width: 1440, height: 900 });
+    await finePage.goto(server.url, { waitUntil: "networkidle" });
+    await coarsePage.setViewportSize({ width: 1180, height: 820 });
+    await coarsePage.goto(server.url, { waitUntil: "networkidle" });
 
     for (const vp of VIEWPORTS) {
-      await page.setViewportSize(vp);
-      const vpTag = `${vp.width}x${vp.height}`;
+      const page = vp.coarse ? coarsePage : finePage;
+      await page.setViewportSize({ width: vp.width, height: vp.height });
+      const vpTag = `${vp.width}x${vp.height}${vp.coarse ? ":coarse" : ""}`;
 
-      const vpReport = await page.evaluate((vpTagIn) => {
+      const vpReport = await page.evaluate(async (vpTagIn) => {
+        window.dispatchEvent(new Event("resize"));
+        await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
         const EPS = 0.5;
         let states = 0;
         let checks = 0;
@@ -194,6 +204,28 @@ async function main() {
               );
             }
 
+            // (b) header has <= 2 rows at >= 900px wide
+            if (vw >= 900) {
+              const topEl = document.querySelector(".synth-top");
+              if (topEl) {
+                const topItems = Array.from(topEl.children).filter(
+                  (c) => getComputedStyle(c).display !== "none" && c.getBoundingClientRect().height > 0
+                );
+                const rowCenters = [];
+                for (const item of topItems) {
+                  const ir = item.getBoundingClientRect();
+                  const midY = (ir.top + ir.bottom) / 2;
+                  if (!rowCenters.some((y) => Math.abs(y - midY) < 14)) {
+                    rowCenters.push(midY);
+                  }
+                }
+                check(
+                  rowCenters.length <= 2,
+                  `header (.synth-top) has ${rowCenters.length} rows at width ${vw}px (> 2 rows)`
+                );
+              }
+            }
+
             const kbArea = document.querySelector(".kb-area");
             if (kbArea) {
               const kr = kbArea.getBoundingClientRect();
@@ -207,6 +239,23 @@ async function main() {
             const visibleSecs = Array.from(document.querySelectorAll(".synth-sec")).filter(
               (s) => getComputedStyle(s).display !== "none"
             );
+
+            // (c) panel empty space below the last section <= 15% of panel height on paged layouts
+            const tabsEl = document.querySelector(".synth-tabs");
+            const isPaged = !!tabsEl && getComputedStyle(tabsEl).display !== "none";
+            const panelEl = document.querySelector(".synth-panel");
+            if (isPaged && panelEl && visibleSecs.length > 0) {
+              const pr = panelEl.getBoundingClientRect();
+              const maxSecBottom = Math.max(
+                ...visibleSecs.map((s) => s.getBoundingClientRect().bottom)
+              );
+              const emptyBelow = Math.max(0, pr.bottom - maxSecBottom);
+              const maxAllowed = pr.height * 0.15;
+              check(
+                emptyBelow <= maxAllowed + EPS,
+                `paged panel empty space below last section ${emptyBelow.toFixed(1)}px > 15% of panel height (${maxAllowed.toFixed(1)}px / ${pr.height.toFixed(1)}px)`
+              );
+            }
 
             // Section title consistency across the machine
             let refTitleStyle = null;
@@ -267,6 +316,22 @@ async function main() {
             for (const sec of visibleSecs) {
               const secTitle = sec.querySelector("h4")?.textContent || "sec";
               const sr = sec.getBoundingClientRect();
+
+              // (a) no element inside .synth-sections has scrollHeight > clientHeight + 1 (no inner scroll)
+              for (const el of [
+                sec,
+                ...Array.from(
+                  sec.querySelectorAll(
+                    ".synth-custom, .fm-lcd, .eu-wrap, .vec-wrap, .sk-row, .drum-transport, .drum-voices, .drum-steps"
+                  )
+                )
+              ]) {
+                if (getComputedStyle(el).display === "none") continue;
+                check(
+                  el.scrollHeight <= el.clientHeight + 1,
+                  `section "${secTitle}" inner scroll on ${el.className || el.tagName}: scrollHeight=${el.scrollHeight} > clientHeight=${el.clientHeight}`
+                );
+              }
 
               check(
                 sr.top >= -EPS &&
@@ -477,6 +542,344 @@ async function main() {
       totalChecks += vpReport.checks;
       failures.push(...vpReport.issues);
     }
+
+    // Multi-pointer & computer-keyboard HOLD / ARP verification on coarsePage (1180x820)
+    await coarsePage.setViewportSize({ width: 1180, height: 820 });
+    const holdReport = await coarsePage.evaluate(() => {
+      const issues = [];
+      let checks = 0;
+      const check = (cond, msg) => {
+        checks++;
+        if (!cond) issues.push(`[HOLD-test] ${msg}`);
+      };
+
+      const machineSel = document.getElementById("machine-select");
+      if (machineSel) {
+        machineSel.value = "sy1";
+        machineSel.dispatchEvent(new Event("change", { bubbles: true }));
+      }
+      const holdBtn = document.getElementById("kb-hold");
+      const arpBtn = document.getElementById("kb-arp");
+      const kb = document.getElementById("kb");
+      const c4 = document.querySelector('.key[data-midi="60"]');
+      const e4 = document.querySelector('.key[data-midi="64"]');
+
+      check(
+        !!holdBtn && getComputedStyle(holdBtn).touchAction === "none",
+        "#kb-hold must have touch-action: none"
+      );
+      check(
+        !!arpBtn && getComputedStyle(arpBtn).touchAction === "none",
+        "#kb-arp must have touch-action: none"
+      );
+      check(
+        holdBtn?.getAttribute("aria-pressed") === "false",
+        "HOLD must start off"
+      );
+
+      if (kb && c4 && e4 && holdBtn && arpBtn) {
+        const rC4 = c4.getBoundingClientRect();
+        const rE4 = e4.getBoundingClientRect();
+        const rHold = holdBtn.getBoundingClientRect();
+
+        // Pointer 1 holds C4 (60), Pointer 2 holds E4 (64)
+        kb.dispatchEvent(
+          new PointerEvent("pointerdown", {
+            bubbles: true,
+            cancelable: true,
+            pointerId: 11,
+            pointerType: "touch",
+            clientX: rC4.left + rC4.width / 2,
+            clientY: rC4.bottom - 10
+          })
+        );
+        kb.dispatchEvent(
+          new PointerEvent("pointerdown", {
+            bubbles: true,
+            cancelable: true,
+            pointerId: 12,
+            pointerType: "touch",
+            clientX: rE4.left + rE4.width / 2,
+            clientY: rE4.bottom - 10
+          })
+        );
+        check(
+          c4.classList.contains("is-pressed") && e4.classList.contains("is-pressed"),
+          "C4 and E4 should be pressed while pointers 11 & 12 hold them"
+        );
+
+        // Pointer 3 taps HOLD while Pointers 1 & 2 are still holding C4 & E4 (no click event dispatched!)
+        holdBtn.dispatchEvent(
+          new PointerEvent("pointerdown", {
+            bubbles: true,
+            cancelable: true,
+            pointerId: 13,
+            pointerType: "touch",
+            clientX: rHold.left + rHold.width / 2,
+            clientY: rHold.top + rHold.height / 2
+          })
+        );
+        holdBtn.dispatchEvent(
+          new PointerEvent("pointerup", {
+            bubbles: true,
+            cancelable: true,
+            pointerId: 13,
+            pointerType: "touch"
+          })
+        );
+        check(
+          holdBtn.getAttribute("aria-pressed") === "true" && holdBtn.classList.contains("active"),
+          "HOLD should toggle on via pointerdown while keys are held"
+        );
+
+        // Lift Pointers 1 & 2 -> C4 and E4 must remain latched and sounding (.is-pressed)
+        kb.dispatchEvent(
+          new PointerEvent("pointerup", {
+            bubbles: true,
+            cancelable: true,
+            pointerId: 11,
+            pointerType: "touch"
+          })
+        );
+        kb.dispatchEvent(
+          new PointerEvent("pointerup", {
+            bubbles: true,
+            cancelable: true,
+            pointerId: 12,
+            pointerType: "touch"
+          })
+        );
+        check(
+          c4.classList.contains("is-pressed") && e4.classList.contains("is-pressed"),
+          "C4 and E4 must remain latched (.is-pressed) after lifting pointers 11 & 12"
+        );
+
+        // Re-pressing a latched note (C4) stops it while E4 stays latched
+        kb.dispatchEvent(
+          new PointerEvent("pointerdown", {
+            bubbles: true,
+            cancelable: true,
+            pointerId: 14,
+            pointerType: "touch",
+            clientX: rC4.left + rC4.width / 2,
+            clientY: rC4.bottom - 10
+          })
+        );
+        kb.dispatchEvent(
+          new PointerEvent("pointerup", {
+            bubbles: true,
+            cancelable: true,
+            pointerId: 14,
+            pointerType: "touch"
+          })
+        );
+        check(
+          !c4.classList.contains("is-pressed") && e4.classList.contains("is-pressed"),
+          "Re-pressing latched C4 should stop C4 while keeping E4 latched"
+        );
+
+        // Tap HOLD again -> E4 stops and HOLD turns off
+        holdBtn.dispatchEvent(
+          new PointerEvent("pointerdown", {
+            bubbles: true,
+            cancelable: true,
+            pointerId: 15,
+            pointerType: "touch"
+          })
+        );
+        check(
+          holdBtn.getAttribute("aria-pressed") === "false" &&
+            !c4.classList.contains("is-pressed") &&
+            !e4.classList.contains("is-pressed"),
+          "Tapping HOLD again must release latched notes and turn HOLD off"
+        );
+
+        // Computer keyboard + mouse test: hold 'a' (C3=48) and 'd' (E3=52), mouse pointerdown on HOLD, release keys
+        const c3 = document.querySelector('.key[data-midi="48"]');
+        const e3 = document.querySelector('.key[data-midi="52"]');
+        if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
+        document.dispatchEvent(new KeyboardEvent("keydown", { key: "a", bubbles: true }));
+        document.dispatchEvent(new KeyboardEvent("keydown", { key: "d", bubbles: true }));
+        check(
+          !!c3 && !!e3 && c3.classList.contains("is-pressed") && e3.classList.contains("is-pressed"),
+          "Computer keys 'a' and 'd' should press C3 and E3"
+        );
+        holdBtn.dispatchEvent(
+          new PointerEvent("pointerdown", {
+            bubbles: true,
+            cancelable: true,
+            pointerId: 1,
+            pointerType: "mouse",
+            button: 0
+          })
+        );
+        document.dispatchEvent(new KeyboardEvent("keyup", { key: "a", bubbles: true }));
+        document.dispatchEvent(new KeyboardEvent("keyup", { key: "d", bubbles: true }));
+        check(
+          holdBtn.getAttribute("aria-pressed") === "true" &&
+            !!c3 &&
+            !!e3 &&
+            c3.classList.contains("is-pressed") &&
+            e3.classList.contains("is-pressed"),
+          "C3 and E3 should stay latched after releasing computer keys 'a' and 'd'"
+        );
+
+        // Keyboard Space on HOLD toggles it off
+        holdBtn.dispatchEvent(new KeyboardEvent("keydown", { key: " ", bubbles: true }));
+        check(
+          holdBtn.getAttribute("aria-pressed") === "false" &&
+            !!c3 &&
+            !!e3 &&
+            !c3.classList.contains("is-pressed") &&
+            !e3.classList.contains("is-pressed"),
+          "Space key on #kb-hold should toggle HOLD off and release notes"
+        );
+
+        // ARP button pointerdown toggles popover while key is held
+        document.dispatchEvent(new KeyboardEvent("keydown", { key: "a", bubbles: true }));
+        arpBtn.dispatchEvent(
+          new PointerEvent("pointerdown", {
+            bubbles: true,
+            cancelable: true,
+            pointerId: 16,
+            pointerType: "touch"
+          })
+        );
+        check(
+          arpBtn.getAttribute("aria-expanded") === "true",
+          "ARP button should open on pointerdown while a key is held"
+        );
+        arpBtn.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
+        check(
+          arpBtn.getAttribute("aria-expanded") === "false",
+          "ARP button should close on Enter keydown"
+        );
+        document.dispatchEvent(new KeyboardEvent("keyup", { key: "a", bubbles: true }));
+
+        // Mono mode (Tabriz): pointer holds C4, pointer B taps HOLD, lift A -> stays sounding; preset load resets HOLD
+        if (machineSel) {
+          machineSel.value = "tabriz";
+          machineSel.dispatchEvent(new Event("change", { bubbles: true }));
+        }
+        const mHold = document.getElementById("kb-hold")!;
+        const mKb = document.getElementById("kb")!;
+        const mC4 = document.querySelector('.key[data-midi="60"]')!;
+        const rMC4 = mC4.getBoundingClientRect();
+        mKb.dispatchEvent(
+          new PointerEvent("pointerdown", {
+            bubbles: true,
+            cancelable: true,
+            pointerId: 21,
+            pointerType: "touch",
+            clientX: rMC4.left + rMC4.width / 2,
+            clientY: rMC4.bottom - 10
+          })
+        );
+        mHold.dispatchEvent(
+          new PointerEvent("pointerdown", {
+            bubbles: true,
+            cancelable: true,
+            pointerId: 22,
+            pointerType: "touch"
+          })
+        );
+        mKb.dispatchEvent(
+          new PointerEvent("pointerup", {
+            bubbles: true,
+            cancelable: true,
+            pointerId: 21,
+            pointerType: "touch"
+          })
+        );
+        check(
+          mHold.getAttribute("aria-pressed") === "true" && mC4.classList.contains("is-pressed"),
+          "Mono mode (Tabriz): C4 should remain latched after lifting pointer 21"
+        );
+        // Step preset -> resets HOLD to off and releases latched note
+        const nextPresetBtn = document.querySelector('[data-action="preset-next"]') as HTMLElement | null;
+        if (nextPresetBtn) nextPresetBtn.click();
+        check(
+          mHold.getAttribute("aria-pressed") === "false" && !mC4.classList.contains("is-pressed"),
+          "Loading a preset must turn HOLD off and release latched notes"
+        );
+
+        // Arpeggiator mode (Baku): pointers hold C4 & E4, pointer taps HOLD, lift pointers -> stays latched; machine switch resets HOLD
+        if (machineSel) {
+          machineSel.value = "baku";
+          machineSel.dispatchEvent(new Event("change", { bubbles: true }));
+        }
+        const aHold = document.getElementById("kb-hold")!;
+        const aKb = document.getElementById("kb")!;
+        const aC4 = document.querySelector('.key[data-midi="60"]')!;
+        const aE4 = document.querySelector('.key[data-midi="64"]')!;
+        const rAC4 = aC4.getBoundingClientRect();
+        const rAE4 = aE4.getBoundingClientRect();
+        aKb.dispatchEvent(
+          new PointerEvent("pointerdown", {
+            bubbles: true,
+            cancelable: true,
+            pointerId: 31,
+            pointerType: "touch",
+            clientX: rAC4.left + rAC4.width / 2,
+            clientY: rAC4.bottom - 10
+          })
+        );
+        aKb.dispatchEvent(
+          new PointerEvent("pointerdown", {
+            bubbles: true,
+            cancelable: true,
+            pointerId: 32,
+            pointerType: "touch",
+            clientX: rAE4.left + rAE4.width / 2,
+            clientY: rAE4.bottom - 10
+          })
+        );
+        aHold.dispatchEvent(
+          new PointerEvent("pointerdown", {
+            bubbles: true,
+            cancelable: true,
+            pointerId: 33,
+            pointerType: "touch"
+          })
+        );
+        aKb.dispatchEvent(
+          new PointerEvent("pointerup", {
+            bubbles: true,
+            cancelable: true,
+            pointerId: 31,
+            pointerType: "touch"
+          })
+        );
+        aKb.dispatchEvent(
+          new PointerEvent("pointerup", {
+            bubbles: true,
+            cancelable: true,
+            pointerId: 32,
+            pointerType: "touch"
+          })
+        );
+        check(
+          aHold.getAttribute("aria-pressed") === "true" &&
+            aC4.classList.contains("is-pressed") &&
+            aE4.classList.contains("is-pressed"),
+          "Arp mode (Baku): C4 & E4 should remain latched after lifting pointers 31 & 32"
+        );
+        // Switch machine -> resets HOLD to off
+        if (machineSel) {
+          machineSel.value = "sy1";
+          machineSel.dispatchEvent(new Event("change", { bubbles: true }));
+        }
+        const sHold = document.getElementById("kb-hold")!;
+        const sC4 = document.querySelector('.key[data-midi="60"]')!;
+        check(
+          sHold.getAttribute("aria-pressed") === "false" && !sC4.classList.contains("is-pressed"),
+          "Switching machine must turn HOLD off and release latched notes"
+        );
+      }
+      return { checks, issues };
+    });
+    totalChecks += holdReport.checks;
+    failures.push(...holdReport.issues);
   } finally {
     await browser.close();
     await server.close();

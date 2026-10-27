@@ -520,27 +520,49 @@ function renderMachineOptions(): string {
 const PAGE_KEY = (id: string) => `sy1.m.${id}.page`;
 let currentPage = "";
 
+function applyPageVisibility(): void {
+  const m = getMachine();
+  const panel = document.querySelector<HTMLElement>(".synth-panel");
+  const shell = document.querySelector<HTMLElement>(".sy1-shell");
+  if (!panel) return;
+  if (!m.pages.some((p) => p.id === currentPage)) currentPage = m.pages[0].id;
+  panel.setAttribute("data-page", currentPage);
+
+  const activePages = new Set<string>([currentPage]);
+  const wideFitPaged = !!shell && shell.classList.contains("is-fit-paged") && window.innerWidth >= 761;
+  if (wideFitPaged && m.pages.length > 1) {
+    const curSecs = m.sections.filter((s) => s.page === currentPage);
+    if (curSecs.length === 1) {
+      const idx = m.pages.findIndex((p) => p.id === currentPage);
+      const companion = m.pages[idx + 1] || m.pages[idx - 1];
+      if (companion) activePages.add(companion.id);
+    }
+  }
+
+  const visibleSecs: HTMLElement[] = [];
+  panel.querySelectorAll<HTMLElement>(".synth-sec").forEach((el) => {
+    const on = activePages.has(el.getAttribute("data-page") || "");
+    el.classList.toggle("is-on-page", on);
+    el.classList.remove("is-page-first");
+    if (on) visibleSecs.push(el);
+  });
+  if (visibleSecs[0]) visibleSecs[0].classList.add("is-page-first");
+  panel.setAttribute("data-count", String(visibleSecs.length));
+
+  document.querySelectorAll<HTMLElement>(".synth-tab").forEach((t) => {
+    const pg = t.getAttribute("data-page") || "";
+    const isPrimary = pg === currentPage;
+    const isShown = activePages.has(pg);
+    t.classList.toggle("active", isShown);
+    t.setAttribute("aria-selected", isPrimary ? "true" : "false");
+  });
+}
+
 export function setPanelPage(id: string): void {
   const m = getMachine();
   if (!m.pages.some((p) => p.id === id)) id = m.pages[0].id;
   currentPage = id;
-  const panel = document.querySelector(".synth-panel") as HTMLElement | null;
-  if (panel) {
-    panel.setAttribute("data-page", id);
-    // lets CSS arrange 3-section pages on phones, whatever the machine
-    const secs = Array.from(panel.querySelectorAll<HTMLElement>(`.synth-sec[data-page="${id}"]`));
-    panel.setAttribute("data-count", String(secs.length));
-    panel.querySelectorAll(".synth-sec").forEach((el) => {
-      el.classList.toggle("is-on-page", el.getAttribute("data-page") === id);
-      el.classList.remove("is-page-first");
-    });
-    if (secs[0]) secs[0].classList.add("is-page-first");
-  }
-  document.querySelectorAll(".synth-tab").forEach((t) => {
-    const on = t.getAttribute("data-page") === id;
-    t.classList.toggle("active", on);
-    t.setAttribute("aria-selected", on ? "true" : "false");
-  });
+  applyPageVisibility();
   try { localStorage.setItem(PAGE_KEY(m.id), id); } catch (e) {}
 }
 
@@ -587,6 +609,8 @@ export function renderSynthPanelHtml(): string {
           <button type="button" class="preset-display synth-preset-select" id="preset-btn" aria-haspopup="dialog" aria-expanded="false" title="Open the sound library">${renderPresetButton()}</button>
           <button type="button" class="synth-midi-btn" data-action="preset-next" aria-label="Next preset">▶</button>
         </div>
+        <nav class="synth-tabs" role="tablist" aria-label="Panel pages">${m.pages.map((pg) =>
+          `<button type="button" class="synth-tab" role="tab" data-action="synth-page" data-page="${pg.id}">${escapeHtml(pg.label)}</button>`).join("")}</nav>
         <div class="synth-midi-bar">
           ${tempo}
           <button type="button" class="synth-midi-btn" id="engine-btn" data-action="engine-toggle" aria-pressed="false">HQ</button>
@@ -599,8 +623,6 @@ export function renderSynthPanelHtml(): string {
           <span class="synth-midi-msg" id="midi-msg" role="status" aria-live="polite"></span>
         </div>
       </div>
-      <nav class="synth-tabs" role="tablist" aria-label="Panel pages">${m.pages.map((pg) =>
-        `<button type="button" class="synth-tab" role="tab" data-action="synth-page" data-page="${pg.id}">${escapeHtml(pg.label)}</button>`).join("")}</nav>
       <div class="synth-sections">
         ${m.sections.map(renderSection).join("")}
       </div>
@@ -693,8 +715,14 @@ export function fitPanel(): void {
   const overflowing = () =>
     panel.scrollHeight > panel.clientHeight + 1 ||
     (!!secs && secs.scrollHeight > secs.clientHeight + 1) ||
-    document.documentElement.scrollHeight > window.innerHeight + 1;
-  if (!tabsVisible() && overflowing()) shell.classList.add("is-fit-paged");
+    document.documentElement.scrollHeight > window.innerHeight + 1 ||
+    Array.from(panel.querySelectorAll<HTMLElement>(".synth-sec")).some(
+      (s) => getComputedStyle(s).display !== "none" && s.scrollHeight > s.clientHeight + 1
+    );
+  if (!tabsVisible() && overflowing()) {
+    shell.classList.add("is-fit-paged");
+  }
+  applyPageVisibility();
 }
 
 let fitRaf = 0;
