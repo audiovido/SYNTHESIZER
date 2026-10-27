@@ -64,7 +64,7 @@ export interface MachineDef {
   role: string;
   skin: string;
   kind: "synth" | "drums";
-  engine?: "hq" | "strings" | "fm" | "analog";
+  engine?: "hq" | "strings" | "fm" | "analog" | "vector";
   /** Drum machines: which synthesis model plays the 8 drum slots. */
   drumModel?: "analog" | "persian" | "acoustic" | "digital";
   /** Drum machines: the name shown for each of the 8 slots (kick, snare, clap, ch, oh, tom, rim, bell). */

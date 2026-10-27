@@ -3,7 +3,7 @@
  */
 
 export interface ParamDef {
-  type?: "wave" | "filter" | "lfo" | "poly" | "onoff" | "lfoShape" | "arpMode" | "tuning" | "strModel" | "fmAlgo" | "wave3";
+  type?: "wave" | "filter" | "lfo" | "poly" | "onoff" | "lfoShape" | "arpMode" | "tuning" | "strModel" | "fmAlgo" | "wave3" | "orbitMode";
   min?: number;
   max?: number;
   step?: number;
@@ -25,7 +25,8 @@ export const PARAM_CHOICES: Record<string, string[]> = {
   arpMode: ["up", "down", "updown", "random", "played", "euclid"],
   tuning: ["12tet", "shur", "homayoun", "chahargah", "segah", "bayati", "rast", "hijaz", "custom"],
   strModel: ["santur", "setar", "tar", "kanun", "oud", "harp"],
-  fmAlgo: ["1", "2", "3", "4", "5", "6", "7", "8"]
+  fmAlgo: ["1", "2", "3", "4", "5", "6", "7", "8"],
+  orbitMode: ["off", "circle", "figure8", "drawn"]
 };
 
 /** Musical note divisions used by tempo-synced LFO and arpeggiator (beats per step). */
@@ -38,6 +39,17 @@ export const SYNC_DIVS: { label: string; beats: number }[] = [
   { label: "1/16", beats: 0.25 },
   { label: "1/16T", beats: 1 / 6 },
   { label: "1/32", beats: 0.125 }
+];
+
+/** Orbit tempo-sync divisions (4 bars down to 1/16 note). */
+export const ORBIT_SYNC_DIVS: { label: string; beats: number }[] = [
+  { label: "4 bars", beats: 16 },
+  { label: "2 bars", beats: 8 },
+  { label: "1 bar", beats: 4 },
+  { label: "1/2", beats: 2 },
+  { label: "1/4", beats: 1 },
+  { label: "1/8", beats: 0.5 },
+  { label: "1/16", beats: 0.25 }
 ];
 const NOTE_LABELS = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
 
@@ -78,6 +90,7 @@ export const SYNTH_PARAMS: Record<string, ParamDef> = {
   fA:         { min: 0.001, max: 3, curve: "log", def: 0.01, fmt: fmtSec },
   fD:         { min: 0.01, max: 4, curve: "log", def: 0.35, fmt: fmtSec },
   fS:         { min: 0, max: 1, def: 0.25, fmt: (v) => Math.round(v * 100) + "%" },
+  fR:         { min: 0.01, max: 6, curve: "log", def: 0.35, fmt: fmtSec },
   aA:         { min: 0.001, max: 4, curve: "log", def: 0.008, fmt: fmtSec },
   aD:         { min: 0.01, max: 4, curve: "log", def: 0.3, fmt: fmtSec },
   aS:         { min: 0, max: 1, def: 0.75, fmt: (v) => Math.round(v * 100) + "%" },
@@ -195,6 +208,52 @@ DRUM_PARAM_VOICES.forEach((v) => {
 });
 SYNTH_PARAMS.drumSwing = { min: 0, max: 0.6, def: 0, fmt: (x) => Math.round(x * 100) + "%" };
 SYNTH_PARAMS.drumAccent = { min: 0, max: 1, def: 0.5, fmt: (x) => Math.round(x * 100) + "%" };
+
+// Nishapur vector morph synth: XY coordinates, 4 corner sources (A/B/C/D) and Orbit
+let orbitSyncFormatted = false;
+export function setOrbitSyncFormat(on: boolean): void {
+  orbitSyncFormatted = on;
+}
+export function orbitSyncDivForRate(rate: number): { label: string; beats: number } {
+  const min = 0.05;
+  const max = 8;
+  const clamped = Math.max(min, Math.min(max, Number(rate) || 0.4));
+  const norm = Math.log(clamped / min) / Math.log(max / min);
+  const idx = Math.min(ORBIT_SYNC_DIVS.length - 1, Math.max(0, Math.round(norm * (ORBIT_SYNC_DIVS.length - 1))));
+  return ORBIT_SYNC_DIVS[idx];
+}
+const VOWEL_LABELS = ["A", "A·E", "E", "E·I", "I", "I·O", "O", "O·U", "U"];
+SYNTH_PARAMS.vecX = { min: 0, max: 1, def: 0.5, fmt: (v) => Math.round(v * 100) + "%" };
+SYNTH_PARAMS.vecY = { min: 0, max: 1, def: 0.5, fmt: (v) => Math.round(v * 100) + "%" };
+SYNTH_PARAMS.orbitMode = { type: "orbitMode", def: "circle" };
+SYNTH_PARAMS.orbitRate = {
+  min: 0.05,
+  max: 8,
+  curve: "log",
+  def: 0.35,
+  fmt: (v) => (orbitSyncFormatted ? orbitSyncDivForRate(v).label : v.toFixed(v < 1 ? 2 : 1) + "Hz")
+};
+SYNTH_PARAMS.orbitSync = { type: "onoff", def: "off" };
+SYNTH_PARAMS.orbitSize = { min: 0, max: 1, def: 0.55, fmt: (v) => Math.round(v * 100) + "%" };
+SYNTH_PARAMS.orbitRec = { type: "onoff", def: "off" };
+// Corner A (top-left): saw/pulse blend
+SYNTH_PARAMS.vecAPw = { min: 0.05, max: 0.95, def: 0.35, fmt: (v) => Math.round(v * 100) + "%" };
+SYNTH_PARAMS.vecALevel = { min: 0, max: 1, def: 0.85, fmt: (v) => Math.round(v * 100) + "%" };
+// Corner B (top-right): 2-operator FM bell
+SYNTH_PARAMS.vecBRatio = { min: 0.5, max: 12, curve: "log", step: 0.01, def: 3.5, fmt: (v) => "×" + (v >= 10 ? v.toFixed(1) : v.toFixed(2)) };
+SYNTH_PARAMS.vecBIndex = { min: 0, max: 1, def: 0.45, fmt: (v) => Math.round(v * 100) + "%" };
+SYNTH_PARAMS.vecBLevel = { min: 0, max: 1, def: 0.85, fmt: (v) => Math.round(v * 100) + "%" };
+// Corner C (bottom-left): procedural wavetable
+SYNTH_PARAMS.vecCPos = { min: 0, max: 1, def: 0.4, fmt: (v) => Math.round(v * 100) + "%" };
+SYNTH_PARAMS.vecCLevel = { min: 0, max: 1, def: 0.85, fmt: (v) => Math.round(v * 100) + "%" };
+// Corner D (bottom-right): 2-formant bandpass filtered noise
+SYNTH_PARAMS.vecDVowel = {
+  min: 0,
+  max: 1,
+  def: 0.3,
+  fmt: (v) => VOWEL_LABELS[Math.min(VOWEL_LABELS.length - 1, Math.max(0, Math.round(v * (VOWEL_LABELS.length - 1))))]
+};
+SYNTH_PARAMS.vecDLevel = { min: 0, max: 1, def: 0.85, fmt: (v) => Math.round(v * 100) + "%" };
 
 export interface TuningDef {
   name: string;

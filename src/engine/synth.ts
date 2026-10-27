@@ -9,11 +9,12 @@
  */
 
 import { getAudioCtx, getAudioCtxIfAny, getSynthBus, makeDriveCurve, makeReverbImpulse, unlockAudio } from "./bus";
-import { getCustomTuning, setCustomTuning, SYNC_DIVS, SYNTH_PARAMS, SynthPatch, synthDefaults, TUNINGS, tuningCents } from "./params";
+import { getCustomTuning, setCustomTuning, setOrbitSyncFormat, SYNC_DIVS, SYNTH_PARAMS, SynthPatch, synthDefaults, TUNINGS, tuningCents } from "./params";
 import { createHQVoice, EngineId, hqPost, initHQ, setEngine, useHQ } from "./hq";
 import { createStringsVoice, initStrings, stringsPost, useStrings } from "./strings";
 import { createFmVoice, fmPost, initFm, useFm } from "./fm";
 import { analogPost, createAnalogVoice, initAnalog, useAnalog } from "./analog";
+import { createVectorVoice, initVector, syncVectorOrbitRate, vectorPost } from "./vector";
 import {
   activeSynthVoices,
   createSynthVoice,
@@ -207,6 +208,14 @@ export function setSynthParam(
   stringsPost({ t: "param", key, value: synthPatch[key] });
   fmPost({ t: "param", key, value: synthPatch[key] });
   analogPost({ t: "param", key, value: synthPatch[key] });
+  vectorPost({ t: "param", key, value: synthPatch[key] });
+  if (key === "orbitSync") {
+    setOrbitSyncFormat(synthPatch.orbitSync === "on");
+    syncVectorOrbitRate(synthPatch);
+    paramChangeListeners.forEach((cb) => cb("orbitRate", synthPatch.orbitRate));
+  } else if (key === "orbitRate") {
+    syncVectorOrbitRate(synthPatch);
+  }
   if (!fromPreset && (key === "oriental" || key === "tuning" || key === "tuneRoot")) {
     retuneActiveVoices();
   }
@@ -222,10 +231,11 @@ export function updateCustomTuningOffsets(offsets?: number[]): number[] {
   return clean;
 }
 
-// tempo changes re-sync a synced LFO
+// tempo changes re-sync a synced LFO and synced Orbit
 onTempoChange(() => {
   const r = syncedLfoRate();
   if (r !== null) setSynthParam("lfoRate", r, { internal: true });
+  syncVectorOrbitRate(synthPatch);
 });
 
 function applyPatchObject(next: Record<string, unknown>): void {
@@ -316,6 +326,7 @@ export function setPitchBend(norm: number): void {
   stringsPost({ t: "bend", v });
   fmPost({ t: "bend", v });
   analogPost({ t: "bend", v });
+  vectorPost({ t: "bend", v });
 }
 export function getPitchBend(): number {
   return getVoicePitchBend();
@@ -327,6 +338,7 @@ export function setModWheel(norm: number): void {
   stringsPost({ t: "mod", v });
   fmPost({ t: "mod", v });
   analogPost({ t: "mod", v });
+  vectorPost({ t: "mod", v });
 }
 export function getModWheel(): number {
   return getVoiceModWheel();
@@ -343,6 +355,7 @@ export function prepareAudio(): void {
     if (machine.engine === "strings") initStrings(ctx, input, () => synthPatch);
     if (machine.engine === "fm") initFm(ctx, input, () => synthPatch);
     if (machine.engine === "analog") initAnalog(ctx, input, () => synthPatch);
+    if (machine.engine === "vector") initVector(ctx, input, () => synthPatch);
   }
 }
 
@@ -401,6 +414,9 @@ function holding(): boolean {
 
 function startVoice(midi: number, vel: number, at: number, fromHz = 0, glide = 0): SynthVoice {
   const ctx = getAudioCtx();
+  if (machine.engine === "vector") {
+    return createVectorVoice(ctx, synthPatch, midi, centsFor(midi), vel, at, fromHz, glide);
+  }
   if (machine.engine === "strings" && useStrings()) {
     return createStringsVoice(midi, centsFor(midi), vel, at, fromHz, glide);
   }
@@ -601,6 +617,7 @@ function releaseEverything(): void {
   stringsPost({ t: "alloff" });
   fmPost({ t: "alloff" });
   analogPost({ t: "alloff" });
+  vectorPost({ t: "alloff" });
   document.querySelectorAll(".key.is-pressed").forEach((el) => el.classList.remove("is-pressed"));
 }
 
@@ -612,6 +629,7 @@ export function allNotesOff(): void {
   stringsPost({ t: "bend", v: 0 });
   fmPost({ t: "bend", v: 0 });
   analogPost({ t: "bend", v: 0 });
+  vectorPost({ t: "bend", v: 0 });
   releaseEverything();
 }
 

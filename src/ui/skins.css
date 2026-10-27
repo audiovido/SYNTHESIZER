@@ -1959,7 +1959,7 @@
   background:
     linear-gradient(0deg, transparent calc(50% - 0.5px), rgba(17,17,17,0.12) calc(50% - 0.5px) calc(50% + 0.5px), transparent calc(50% + 0.5px)),
     linear-gradient(90deg, transparent calc(50% - 0.5px), rgba(17,17,17,0.12) calc(50% - 0.5px) calc(50% + 0.5px), transparent calc(50% + 0.5px)),
-    radial-gradient(circle, #f3ead6 0 42%, transparent 43%);
+    radial-gradient(circle, #f3ead6 0 62%, transparent 63%);
   border: 2px solid #111111;
   box-shadow: inset 0 0 0 2px #fcf8ee, 2px 2px 0 #111111;
 }
@@ -1998,3 +1998,129 @@
   stroke-width: 3;
   filter: drop-shadow(0 0 5px rgba(242,183,5,0.95));
 }
+
+
+/* ------------------------------------------------------------
+   NISHAPUR — dark glassmorphism vector morph synth
+   Frosted translucent panels over a deep navy-violet nebula,
+   cyan -> violet luminous knob rings, soft coloured glows,
+   and crisp luminous vector HUD telemetry.
+   ------------------------------------------------------------ */
+[data-skin="nishapur"],
+[data-machine="nishapur"] {
+  --kb-btn-ink: #eaf6ff;
+  --midi-btn-ink: #eaf6ff;
+  --font-ui: "Avenir Next", "Inter", "Segoe UI", Roboto, sans-serif;
+  --font-head: "Avenir Next", "Inter", "Segoe UI", sans-serif;
+
+  --page-bg: #070614;
+  --ink: #f0f6ff;
+  --ink-dim: #a9b8dc;
+  --ink-faint: #7888b4;
+
+  --accent: #38e8ff;
+  --accent-2: #b46cff;
+  --accent-ink: #06101e;
+  --accent-glow: rgba(56, 232, 255, 0.72);
+  --accent-glow-soft: rgba(56, 232, 255, 0.28);
+
+  --shell-bg:
+    radial-gradient(circle at 18% 16%, rgba(56, 232, 255, 0.16), transparent 44%),
+    radial-gradient(circle at 82% 24%, rgba(180, 108, 255, 0.2), transparent 48%),
+    radial-gradient(circle at 52% 85%, rgba(92, 118, 255, 0.15), transparent 52%),
+    linear-gradient(165deg, #0b0920 0%, #070614 55%, #110c29 100%);
+  --panel-bg:
+    linear-gradient(145deg, rgba(28, 34, 74, 0.62) 0%, rgba(15, 16, 42, 0.56) 55%, rgba(28, 19, 58, 0.62) 100%);
+  --panel-border: rgba(146, 198, 255, 0.28);
+  --panel-radius: 16px;
+  --panel-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    0 16px 38px rgba(3, 2, 12, 0.65),
+    0 0 28px rgba(56, 232, 255, 0.08);
+
+  --sec-bg:
+    linear-gradient(160deg, rgba(34, 42, 88, 0.52) 0%, rgba(16, 18, 46, 0.48) 100%);
+  --sec-border: rgba(156, 206, 255, 0.24);
+  --sec-radius: 12px;
+  --sec-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    0 4px 16px rgba(4, 3, 16, 0.42);
+  --sec-head: #bcefff;
+
+  --btn-bg: linear-gradient(180deg, rgba(46, 56, 110, 0.72) 0%, rgba(24, 28, 64, 0.78) 100%);
+  --btn-ink: #eaf6ff;
+  --btn-border: rgba(140, 192, 255, 0.34);
+  --ctl-bg: rgba(15, 18, 44, 0.72);
+  --ctl-ink: #c6d8f8;
+  --choice-active-bg: linear-gradient(135deg, rgba(56, 232, 255, 0.34) 0%, rgba(180, 108, 255, 0.38) 100%);
+  --choice-active-ink: #ffffff;
+
+  --scope-bg:
+    radial-gradient(circle at 50% 50%, rgba(56, 232, 255, 0.12) 0%, rgba(180, 108, 255, 0.08) 48%, rgba(8, 9, 26, 0.94) 100%);
+  --scope-border: rgba(120, 214, 255, 0.36);
+  --scope-line: #49eeff;
+  --scope-grid: rgba(132, 198, 255, 0.16);
+
+  --knob-face:
+    radial-gradient(circle at 34% 26%, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0) 36%),
+    radial-gradient(circle, #212752 0%, #121533 66%, #0b0d22 100%);
+  --knob-gap: rgba(10, 12, 30, 0.92);
+  --knob-edge: rgba(140, 196, 255, 0.36);
+  --knob-arc: #38e8ff;
+  --knob-track: rgba(146, 184, 255, 0.16);
+  --knob-arc-filter: drop-shadow(0 0 4px rgba(56, 232, 255, 0.65));
+  --knob-ind: #f2fbff;
+  --knob-ind-glow: rgba(56, 232, 255, 0.85);
+  --label-ink: #d8e8ff;
+  --value-ink: #8ceeff;
+
+  --key-white: linear-gradient(180deg, #eef5ff 0%, #d8e5fb 86%, #bfd2f2 100%);
+  --key-white-ink: #1e294a;
+  --key-black: linear-gradient(180deg, #252b58 0%, #141736 70%, #0c0e24 100%);
+  --key-black-ink: #b9d9ff;
+  --key-line: rgba(120, 175, 245, 0.45);
+  --key-pressed: linear-gradient(180deg, #74f2ff 0%, #a56eff 100%);
+  --key-pressed-ink: #07091c;
+
+  --led-off: #1a1f42;
+  --led-off-edge: rgba(138, 190, 255, 0.45);
+}
+:is([data-skin="nishapur"], [data-machine="nishapur"]) .synth-panel,
+:is([data-skin="nishapur"], [data-machine="nishapur"]) .synth-sec {
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+:is([data-skin="nishapur"], [data-machine="nishapur"]) .synth-sec:nth-child(even) {
+  --knob-arc: #b46cff;
+  --knob-arc-filter: drop-shadow(0 0 4px rgba(180, 108, 255, 0.65));
+}
+:is([data-skin="nishapur"], [data-machine="nishapur"]) .synth-sec h4 {
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-shadow: 0 0 10px rgba(56, 232, 255, 0.35);
+}
+:is([data-skin="nishapur"], [data-machine="nishapur"]) .sk-label {
+  font-weight: 700;
+}
+:is([data-skin="nishapur"], [data-machine="nishapur"]) .synth-choice-btn.active,
+:is([data-skin="nishapur"], [data-machine="nishapur"]) .synth-tab.active,
+:is([data-skin="nishapur"], [data-machine="nishapur"]) .kb-btn.active {
+  border-color: #5bf0ff;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.32), 0 0 12px rgba(56, 232, 255, 0.36);
+}
+:is([data-skin="nishapur"], [data-machine="nishapur"]) .vec-svg {
+  background:
+    radial-gradient(circle at 18% 18%, rgba(56, 232, 255, 0.16), transparent 45%),
+    radial-gradient(circle at 82% 18%, rgba(180, 108, 255, 0.18), transparent 45%),
+    radial-gradient(circle at 18% 82%, rgba(92, 230, 190, 0.14), transparent 45%),
+    radial-gradient(circle at 82% 82%, rgba(255, 118, 210, 0.15), transparent 45%),
+    rgba(8, 10, 28, 0.88);
+  border-color: rgba(124, 214, 255, 0.42);
+  box-shadow:
+    inset 0 0 22px rgba(56, 232, 255, 0.12),
+    0 0 16px rgba(56, 232, 255, 0.12);
+}
+:is([data-skin="nishapur"], [data-machine="nishapur"]) .vec-cursor-ring {
+  filter: drop-shadow(0 0 5px rgba(56, 232, 255, 0.9));
+}
+

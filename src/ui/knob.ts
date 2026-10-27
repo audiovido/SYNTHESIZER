@@ -60,12 +60,16 @@ export function updateSynthControlDOM(key: string): void {
     if (val) val.textContent = fmtVal;
     el.setAttribute("aria-valuetext", fmtVal);
   });
+
+  document.querySelectorAll(`.vec-axis-pill[data-param="${key}"] b`).forEach((el) => {
+    el.textContent = def.fmt ? def.fmt(v) : String(v);
+  });
 }
 
 export function updateMidiLearnDOM(): void {
   const learningKey = isLearnMode() ? getLearnTargetParam() : null;
 
-  document.querySelectorAll(".sk[data-param], .synth-choice[data-param]").forEach((el) => {
+  document.querySelectorAll(".sk[data-param], .synth-choice[data-param], .vec-axis-pill[data-param]").forEach((el) => {
     const key = el.getAttribute("data-param");
     if (!key) return;
     const mapped = isParamMapped(key);
@@ -121,7 +125,7 @@ export function initKnobInteractions(): void {
   // Right-click removes a MIDI mapping. A touch long-press also fires contextmenu on
   // some phones: outside LEARN mode that must never unmap, so only block the menu.
   document.addEventListener("contextmenu", (e) => {
-    const target = (e.target as HTMLElement)?.closest?.(".sk[data-param], .synth-choice[data-param]") as HTMLElement | null;
+    const target = (e.target as HTMLElement)?.closest?.(".sk[data-param], .synth-choice[data-param], .vec-axis-pill[data-param]") as HTMLElement | null;
     if (!target) return;
     const key = target.getAttribute("data-param");
     if (!key || !isParamMapped(key)) return;
@@ -136,7 +140,7 @@ export function initKnobInteractions(): void {
     // Allow right-click to be handled by contextmenu
     if (e.button === 2) return;
 
-    const choiceEl = (e.target as HTMLElement)?.closest?.(".synth-choice[data-param]") as HTMLElement | null;
+    const choiceEl = (e.target as HTMLElement)?.closest?.(".synth-choice[data-param], .vec-axis-pill[data-param]") as HTMLElement | null;
     if (choiceEl && isLearnMode()) {
       const cKey = choiceEl.getAttribute("data-param");
       if (cKey) {

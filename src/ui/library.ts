@@ -77,11 +77,12 @@ function iconFor(group: string): IconId {
   if (m.kind === "drums") return "drum";
   if (m.id === "konya") return "ring";
   if (/pad|atmos|warm|bright|dark|cinematic|string machine/.test(g)) return "pad";
+  if (/orbit/.test(g)) return "ring";
+  if (/bell|mallet/.test(g)) return "bell";
   if (/bass|wobble|growl/.test(g)) return "bass";
   if (/arp|synthwave|sparkle|driving|groove/.test(g)) return "arp";
   if (/organ/.test(g)) return "organ";
   if (/piano|keys/.test(g)) return "keys";
-  if (/bell|mallet/.test(g)) return "bell";
   if (/brass/.test(g)) return "brass";
   if (/ney|flute|voice|reed/.test(g)) return "wind";
   if (/bowed/.test(g)) return "bowed";

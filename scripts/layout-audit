@@ -290,7 +290,7 @@ async function main() {
 
               const controls = Array.from(
                 sec.querySelectorAll(
-                  ".synth-choice, .synth-param-select-wrap, .sk, .fm-lcd, .eu-svg, .eu-hint, .drum-transport, .drum-voices, .drum-steps, .drum-voice-name"
+                  ".synth-choice, .synth-param-select-wrap, .sk, .fm-lcd, .eu-svg, .vec-svg, .eu-hint, .drum-transport, .drum-voices, .drum-steps, .drum-voice-name"
                 )
               ).filter((el) => {
                 if (el.classList.contains("synth-choice") && el.closest(".drum-transport")) {
@@ -404,16 +404,33 @@ async function main() {
                 );
               }
 
-              // Konya RINGS: .eu-svg keeps 1:1 aspect ratio and fills available card dimension
-              const euSvg = sec.querySelector(".eu-svg");
-              const euCustom = sec.querySelector('.synth-custom[data-custom="euclid-rings"]');
-              if (euSvg && euCustom && getComputedStyle(euSvg).display !== "none") {
-                const er = euSvg.getBoundingClientRect();
-                const cr = euCustom.getBoundingClientRect();
+              // Konya RINGS & Nishapur VECTOR PAD: square SVG fills card and side >= 80% of min(cardInnerW, cardInnerH)
+              const squareSvg = sec.querySelector(".eu-svg, .vec-svg");
+              const squareCustom = sec.querySelector(
+                '.synth-custom[data-custom="euclid-rings"], .synth-custom[data-custom="vector-pad"]'
+              );
+              if (squareSvg && squareCustom && getComputedStyle(squareSvg).display !== "none") {
+                const er = squareSvg.getBoundingClientRect();
+                const cr = squareCustom.getBoundingClientRect();
                 const fitDim = Math.min(cr.width, cr.height);
+                const csSec = getComputedStyle(sec);
+                const cardInnerW =
+                  sec.clientWidth -
+                  (parseFloat(csSec.paddingLeft) || 0) -
+                  (parseFloat(csSec.paddingRight) || 0);
+                const cardInnerH =
+                  sec.clientHeight -
+                  (parseFloat(csSec.paddingTop) || 0) -
+                  (parseFloat(csSec.paddingBottom) || 0);
+                const minInner = Math.min(cardInnerW, cardInnerH);
+                const side = Math.min(er.width, er.height);
                 check(
                   Math.abs(er.width - er.height) <= 1.5 && er.height >= fitDim - 2,
-                  `section "${secTitle}" .eu-svg (${er.width.toFixed(1)}x${er.height.toFixed(1)}) does not fill card (${cr.width.toFixed(1)}x${cr.height.toFixed(1)})`
+                  `section "${secTitle}" square SVG (${er.width.toFixed(1)}x${er.height.toFixed(1)}) does not fill custom box (${cr.width.toFixed(1)}x${cr.height.toFixed(1)})`
+                );
+                check(
+                  side >= 0.8 * minInner - EPS,
+                  `section "${secTitle}" compass/pad side ${side.toFixed(1)}px < 80% of min card inner (${minInner.toFixed(1)}px)`
                 );
               }
 

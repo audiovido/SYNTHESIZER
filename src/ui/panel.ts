@@ -21,6 +21,7 @@ import {
   setMidiActivityCallback,
   setSelectedMidiChannel,
   setSelectedMidiDevice,
+  selectLearnParam,
   toggleLearnMode
 } from "../engine/midi";
 import { escapeHtml } from "../engine/params";
@@ -29,6 +30,7 @@ import {
   applySynthPreset,
   getMachine,
   getMachines,
+  getModWheel,
   getSynthPatch,
   getSynthPresetId,
   noteOff,
@@ -42,6 +44,7 @@ import {
   stepPreset,
   switchEngine
 } from "../engine/synth";
+import { evalOrbitPoint, getVectorLiveXY, setVectorDrawnPath } from "../engine/vector";
 import { getEngine, getHQState, onEngineChange } from "../engine/hq";
 import { getTempo, onTempoChange, setTempo, tapTempo } from "../engine/tempo";
 import {
@@ -192,7 +195,7 @@ function renderFmAlgo(): string {
 }
 
 // ----------------------------------------------------- Konya: the rings ----
-const RING_R = [26, 44, 62];
+const RING_R = [28, 49, 70];
 
 function renderEuclidRings(): string {
   const p = getSynthPatch();
@@ -232,9 +235,230 @@ function bindEuclidPlayhead(): void {
   });
 }
 
+// -------------------------------------------- Nishapur: Vector XY pad ----
+const VEC_PAD_MIN = 12;
+const VEC_PAD_SPAN = 176;
+const toSvgCoord = (norm: number): number => VEC_PAD_MIN + Math.max(0, Math.min(1, norm)) * VEC_PAD_SPAN;
+
+let vecTrail: [number, number][] = [];
+let vecRecPoints: [number, number][] | null = null;
+let vecRafId = 0;
+
+function buildOrbitPathD(): string {
+  if (vecRecPoints && vecRecPoints.length >= 2) {
+    return vecRecPoints
+      .map(([x, y], i) => `${i === 0 ? "M" : "L"}${toSvgCoord(x).toFixed(1)} ${toSvgCoord(y).toFixed(1)}`)
+      .join(" ");
+  }
+  const p = getSynthPatch();
+  const mode = String(p.orbitMode || "off");
+  const effSize = Math.min(1, (Number(p.orbitSize) ?? 0.55) + getModWheel());
+  if (mode === "off" || effSize <= 0.005) return "";
+  const cx = Math.max(0, Math.min(1, Number(p.vecX) ?? 0.5));
+  const cy = Math.max(0, Math.min(1, Number(p.vecY) ?? 0.5));
+  const steps = 72;
+  let d = "";
+  for (let i = 0; i <= steps; i++) {
+    const [x, y] = evalOrbitPoint(mode, i / steps, cx, cy, effSize);
+    d += `${i === 0 ? "M" : "L"}${toSvgCoord(x).toFixed(1)} ${toSvgCoord(y).toFixed(1)} `;
+  }
+  return d + "Z";
+}
+
+function renderVectorPad(): string {
+  const p = getSynthPatch();
+  const cx = Math.max(0, Math.min(1, Number(p.vecX) ?? 0.5));
+  const cy = Math.max(0, Math.min(1, Number(p.vecY) ?? 0.5));
+  const live = getVectorLiveXY(p);
+  const px = toSvgCoord(live.x);
+  const py = toSvgCoord(live.y);
+  const ax = toSvgCoord(cx);
+  const ay = toSvgCoord(cy);
+  const orbitD = buildOrbitPathD();
+  const recOn = p.orbitRec === "on";
+  const xMapped = isParamMapped("vecX");
+  const yMapped = isParamMapped("vecY");
+  const learnTarget = isLearnMode() ? getLearnTargetParam() : null;
+
+  return `<div class="vec-wrap">
+    <svg class="vec-svg${recOn ? " is-recording" : ""}" id="vec-pad-svg" viewBox="0 0 200 200" aria-label="Vector XY morph pad">
+      <g class="vec-grid" aria-hidden="true">
+        <circle cx="100" cy="100" r="38" />
+        <circle cx="100" cy="100" r="76" />
+        <line x1="100" y1="10" x2="100" y2="190" />
+        <line x1="10" y1="100" x2="190" y2="100" />
+        <line class="vec-diag" x1="16" y1="16" x2="184" y2="184" />
+        <line class="vec-diag" x1="184" y1="16" x2="16" y2="184" />
+      </g>
+      <g class="vec-corner vec-corner-a" aria-hidden="true">
+        <text x="12" y="22">A</text>
+        <path d="M25 20l4-7v7h4v-7h5v7" />
+      </g>
+      <g class="vec-corner vec-corner-b" aria-hidden="true">
+        <text x="188" y="22" text-anchor="end">B</text>
+        <path d="M161 19v-3a4.5 4.5 0 0 1 9 0v3h2h-13zM164.5 21.5h2" />
+      </g>
+      <g class="vec-corner vec-corner-c" aria-hidden="true">
+        <text x="12" y="188">C</text>
+        <path d="M25 186c2.5-3.5 4.5-3.5 7 0s4.5 3.5 7 0M25 181c2.5-3.5 4.5-3.5 7 0s4.5 3.5 7 0" />
+      </g>
+      <g class="vec-corner vec-corner-d" aria-hidden="true">
+        <text x="188" y="188" text-anchor="end">D</text>
+        <path d="M159 187c1.8-7 3.6-7 5.4 0c1.8-10 3.6-10 5.4 0c1.6-4.5 3.2-4.5 4.8 0" />
+      </g>
+      <path class="vec-orbit-path${recOn ? " is-rec" : ""}" id="vec-orbit-path" d="${orbitD}" />
+      <polyline class="vec-trail" id="vec-trail" points="" />
+      <circle class="vec-anchor" id="vec-anchor" cx="${ax.toFixed(1)}" cy="${ay.toFixed(1)}" r="2.8" />
+      <g class="vec-cursor" id="vec-cursor" transform="translate(${px.toFixed(1)}, ${py.toFixed(1)})">
+        <circle class="vec-cursor-halo" r="13" />
+        <circle class="vec-cursor-ring" r="6" />
+        <circle class="vec-cursor-dot" r="2.6" />
+      </g>
+    </svg>
+    <div class="vec-xy-hud">
+      <button type="button" class="vec-axis-pill${xMapped ? " is-mapped" : ""}${learnTarget === "vecX" ? " is-learning" : ""}" data-param="vecX">X <b>${Math.round(cx * 100)}%</b><span class="sk-dot"></span></button>
+      <button type="button" class="vec-axis-pill${yMapped ? " is-mapped" : ""}${learnTarget === "vecY" ? " is-learning" : ""}" data-param="vecY">Y <b>${Math.round(cy * 100)}%</b><span class="sk-dot"></span></button>
+    </div>
+  </div>`;
+}
+
+function updateVectorPadDOM(rebuildOrbit = false): void {
+  const svg = document.getElementById("vec-pad-svg");
+  if (!svg) return;
+  const p = getSynthPatch();
+  const cx = Math.max(0, Math.min(1, Number(p.vecX) ?? 0.5));
+  const cy = Math.max(0, Math.min(1, Number(p.vecY) ?? 0.5));
+  const live = vecRecPoints && vecRecPoints.length
+    ? { x: vecRecPoints[vecRecPoints.length - 1][0], y: vecRecPoints[vecRecPoints.length - 1][1] }
+    : getVectorLiveXY(p);
+
+  const px = toSvgCoord(live.x);
+  const py = toSvgCoord(live.y);
+
+  const last = vecTrail[vecTrail.length - 1];
+  if (!last || Math.hypot(px - last[0], py - last[1]) > 1.2) {
+    vecTrail.push([px, py]);
+    if (vecTrail.length > 22) vecTrail.shift();
+  }
+
+  const cursor = document.getElementById("vec-cursor");
+  if (cursor) cursor.setAttribute("transform", `translate(${px.toFixed(1)}, ${py.toFixed(1)})`);
+  const anchor = document.getElementById("vec-anchor");
+  if (anchor) {
+    anchor.setAttribute("cx", toSvgCoord(cx).toFixed(1));
+    anchor.setAttribute("cy", toSvgCoord(cy).toFixed(1));
+  }
+  const trail = document.getElementById("vec-trail");
+  if (trail) {
+    trail.setAttribute("points", vecTrail.map(([tx, ty]) => `${tx.toFixed(1)},${ty.toFixed(1)}`).join(" "));
+  }
+  if (rebuildOrbit) {
+    const orbitEl = document.getElementById("vec-orbit-path");
+    if (orbitEl) {
+      orbitEl.setAttribute("d", buildOrbitPathD());
+      orbitEl.classList.toggle("is-rec", p.orbitRec === "on");
+    }
+    svg.classList.toggle("is-recording", p.orbitRec === "on");
+  }
+}
+
+function startVectorPadLoop(): void {
+  if (vecRafId) cancelAnimationFrame(vecRafId);
+  const tick = () => {
+    if (getMachine().id !== "nishapur") {
+      vecRafId = 0;
+      return;
+    }
+    updateVectorPadDOM(false);
+    vecRafId = requestAnimationFrame(tick);
+  };
+  vecRafId = requestAnimationFrame(tick);
+}
+
+function bindVectorPad(): void {
+  const svg = document.getElementById("vec-pad-svg") as SVGSVGElement | null;
+  if (!svg) return;
+  let pointerId: number | null = null;
+
+  const setFromEvent = (e: PointerEvent, isStart: boolean) => {
+    const r = svg.getBoundingClientRect();
+    if (r.width <= 0 || r.height <= 0) return;
+    const x = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width));
+    const y = Math.max(0, Math.min(1, (e.clientY - r.top) / r.height));
+    const p = getSynthPatch();
+    if (p.orbitRec === "on") {
+      if (isStart || !vecRecPoints) {
+        vecRecPoints = [[x, y]];
+      } else {
+        const prev = vecRecPoints[vecRecPoints.length - 1];
+        if (!prev || Math.hypot(x - prev[0], y - prev[1]) >= 0.008) {
+          vecRecPoints.push([x, y]);
+          if (vecRecPoints.length > 512) {
+            // Keep memory bounded during long drags; setVectorDrawnPath resamples to max 256
+            vecRecPoints = vecRecPoints.filter((_, idx) => idx % 2 === 0);
+          }
+        }
+      }
+      setSynthParam("vecX", x);
+      setSynthParam("vecY", y);
+      updateVectorPadDOM(true);
+    } else {
+      setSynthParam("vecX", x);
+      setSynthParam("vecY", y);
+      updateVectorPadDOM(true);
+    }
+  };
+
+  svg.addEventListener("pointerdown", (e) => {
+    if (e.button === 2) return;
+    e.preventDefault();
+    e.stopPropagation();
+    prepareAudio();
+    if (isLearnMode()) {
+      const cur = getLearnTargetParam();
+      selectLearnParam(cur === "vecX" ? "vecY" : "vecX");
+      return;
+    }
+    pointerId = e.pointerId;
+    try {
+      svg.setPointerCapture(pointerId);
+    } catch (err) {}
+    setFromEvent(e, true);
+  });
+
+  svg.addEventListener("pointermove", (e) => {
+    if (e.pointerId !== pointerId) return;
+    e.preventDefault();
+    setFromEvent(e, false);
+  });
+
+  const endDrag = (e: PointerEvent) => {
+    if (e.pointerId !== pointerId) return;
+    pointerId = null;
+    if (vecRecPoints) {
+      const recorded = vecRecPoints;
+      vecRecPoints = null;
+      if (recorded.length >= 2) {
+        setVectorDrawnPath(recorded);
+        setSynthParam("vecX", 0.5);
+        setSynthParam("vecY", 0.5);
+        setSynthParam("orbitMode", "drawn");
+      }
+      setSynthParam("orbitRec", "off");
+      updateVectorPadDOM(true);
+    }
+  };
+
+  svg.addEventListener("pointerup", endDrag);
+  svg.addEventListener("pointercancel", endDrag);
+  svg.addEventListener("lostpointercapture", endDrag);
+  startVectorPadLoop();
+}
+
 function renderCustom(id: string): string {
   if (id === "fm-algo") return renderFmAlgo();
   if (id === "euclid-rings") { bindEuclidPlayhead(); return renderEuclidRings(); }
+  if (id === "vector-pad") return renderVectorPad();
   if (id === "drum-transport") return renderDrumTransport();
   if (id === "drum-steps") return renderDrumSteps();
   if (id === "drum-voice") return renderDrumVoice();
@@ -471,7 +695,7 @@ function bindPanelElements(): void {
     let swipe: { x: number; y: number; id: number } | null = null;
     sections.addEventListener("pointerdown", (e) => {
       const t = e.target as HTMLElement;
-      if (!tabsVisible() || t.closest(".sk, button, select")) return;
+      if (!tabsVisible() || t.closest(".sk, .vec-svg, .vec-axis-pill, button, select")) return;
       swipe = { x: e.clientX, y: e.clientY, id: e.pointerId };
     });
     sections.addEventListener("pointerup", (e) => {
@@ -483,6 +707,7 @@ function bindPanelElements(): void {
     });
     sections.addEventListener("pointercancel", () => { swipe = null; });
   }
+  bindVectorPad();
 }
 
 export function initPanelInteractions(): void {
@@ -490,6 +715,7 @@ export function initPanelInteractions(): void {
     updateSynthControlDOM(key);
     if (key === "fmAlgo") refreshCustom("fm-algo");
     else if (key.startsWith("euc")) refreshCustom("euclid-rings");
+    else if (key === "vecX" || key === "vecY" || key.startsWith("orbit")) updateVectorPadDOM(true);
   });
   onPresetChange(() => updateSynthPresetDOM());
   onMidiStateChange(() => updateMidiBarDOM());
