@@ -18,7 +18,7 @@ export const BAM: MachineDef = {
     SEC.lfo("motion", "MOTION", true), SEC.driveEq("motion"), SEC.delay("space"), SEC.reverbOut("space")
   ],
   base: {
-    hold: "on", aA: 2, aD: 1, aS: 1, aR: 4, velSens: 0.2, noise: 0.25,
+    hold: "off", aA: 2, aD: 1, aS: 1, aR: 4, velSens: 0.2, noise: 0.25,
     osc1Oct: -1, osc2Oct: -1, unison: 3, uniDetune: 30, uniWidth: 0.9,
     filterType: "bandpass", cutoff: 800, res: 6, envAmt: 0.1,
     lfoTarget: "filter", lfoShape: "sh", lfoRate: 2, lfoDepth: 0.35,

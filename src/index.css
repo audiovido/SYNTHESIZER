@@ -947,7 +947,19 @@ body {
 /* ============================================================
    Drum machines (Kerman, Bushehr, Rasht, Hormoz)
    ============================================================ */
+.synth-sec.synth-sec-custom {
+  flex-direction: column;
+  flex-wrap: nowrap;
+}
+
+.synth-sec.synth-sec-custom > h4 {
+  flex: 0 0 auto;
+}
+
 .synth-sec-custom > .synth-custom {
+  flex: 1 1 auto;
+  width: 100%;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   gap: var(--sec-row-gap);
@@ -993,12 +1005,13 @@ body {
 .drum-voice-btn {
   min-width: 0;
   min-height: 30px;
-  padding: 0 1px;
+  padding: 0 2px;
   border-radius: 6px;
   border: 1px solid var(--btn-border);
   background: var(--ctl-bg);
   color: var(--ctl-ink);
-  font-size: clamp(0.56rem, 4cqw, 0.7rem);
+  font-size: clamp(0.5rem, 3.2cqw, 0.68rem);
+  letter-spacing: 0.02em;
   font-weight: 800;
   white-space: nowrap;
   overflow: hidden;
@@ -1044,26 +1057,62 @@ body {
 }
 
 .drum-step {
+  position: relative;
+  min-height: 32px;
   height: 34px;
   border-radius: 6px;
   border: 1px solid var(--btn-border);
   background: var(--ctl-bg);
   cursor: pointer;
+  overflow: hidden;
+}
+
+.drum-step::before {
+  content: "";
+  position: absolute;
+  top: 4px;
+  left: 22%;
+  right: 22%;
+  height: 3px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.14);
+  pointer-events: none;
 }
 
 .drum-step.beat {
   border-color: var(--ink-faint);
 }
 
+.drum-step.beat::before {
+  background: rgba(255, 255, 255, 0.28);
+}
+
 .drum-step.on {
   background: var(--accent);
   border-color: var(--accent);
-  opacity: 0.78;
+  opacity: 0.85;
+}
+
+.drum-step.on::before {
+  left: 16%;
+  right: 16%;
+  height: 4px;
+  background: #ffffff;
+  box-shadow: 0 0 6px #ffffff;
 }
 
 .drum-step.accent {
   opacity: 1;
-  box-shadow: 0 0 10px var(--accent-glow);
+  box-shadow: 0 0 12px var(--accent-glow);
+}
+
+.drum-step.accent::before {
+  top: 3px;
+  left: 10%;
+  right: 10%;
+  height: 6px;
+  background: #ffffff;
+  box-shadow: 0 0 8px #ffffff;
 }
 
 .drum-step.playing {
@@ -1092,15 +1141,15 @@ body {
   gap: var(--sp-2);
   border: 0;
   overflow: visible;
-  container-type: size;
+  container-type: inline-size;
 }
 
 .kb.is-pads .key.pad {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: var(--sp-1);
-  padding: 0;
+  gap: 2px;
+  padding: var(--sp-1) 6px;
   border: 1px solid var(--sec-border);
   border-radius: 10px;
   background: var(--sec-bg);
@@ -1108,6 +1157,7 @@ body {
   color: var(--label-ink);
   min-width: 0;
   min-height: 0;
+  overflow: hidden;
 }
 
 @container (min-height: 220px) {
@@ -1116,7 +1166,14 @@ body {
   }
 }
 
-@container (max-width: 560px) {
+@container (max-width: 600px) {
+  .kb.is-pads {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--sp-1);
+  }
+}
+
+@media (max-width: 680px) {
   .kb.is-pads {
     grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: var(--sp-1);
@@ -1124,13 +1181,18 @@ body {
 }
 
 .pad-name {
-  font-size: 0.72rem;
+  font-size: clamp(0.56rem, 2.1cqw, 0.72rem);
+  line-height: 1.1;
   font-weight: 800;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.04em;
+  text-align: center;
+  max-width: 100%;
+  white-space: nowrap;
 }
 
 .pad-key {
-  font-size: 0.6rem;
+  font-size: 0.56rem;
+  line-height: 1;
   color: var(--ink-faint);
 }
 
@@ -1150,6 +1212,7 @@ body {
   min-height: 0;
   display: flex;
   gap: var(--sp-2);
+  container-type: size;
 }
 
 .kb-wheels {
@@ -1587,7 +1650,13 @@ body {
 /* ============================================================
    Kashan: algorithm LCD & Konya: Euclidean rings
    ============================================================ */
+.synth-custom[data-custom="fm-algo"] {
+  flex: 1 1 auto;
+  min-height: 0;
+}
 .fm-lcd {
+  flex: 1 1 auto;
+  min-height: 54px;
   border-radius: 6px;
   padding: var(--sp-1) var(--sp-2);
   margin: 0;
@@ -1595,39 +1664,59 @@ body {
   border: 1px solid var(--scope-border);
   box-shadow: inset 0 2px 6px rgba(0,0,0,0.35);
   color: var(--scope-line);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 2px;
 }
 .fm-lcd-head {
+  flex: 0 0 auto;
   display: flex;
   align-items: baseline;
   justify-content: space-between;
   font-family: "SF Mono", Menlo, Consolas, monospace;
   font-size: var(--fs-label);
   letter-spacing: 0.16em;
+  line-height: 1.1;
 }
 .fm-lcd-head b { font-size: 0.9rem; letter-spacing: 0; }
-.fm-lcd svg { display: block; width: 100%; height: clamp(54px, 10dvh, 96px); }
-.fm-lcd .wires line, .fm-lcd .wires path { stroke: currentColor; stroke-width: 2; fill: none; opacity: 0.85; }
-.fm-lcd .wires .fb { stroke-dasharray: 3 3; }
-.fm-lcd .op rect { fill: none; stroke: currentColor; stroke-width: 2; }
+.fm-lcd svg {
+  flex: 1 1 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: clamp(68px, 10.5dvh, 104px);
+}
+.fm-lcd .wires line, .fm-lcd .wires path { stroke: currentColor; stroke-width: 2.2; fill: none; opacity: 0.92; stroke-linecap: round; stroke-linejoin: round; }
+.fm-lcd .wires .fb { stroke-dasharray: 3 2.5; }
+.fm-lcd .op rect { fill: none; stroke: currentColor; stroke-width: 2.2; }
 .fm-lcd .op.car rect { fill: currentColor; }
-.fm-lcd .op text { fill: currentColor; font: 700 12px "SF Mono", Menlo, monospace; text-anchor: middle; }
+.fm-lcd .op text { fill: currentColor; font: 800 12.5px "SF Mono", Menlo, monospace; text-anchor: middle; }
 .fm-lcd .op.car text { fill: var(--scope-bg-ink, #0f1a0a); }
 .synth-custom[data-custom="fm-algo"] .synth-choice-btn { min-width: 0; padding: 0; }
 
+.synth-custom[data-custom="euclid-rings"] {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: clamp(118px, 16.5dvh, 168px);
+}
 .eu-wrap {
+  position: absolute;
+  inset: 0;
+  container-type: size;
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: var(--sp-1);
   min-height: 0;
 }
 .eu-svg {
-  width: auto;
-  height: clamp(82px, 13.5dvh, 136px);
-  max-width: 100%;
+  width: min(100cqw, 100cqh);
+  height: min(100cqw, 100cqh);
   aspect-ratio: 1;
   display: block;
-  margin: 0 auto;
+  margin: auto;
 }
 .eu-track { fill: none; stroke: var(--sec-border); stroke-width: 1.5; }
 .eu-dot { fill: var(--ctl-bg); stroke: var(--btn-border); stroke-width: 1; transition: r 80ms; }
@@ -1639,12 +1728,7 @@ body {
 .eu-ring.is-off { opacity: 0.25; }
 .eu-hub { fill: var(--ink); }
 .eu-hint {
-  margin: 0;
-  font-size: 0.58rem;
-  line-height: 1.3;
-  color: var(--ink-dim);
-  text-align: center;
-  max-width: 260px;
+  display: none;
 }
 
 /* ============================================================
@@ -1903,11 +1987,10 @@ body {
     min-height: 26px;
   }
   .drum-play { min-height: 28px; }
-  .drum-step { height: 28px; }
+  .drum-step { height: 32px; min-height: 32px; }
   .kb-btn { min-height: 28px; }
-  .eu-svg { height: clamp(72px, 11dvh, 96px); }
-  .eu-hint { display: none; }
-  .fm-lcd svg { height: clamp(46px, 8dvh, 68px); }
+  .synth-custom[data-custom="euclid-rings"] { min-height: 96px; }
+  .fm-lcd svg { min-height: 50px; }
 }
 
 /* Touch tablets (768x1000) */
@@ -1956,7 +2039,7 @@ body {
   .synth-sec.is-on-page { display: flex; }
 
   .drum-steps { grid-template-columns: repeat(calc(var(--len) / 2), minmax(0, 1fr)); }
-  .drum-step { height: 32px; }
+  .drum-step { height: 32px; min-height: 32px; }
   .drum-voices { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   .drum-slot, .drum-voice-btn { min-height: 28px; }
 
@@ -1990,6 +2073,8 @@ body {
   .or-inner { padding: var(--sp-2); gap: var(--sp-2); }
   .or-scales { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .or-roots, .or-cents { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  .pad-key { display: none; }
+  .pad-name { font-size: clamp(0.6rem, 3.6cqw, 0.72rem); }
 }
 
 /* Phone portrait (390x844, 412x780, 390x664, 360x560) */
@@ -2047,12 +2132,11 @@ body {
     min-height: 24px;
   }
   .drum-play { min-height: 26px; }
-  .drum-step { height: 22px; }
+  .drum-step { height: 32px; min-height: 32px; }
   .kb-btn { min-height: 28px; }
   .preset-display { min-height: 28px; }
-  .eu-svg { height: clamp(68px, 12.5dvh, 98px); }
-  .eu-hint { display: none; }
-  .fm-lcd svg { height: clamp(42px, 8dvh, 60px); }
+  .synth-custom[data-custom="euclid-rings"] { min-height: 88px; }
+  .fm-lcd svg { min-height: 48px; }
 }
 
 /* Very short portrait phones (360x560) */
@@ -2077,7 +2161,7 @@ body {
     min-height: 22px;
   }
   .drum-play { min-height: 24px; }
-  .drum-step { height: 19px; }
+  .drum-step { height: 32px; min-height: 32px; }
   .kb-btn { min-height: 26px; }
   .preset-display { min-height: 26px; }
   .synth-midi-btn, .synth-midi-select { min-height: 24px; }
@@ -2146,14 +2230,12 @@ body {
   .sk-caption { display: none; }
 
   .drum-steps { grid-template-columns: repeat(var(--len), minmax(0, 1fr)); gap: var(--sp-1); }
-  .drum-step { height: 24px; }
+  .drum-step { height: 32px; min-height: 32px; }
   .drum-voices { grid-template-columns: repeat(8, minmax(0, 1fr)); }
-  .drum-voice-btn, .drum-slot { min-height: 24px; font-size: 0.62rem; }
+  .drum-voice-btn, .drum-slot { min-height: 24px; font-size: 0.56rem; letter-spacing: 0; }
   .drum-play { min-height: 24px; min-width: 64px; }
-
-  .eu-svg { height: clamp(64px, 20dvh, 96px); }
-  .eu-hint { display: none; }
-  .fm-lcd svg { height: clamp(40px, 13dvh, 62px); }
+  .synth-custom[data-custom="euclid-rings"] { min-height: 84px; }
+  .fm-lcd svg { min-height: 44px; }
 
   .kb-bar { width: 92px; gap: var(--sp-1); }
   .kb-range { display: none; }

@@ -161,7 +161,7 @@ const FM_LAYOUT: { pos: [number, number][]; edges: [number, number][]; car: numb
 function renderFmAlgo(): string {
   const n = Math.max(1, Math.min(8, Number(getSynthPatch().fmAlgo) || 1));
   const L = FM_LAYOUT[n - 1];
-  const R = 11;
+  const R = 12;
   const lines = L.edges.map(([a, b]) => {
     const [x1, y1] = L.pos[a - 1];
     const [x2, y2] = L.pos[b - 1];
@@ -170,14 +170,23 @@ function renderFmAlgo(): string {
   const outY = 118;
   const outs = L.car.map((c) => { const [x, y] = L.pos[c - 1]; return `<line x1="${x}" y1="${y + R}" x2="${x}" y2="${outY}" />`; }).join("");
   const xs = L.car.map((c) => L.pos[c - 1][0]);
-  const bus = `<line x1="${Math.min(...xs) - 6}" y1="${outY}" x2="${Math.max(...xs) + 6}" y2="${outY}" />`;
+  const bus = `<line x1="${Math.min(...xs) - 8}" y1="${outY}" x2="${Math.max(...xs) + 8}" y2="${outY}" />`;
   const [fx, fy] = L.pos[3];
-  const fb = `<path class="fb" d="M ${fx + R} ${fy} C ${fx + 30} ${fy - 4}, ${fx + 30} ${fy - 26}, ${fx} ${fy - R}" />`;
+  const fb = `<path class="fb" d="M ${fx + R} ${fy} C ${fx + 28} ${fy - 4}, ${fx + 28} ${fy - 24}, ${fx} ${fy - R}" />`;
   const ops = L.pos.map(([x, y], i) =>
-    `<g class="op${L.car.includes(i + 1) ? " car" : ""}"><rect x="${x - R}" y="${y - R}" width="${R * 2}" height="${R * 2}" rx="3" /><text x="${x}" y="${y + 4}">${i + 1}</text></g>`).join("");
+    `<g class="op${L.car.includes(i + 1) ? " car" : ""}"><rect x="${x - R}" y="${y - R}" width="${R * 2}" height="${R * 2}" rx="2.5" /><text x="${x}" y="${y + 4.5}">${i + 1}</text></g>`).join("");
+  const allX = L.pos.map((p) => p[0]);
+  const allY = L.pos.map((p) => p[1]);
+  const minX = Math.min(...allX) - R - 6;
+  const maxX = Math.max(...allX, fx + 22) + R + 6;
+  const minY = Math.min(...allY.map((y) => y - R), fy - 22) - 2;
+  const maxY = outY + 3;
+  const vbW = Math.max(116, maxX - minX);
+  const vbH = maxY - minY;
+  const vbX = (minX + maxX) / 2 - vbW / 2;
   return `<div class="fm-lcd" role="img" aria-label="Algorithm ${n}">
       <div class="fm-lcd-head"><span>ALGORITHM</span><b>${n}</b></div>
-      <svg viewBox="0 0 200 124" aria-hidden="true"><g class="wires">${lines}${outs}${bus}${fb}</g>${ops}</svg>
+      <svg viewBox="${vbX.toFixed(1)} ${minY.toFixed(1)} ${vbW.toFixed(1)} ${vbH.toFixed(1)}" preserveAspectRatio="xMidYMid meet" shape-rendering="geometricPrecision" aria-hidden="true"><g class="wires">${lines}${outs}${bus}${fb}</g>${ops}</svg>
     </div>
     ${renderSynthChoice("fmAlgo", [1, 2, 3, 4, 5, 6, 7, 8].map((k) => [String(k), String(k), `Algorithm ${k}`] as [string, string, string]))}`;
 }

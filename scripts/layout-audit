@@ -391,6 +391,64 @@ async function main() {
                   }
                 }
               }
+
+              // Drum steps: min 32px tall
+              const stepEls = Array.from(sec.querySelectorAll(".drum-step")).filter(
+                (el) => getComputedStyle(el).display !== "none"
+              );
+              for (const st of stepEls) {
+                const str = st.getBoundingClientRect();
+                check(
+                  str.height >= 32 - EPS,
+                  `section "${secTitle}" .drum-step height ${str.height.toFixed(1)}px < 32px`
+                );
+              }
+
+              // Konya RINGS: .eu-svg keeps 1:1 aspect ratio and fills available card dimension
+              const euSvg = sec.querySelector(".eu-svg");
+              const euCustom = sec.querySelector('.synth-custom[data-custom="euclid-rings"]');
+              if (euSvg && euCustom && getComputedStyle(euSvg).display !== "none") {
+                const er = euSvg.getBoundingClientRect();
+                const cr = euCustom.getBoundingClientRect();
+                const fitDim = Math.min(cr.width, cr.height);
+                check(
+                  Math.abs(er.width - er.height) <= 1.5 && er.height >= fitDim - 2,
+                  `section "${secTitle}" .eu-svg (${er.width.toFixed(1)}x${er.height.toFixed(1)}) does not fill card (${cr.width.toFixed(1)}x${cr.height.toFixed(1)})`
+                );
+              }
+
+              // Kashan ALGORITHM: .fm-lcd svg fills the LCD height
+              const fmLcd = sec.querySelector(".fm-lcd");
+              const fmSvg = sec.querySelector(".fm-lcd svg");
+              const fmHead = sec.querySelector(".fm-lcd-head");
+              if (fmLcd && fmSvg && fmHead && getComputedStyle(fmLcd).display !== "none") {
+                const lr = fmLcd.getBoundingClientRect();
+                const svr = fmSvg.getBoundingClientRect();
+                const hdr = fmHead.getBoundingClientRect();
+                const availH = lr.bottom - hdr.bottom - 8;
+                check(
+                  svr.height >= availH - 4 && svr.height >= 40,
+                  `section "${secTitle}" .fm-lcd svg height ${svr.height.toFixed(1)}px too small for LCD (avail ${availH.toFixed(1)}px)`
+                );
+              }
+            }
+
+            // Drum pads: pad labels never clip or touch the pad edge
+            const pads = Array.from(document.querySelectorAll(".kb.is-pads .key.pad"));
+            for (const pad of pads) {
+              const pr = pad.getBoundingClientRect();
+              const nameEl = pad.querySelector(".pad-name");
+              if (nameEl) {
+                const nr = nameEl.getBoundingClientRect();
+                check(
+                  nameEl.scrollWidth <= nameEl.clientWidth + 1 &&
+                    nr.left - pr.left >= 4 - EPS &&
+                    pr.right - nr.right >= 4 - EPS &&
+                    nr.top - pr.top >= 4 - EPS &&
+                    pr.bottom - nr.bottom >= 4 - EPS,
+                  `drum pad "${nameEl.textContent}" label clips or touches pad edge (L=${(nr.left - pr.left).toFixed(1)}, R=${(pr.right - nr.right).toFixed(1)}, T=${(nr.top - pr.top).toFixed(1)}, B=${(pr.bottom - nr.bottom).toFixed(1)})`
+                );
+              }
             }
           }
         }

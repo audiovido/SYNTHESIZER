@@ -75,7 +75,8 @@ function savePatchSoon(): void {
   const id = machine.id;
   saveTimer = setTimeout(() => {
     try {
-      localStorage.setItem(patchKey(id), JSON.stringify(synthPatch));
+      const { hold: _hold, ...toSave } = synthPatch;
+      localStorage.setItem(patchKey(id), JSON.stringify(toSave));
       localStorage.setItem(presetKey(id), synthPresetId);
     } catch (e) {}
   }, 300);
@@ -128,6 +129,9 @@ export function setSynthParam(
 ): void {
   const def = SYNTH_PARAMS[key];
   if (!def) return;
+  if (key === "hold" && fromPreset) {
+    value = "off";
+  }
   const before = synthPatch[key];
   if (def.type) {
     synthPatch[key] = value;
@@ -140,6 +144,11 @@ export function setSynthParam(
   if (!fromPreset && !internal && key !== "hold" && key !== "oriental") {
     synthPresetId = "custom";
     presetChangeListeners.forEach((cb) => cb(synthPresetId));
+  }
+
+  if (key === "hold" && synthPatch.hold !== "on" && before === "on") {
+    releaseHeldByHold();
+    arpReleaseLatched().forEach((m) => markKey(m, false));
   }
 
   // Side effects of performance params
@@ -155,10 +164,6 @@ export function setSynthParam(
     }
     if (key === "tuning" && !fromPreset && TUNINGS[value] && value !== "custom") {
       setSynthParam("tuneRoot", TUNINGS[value].tonic, { internal: true });
-    }
-    if (key === "hold" && value !== "on" && before === "on") {
-      releaseHeldByHold();
-      arpReleaseLatched().forEach((m) => markKey(m, false));
     }
     if (key === "arpOn" && value !== before) releaseEverything();
     if (key === "polyMode" && value !== before) releaseEverything();
@@ -236,11 +241,13 @@ function findPreset(id: string): PresetDef | undefined {
 export function applySynthPreset(id: string): void {
   const preset = findPreset(id);
   if (!preset) return;
+  setSynthParam("hold", "off", { internal: true });
   releaseEverything();
   const next = Object.assign(synthDefaults(), machine.base, preset.patch);
   if (machine.kind === "synth" && machine.base.arpOn === undefined && preset.patch.arpOn === undefined) {
     ["arpOn", "arpMode", "arpRate", "arpOct", "arpGate", "arpSwing"].forEach((k) => (next[k] = synthPatch[k]));
   }
+  next.hold = "off";
   applyPatchObject(next);
   if (machine.kind === "drums" && preset.patterns) {
     loadBank(preset.patterns);
@@ -261,6 +268,7 @@ export function stepPreset(dir: number): void {
 /** Switch instrument: stop everything, load its saved patch (or first preset). */
 export function setMachine(id: string): void {
   const next = getMachineDef(id);
+  setSynthParam("hold", "off", { internal: true });
   releaseEverything();
   stopDrums();
   machine = next;
@@ -275,7 +283,8 @@ export function setMachine(id: string): void {
     const saved = JSON.parse(localStorage.getItem(patchKey(machine.id)) || "null");
     if (saved && typeof saved === "object") {
       const full = Object.assign(synthDefaults(), machine.base);
-      Object.keys(SYNTH_PARAMS).forEach((k) => { if (k in saved) full[k] = saved[k]; });
+      Object.keys(SYNTH_PARAMS).forEach((k) => { if (k !== "hold" && k in saved) full[k] = saved[k]; });
+      full.hold = "off";
       applyPatchObject(full);
       synthPresetId = localStorage.getItem(presetKey(machine.id)) || "custom";
       restored = true;
@@ -292,6 +301,7 @@ export function setMachine(id: string): void {
       setSynthParam("tahrir", 0, { internal: true });
     }
   }
+  setSynthParam("hold", "off", { internal: true });
   // already playing: start loading this machine's engine now
   if (getAudioCtxIfAny()) prepareAudio();
   machineListeners.forEach((cb) => cb(machine));
