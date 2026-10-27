@@ -16,6 +16,7 @@ const STORAGE_CH_KEY = "musicher_synth_midi_channel";
 
 let midiAccess: any = null;
 let midiEnabled = false;
+let midiRejected = false;
 let midiStatusMessage = "";
 
 let selectedDeviceId = ""; // "" = All inputs
@@ -86,7 +87,15 @@ export function isMidiEnabled(): boolean {
   return midiEnabled;
 }
 
+export function isMidiUnavailable(): boolean {
+  const nav = typeof navigator !== "undefined" ? (navigator as any) : null;
+  return !nav || typeof nav.requestMIDIAccess !== "function" || midiRejected;
+}
+
 export function getMidiStatusMessage(): string {
+  if (isMidiUnavailable()) {
+    return "MIDI needs Chrome or Edge on desktop or Android";
+  }
   return midiStatusMessage;
 }
 
@@ -124,7 +133,7 @@ export function getMidiInputs(): MidiInputInfo[] {
 }
 
 export function isLearnMode(): boolean {
-  return learnMode;
+  return !isMidiUnavailable() && learnMode;
 }
 
 export function getLearnTargetParam(): string | null {
@@ -132,6 +141,12 @@ export function getLearnTargetParam(): string | null {
 }
 
 export function toggleLearnMode(force?: boolean): void {
+  if (isMidiUnavailable()) {
+    learnMode = false;
+    learnTargetParam = null;
+    notifyMidiState();
+    return;
+  }
   learnMode = force !== undefined ? force : !learnMode;
   if (!learnMode) {
     learnTargetParam = null;
@@ -140,7 +155,7 @@ export function toggleLearnMode(force?: boolean): void {
 }
 
 export function selectLearnParam(paramKey: string): void {
-  if (!learnMode || !SYNTH_PARAMS[paramKey]) return;
+  if (!learnMode || isMidiUnavailable() || !SYNTH_PARAMS[paramKey]) return;
   learnTargetParam = learnTargetParam === paramKey ? null : paramKey;
   notifyMidiState();
 }
@@ -266,7 +281,11 @@ function bindMidiInputs(): void {
 
 export async function requestMidi(): Promise<void> {
   const nav = navigator as any;
-  if (!nav.requestMIDIAccess) {
+  if (!nav || typeof nav.requestMIDIAccess !== "function") {
+    midiEnabled = false;
+    midiRejected = true;
+    learnMode = false;
+    learnTargetParam = null;
     midiStatusMessage = "MIDI needs Chrome or Edge on desktop or Android";
     notifyMidiState();
     return;
@@ -276,6 +295,7 @@ export async function requestMidi(): Promise<void> {
     const access = await nav.requestMIDIAccess({ sysex: false });
     midiAccess = access;
     midiEnabled = true;
+    midiRejected = false;
     midiStatusMessage = "";
     bindMidiInputs();
     access.onstatechange = () => {
@@ -284,7 +304,11 @@ export async function requestMidi(): Promise<void> {
     };
     notifyMidiState();
   } catch (err) {
-    midiStatusMessage = "MIDI permission was blocked. Allow MIDI in the site settings, or open the app in its own tab.";
+    midiEnabled = false;
+    midiRejected = true;
+    learnMode = false;
+    learnTargetParam = null;
+    midiStatusMessage = "MIDI needs Chrome or Edge on desktop or Android";
     notifyMidiState();
   }
 }

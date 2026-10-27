@@ -2124,3 +2124,318 @@
   filter: drop-shadow(0 0 5px rgba(56, 232, 255, 0.9));
 }
 
+/* ============================================================
+   Per-Machine Bottom Bar Identity Badge & Hardware Selector Tabs
+   Each machine displays its name + tagline in its own skin character
+   (font, colour, emblem/line motif, and surface finish). Pure CSS.
+   ============================================================ */
+
+/* 1. SY-1 — Dark studio anodised aluminium + warm amber LED bar */
+:is([data-skin="sy1"], [data-machine="sy1"]) .kb-machine-badge {
+  background: linear-gradient(180deg, #1b1922 0%, #121017 100%);
+  border-color: rgba(242, 179, 61, 0.35);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+:is([data-skin="sy1"], [data-machine="sy1"]) .kb-machine-emblem {
+  width: 4px;
+  height: 14px;
+  border-radius: 2px;
+  background: #f2b33d;
+  box-shadow: 0 0 8px rgba(242, 179, 61, 0.85);
+}
+
+/* 2. YAZD — 70s walnut & cream analog mono with dual gold pinstripe */
+:is([data-skin="yazd"], [data-machine="yazd"]) .kb-machine-badge {
+  background: linear-gradient(180deg, #2b1d14 0%, #1c120c 100%);
+  border: 1px solid #c9963e;
+  box-shadow: inset 0 0 0 1px rgba(201, 150, 62, 0.25);
+}
+:is([data-skin="yazd"], [data-machine="yazd"]) .kb-machine-emblem {
+  width: 12px;
+  height: 8px;
+  border-radius: 1px;
+  background: linear-gradient(180deg, #e5b55c 0 28%, transparent 28% 72%, #e5b55c 72% 100%);
+  box-shadow: none;
+}
+:is([data-skin="yazd"], [data-machine="yazd"]) .kb-machine-name {
+  color: #f3d28c;
+  letter-spacing: 0.12em;
+}
+
+/* 3. TABRIZ — Persian glazed turquoise tile & rotated diamond motif */
+:is([data-skin="tabriz"], [data-machine="tabriz"]) .kb-machine-badge {
+  background: linear-gradient(135deg, rgba(14, 58, 74, 0.9) 0%, rgba(9, 36, 48, 0.95) 100%);
+  border: 1px solid rgba(56, 214, 214, 0.5);
+}
+:is([data-skin="tabriz"], [data-machine="tabriz"]) .kb-machine-emblem {
+  width: 9px;
+  height: 9px;
+  border-radius: 1px;
+  transform: rotate(45deg);
+  background: #38d6d6;
+  border: 1.5px solid #f4c76b;
+}
+
+/* 4. BAKU — 80s synthwave neon magenta & cyan chrome */
+:is([data-skin="baku"], [data-machine="baku"]) .kb-machine-badge {
+  background: linear-gradient(180deg, #160926 0%, #0b0414 100%);
+  border: 1px solid #ff2ea6;
+  box-shadow: 0 0 10px rgba(255, 46, 166, 0.35), inset 0 0 8px rgba(0, 240, 255, 0.18);
+}
+:is([data-skin="baku"], [data-machine="baku"]) .kb-machine-emblem {
+  width: 12px;
+  height: 10px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #ff2ea6 0%, #00f0ff 100%);
+  box-shadow: 0 0 8px #ff2ea6;
+}
+:is([data-skin="baku"], [data-machine="baku"]) .kb-machine-name {
+  color: #ff5ec4;
+  text-shadow: 0 0 8px rgba(255, 46, 166, 0.75);
+  font-style: italic;
+}
+:is([data-skin="baku"], [data-machine="baku"]) .kb-machine-role {
+  color: #7ef9ff;
+}
+
+/* 5. MERV — Brutalist tactical HUD with cut-corner & signal orange chevron */
+:is([data-skin="merv"], [data-machine="merv"]) .kb-machine-badge {
+  background: #14181b;
+  border: 1px solid #ff6a2b;
+  border-radius: 2px;
+  clip-path: polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px));
+}
+:is([data-skin="merv"], [data-machine="merv"]) .kb-machine-emblem {
+  width: 10px;
+  height: 10px;
+  border-radius: 0;
+  background: transparent;
+  border-left: 3px solid #ff6a2b;
+  border-top: 3px solid #ff6a2b;
+  box-shadow: none;
+}
+:is([data-skin="merv"], [data-machine="merv"]) .kb-machine-name {
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+/* 6. ISFAHAN — Royal cobalt dome & gilded manuscript frame */
+:is([data-skin="isfahan"], [data-machine="isfahan"]) .kb-machine-badge {
+  background: linear-gradient(180deg, #10244a 0%, #0a1731 100%);
+  border: 1px solid #e2b857;
+  border-radius: 999px;
+  box-shadow: inset 0 0 0 1px rgba(226, 184, 87, 0.25);
+}
+:is([data-skin="isfahan"], [data-machine="isfahan"]) .kb-machine-emblem {
+  width: 10px;
+  height: 10px;
+  border-radius: 50% 50% 2px 2px;
+  background: radial-gradient(circle at 50% 35%, #ffe699, #c9972c);
+  box-shadow: 0 0 6px rgba(226, 184, 87, 0.6);
+}
+:is([data-skin="isfahan"], [data-machine="isfahan"]) .kb-machine-name {
+  color: #f7d983;
+}
+
+/* 7. SHIRAZ — Engraved antique brass plaque with rivet emblem */
+:is([data-skin="shiraz"], [data-machine="shiraz"]) .kb-machine-badge {
+  background:
+    linear-gradient(180deg, #d8b265 0%, #b88a36 52%, #9d7124 100%);
+  border: 1px solid #5a3b10;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 244, 210, 0.65),
+    0 1px 3px rgba(0, 0, 0, 0.45);
+}
+:is([data-skin="shiraz"], [data-machine="shiraz"]) .kb-machine-emblem {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #fff0c2, #6e4914);
+  border: 1px solid #4a300a;
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.5);
+}
+:is([data-skin="shiraz"], [data-machine="shiraz"]) .kb-machine-name {
+  color: #261604;
+  text-shadow: 0 1px 0 rgba(255, 240, 195, 0.55);
+  letter-spacing: 0.12em;
+}
+:is([data-skin="shiraz"], [data-machine="shiraz"]) .kb-machine-sep,
+:is([data-skin="shiraz"], [data-machine="shiraz"]) .kb-machine-role {
+  color: #3d2408;
+}
+
+/* 8. KASHAN — 80s FM green backlit dot-matrix LCD window */
+:is([data-skin="kashan"], [data-machine="kashan"]) .kb-machine-badge {
+  background:
+    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.14) 0 1px, transparent 1px 3px),
+    linear-gradient(180deg, #132814 0%, #0d1d0e 100%);
+  border: 1px solid #3c7a3f;
+  border-radius: 4px;
+  box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.65), 0 0 8px rgba(114, 242, 102, 0.2);
+  font-family: "SF Mono", Menlo, Consolas, monospace;
+}
+:is([data-skin="kashan"], [data-machine="kashan"]) .kb-machine-emblem {
+  width: 9px;
+  height: 9px;
+  border-radius: 1px;
+  background: #72f266;
+  box-shadow: 0 0 6px #72f266;
+}
+:is([data-skin="kashan"], [data-machine="kashan"]) .kb-machine-name {
+  color: #72f266;
+  font-family: "SF Mono", Menlo, Consolas, monospace;
+  text-shadow: 0 0 6px rgba(114, 242, 102, 0.55);
+}
+:is([data-skin="kashan"], [data-machine="kashan"]) .kb-machine-sep,
+:is([data-skin="kashan"], [data-machine="kashan"]) .kb-machine-role {
+  color: #56c44c;
+  font-family: "SF Mono", Menlo, Consolas, monospace;
+}
+
+/* 9. KONYA — Bauhaus cream block, stark black frame & primary red/yellow/blue geometric bar */
+:is([data-skin="konya"], [data-machine="konya"]) .kb-machine-badge {
+  background: #f5efe0;
+  border: 2px solid #181614;
+  border-radius: 0;
+  box-shadow: 2px 2px 0 #181614;
+}
+:is([data-skin="konya"], [data-machine="konya"]) .kb-machine-emblem {
+  width: 15px;
+  height: 10px;
+  border-radius: 0;
+  background: linear-gradient(90deg, #d6312b 0 33.3%, #f2c230 33.3% 66.6%, #1f4fa0 66.6% 100%);
+  border: 1px solid #181614;
+  box-shadow: none;
+}
+:is([data-skin="konya"], [data-machine="konya"]) .kb-machine-name {
+  color: #181614;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+:is([data-skin="konya"], [data-machine="konya"]) .kb-machine-role {
+  color: #1f4fa0;
+  font-weight: 800;
+}
+
+/* 10. NISHAPUR — Frosted glassmorphism capsule & glowing cyan-violet vector ring */
+:is([data-skin="nishapur"], [data-machine="nishapur"]) .kb-machine-badge {
+  background: linear-gradient(135deg, rgba(32, 40, 86, 0.72) 0%, rgba(24, 18, 56, 0.78) 100%);
+  border: 1px solid rgba(91, 240, 255, 0.45);
+  border-radius: 999px;
+  box-shadow: 0 0 12px rgba(56, 232, 255, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+:is([data-skin="nishapur"], [data-machine="nishapur"]) .kb-machine-emblem {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: transparent;
+  border: 2px solid #38e8ff;
+  box-shadow: 0 0 6px #38e8ff, inset 0 0 4px #b46cff;
+}
+:is([data-skin="nishapur"], [data-machine="nishapur"]) .kb-machine-name {
+  color: #74f2ff;
+  text-shadow: 0 0 8px rgba(56, 232, 255, 0.5);
+}
+
+/* 11. 88 (BAM) — Classic TR rhythm machine with 4-colour step stripe */
+:is([data-skin="bam"], [data-machine="bam"]) .kb-machine-badge {
+  background: #181716;
+  border: 1px solid #e05a2b;
+  border-radius: 4px;
+}
+:is([data-skin="bam"], [data-machine="bam"]) .kb-machine-emblem {
+  width: 16px;
+  height: 8px;
+  border-radius: 1px;
+  background: linear-gradient(90deg, #e03c28 0 25%, #f07e1a 25% 50%, #f5c728 50% 75%, #f4f1ea 75% 100%);
+  box-shadow: none;
+}
+
+/* 12. KERMAN — Swiss minimal matte off-white + bold orange dot + monospace */
+:is([data-skin="kerman"], [data-machine="kerman"]) .kb-machine-badge {
+  background: #eceae4;
+  border: 1px solid #1e1e1c;
+  border-radius: 3px;
+  box-shadow: none;
+}
+:is([data-skin="kerman"], [data-machine="kerman"]) .kb-machine-emblem {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #ff4f14;
+  box-shadow: none;
+}
+:is([data-skin="kerman"], [data-machine="kerman"]) .kb-machine-name {
+  color: #161615;
+  font-family: "SF Mono", Menlo, Consolas, monospace;
+  letter-spacing: 0.1em;
+}
+:is([data-skin="kerman"], [data-machine="kerman"]) .kb-machine-role {
+  color: #575652;
+  font-family: "SF Mono", Menlo, Consolas, monospace;
+}
+
+/* 13. BUSHEHR — Sun-bleached Persian Gulf terracotta, deep teal & brass zang ring */
+:is([data-skin="bushehr"], [data-machine="bushehr"]) .kb-machine-badge {
+  background: linear-gradient(180deg, #f3e2c7 0%, #e4cca8 100%);
+  border: 1px solid #b5532c;
+  border-radius: 999px;
+}
+:is([data-skin="bushehr"], [data-machine="bushehr"]) .kb-machine-emblem {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #f7ead5 0%, #d49b62 65%, #8f3d1e 100%);
+  border: 1.5px solid #0e6b73;
+  box-shadow: none;
+}
+:is([data-skin="bushehr"], [data-machine="bushehr"]) .kb-machine-name {
+  color: #8f3518;
+}
+:is([data-skin="bushehr"], [data-machine="bushehr"]) .kb-machine-role {
+  color: #0e6b73;
+}
+
+/* 14. RASHT — Caspian moss slate, rain-ripple ring & warm amber wood */
+:is([data-skin="rasht"], [data-machine="rasht"]) .kb-machine-badge {
+  background: linear-gradient(180deg, #1b2824 0%, #131d1a 100%);
+  border: 1px solid rgba(116, 198, 157, 0.45);
+  border-radius: 8px;
+}
+:is([data-skin="rasht"], [data-machine="rasht"]) .kb-machine-emblem {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: transparent;
+  border: 2px solid #74c69d;
+  box-shadow: 0 0 0 2px rgba(217, 155, 78, 0.45);
+}
+:is([data-skin="rasht"], [data-machine="rasht"]) .kb-machine-name {
+  color: #e0a458;
+}
+:is([data-skin="rasht"], [data-machine="rasht"]) .kb-machine-role {
+  color: #95d5b2;
+}
+
+/* 15. HORMOZ — Volcanic obsidian, red ochre & crystalline salt-cyan diamond */
+:is([data-skin="hormoz"], [data-machine="hormoz"]) .kb-machine-badge {
+  background: linear-gradient(180deg, #1c1110 0%, #110a09 100%);
+  border: 1px solid rgba(232, 93, 52, 0.55);
+  border-radius: 4px;
+}
+:is([data-skin="hormoz"], [data-machine="hormoz"]) .kb-machine-emblem {
+  width: 9px;
+  height: 9px;
+  border-radius: 1px;
+  transform: rotate(45deg);
+  background: linear-gradient(135deg, #e85d34 0%, #48cae4 100%);
+  box-shadow: 0 0 7px rgba(232, 93, 52, 0.75);
+}
+:is([data-skin="hormoz"], [data-machine="hormoz"]) .kb-machine-name {
+  color: #ff784f;
+}
+:is([data-skin="hormoz"], [data-machine="hormoz"]) .kb-machine-role {
+  color: #72ddf0;
+}
+
+

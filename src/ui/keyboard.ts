@@ -33,9 +33,21 @@ function fmtCentBadge(c: number): string {
   return (rounded > 0 ? "+" : "") + rounded.toFixed(1);
 }
 
+function syncMachineBadge(): void {
+  const m = getMachine();
+  document.documentElement.setAttribute("data-machine", m.id);
+  const badge = document.getElementById("kb-machine-badge");
+  const nameEl = document.getElementById("kb-machine-name");
+  const roleEl = document.getElementById("kb-machine-role");
+  if (badge) badge.setAttribute("data-machine", m.id);
+  if (nameEl) nameEl.textContent = m.name;
+  if (roleEl) roleEl.textContent = m.role;
+}
+
 export function renderKeyboard(): void {
   const kb = document.getElementById("kb");
   if (!kb) return;
+  syncMachineBadge();
   syncHold();
   syncOriental();
   const area = kb.closest(".kb-area");
@@ -115,24 +127,7 @@ function setBase(next: number): void {
   renderKeyboard();
 }
 
-/**
- * Phones: the strip (ORIENTAL + range slider) moves into the HOLD/ARP bar so
- * it costs no extra row; larger screens show it as a thin row above the keys.
- */
-const PHONE_MQ = "(max-width: 760px), (max-height: 560px) and (orientation: landscape)";
-function placeStrip(): void {
-  const strip = document.querySelector(".kb-strip");
-  const bar = document.querySelector(".kb-bar");
-  const col = document.querySelector(".kb-col");
-  if (!strip || !bar || !col) return;
-  const phone = window.matchMedia(PHONE_MQ).matches;
-  if (phone && strip.parentElement !== bar) bar.appendChild(strip);
-  else if (!phone && strip.parentElement !== col) col.insertBefore(strip, col.firstChild);
-}
-
 function initMini(): void {
-  placeStrip();
-  window.matchMedia(PHONE_MQ).addEventListener("change", placeStrip);
   const mini = document.getElementById("kb-mini");
   if (!mini) return;
   const span = MAX_BASE + 24 - MIN_BASE;

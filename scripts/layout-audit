@@ -227,11 +227,126 @@ async function main() {
             }
 
             const kbArea = document.querySelector(".kb-area");
+            const kbBar = document.querySelector(".kb-bar");
+            const kbMain = document.querySelector(".kb-main");
+            const kbEl = document.getElementById("kb");
             if (kbArea) {
               const kr = kbArea.getBoundingClientRect();
               check(
                 kr.bottom <= vh + EPS && kr.right <= vw + EPS && kr.left >= -EPS,
                 `.kb-area overflows viewport: bottom=${kr.bottom.toFixed(1)} (vh=${vh})`
+              );
+            }
+
+            // Bottom bar machine name & no overlap with keyboard
+            const badgeName = document.getElementById("kb-machine-name");
+            const badgeEl = document.getElementById("kb-machine-badge");
+            check(
+              !!badgeEl &&
+                !!badgeName &&
+                getComputedStyle(badgeEl).display !== "none" &&
+                badgeName.getBoundingClientRect().width > 4 &&
+                badgeName.getBoundingClientRect().height > 4 &&
+                (badgeName.textContent || "").trim().length > 0,
+              `machine name in bottom bar (#kb-machine-name) not visible`
+            );
+            if (kbBar && kbEl) {
+              const br = kbBar.getBoundingClientRect();
+              const kbr = kbEl.getBoundingClientRect();
+              const overlapY = Math.min(br.bottom, kbr.bottom) - Math.max(br.top, kbr.top);
+              const overlapX = Math.min(br.right, kbr.right) - Math.max(br.left, kbr.left);
+              check(
+                !(overlapX > 1 && overlapY > 1) && br.bottom <= kbr.top + 1.5,
+                `.kb-bar overlaps or sits below keyboard (#kb): bar.bottom=${br.bottom.toFixed(1)} vs kb.top=${kbr.top.toFixed(1)}`
+              );
+            }
+            if (kbMain && badgeEl) {
+              const mr = kbMain.getBoundingClientRect();
+              const bdr = badgeEl.getBoundingClientRect();
+              const overlapY = Math.min(mr.bottom, bdr.bottom) - Math.max(mr.top, bdr.top);
+              const overlapX = Math.min(mr.right, bdr.right) - Math.max(mr.left, bdr.left);
+              check(
+                !(overlapX > 1 && overlapY > 1),
+                `#kb-machine-badge overlaps keyboard (.kb-main)`
+              );
+            }
+
+            // Connections icon visible in .synth-top
+            const connBtn = document.getElementById("conn-btn");
+            const topEl = document.querySelector(".synth-top");
+            check(
+              !!connBtn &&
+                getComputedStyle(connBtn).display !== "none" &&
+                connBtn.getBoundingClientRect().width >= 24 &&
+                connBtn.getBoundingClientRect().height >= 24,
+              `Connections icon (#conn-btn) not visible`
+            );
+
+            // Tabs + preset row (.synth-subbar) directly above .synth-sections
+            const subbarEl = document.querySelector(".synth-subbar");
+            const tabsEl = document.querySelector(".synth-tabs");
+            const presetBtn = document.getElementById("preset-btn");
+            check(
+              !!subbarEl &&
+                !!tabsEl &&
+                !!presetBtn &&
+                getComputedStyle(subbarEl).display !== "none" &&
+                getComputedStyle(tabsEl).display !== "none" &&
+                tabsEl.getBoundingClientRect().height >= 24,
+              `tabs row (.synth-subbar / .synth-tabs) not visible`
+            );
+            if (subbarEl && secsContainer && topEl) {
+              const subR = subbarEl.getBoundingClientRect();
+              const secR = secsContainer.getBoundingClientRect();
+              const topR = topEl.getBoundingClientRect();
+              const gapToSecs = secR.top - subR.bottom;
+              check(
+                subR.top >= topR.bottom - 1.5 && gapToSecs >= -1.5 && gapToSecs <= 20,
+                `tabs row (.synth-subbar) not directly above knob sections (gap=${gapToSecs.toFixed(1)}px)`
+              );
+            }
+
+            // Connections popover opens, fits on screen, and does not cover keyboard (checked once per machine on first page)
+            if (pageId === pageIds[0] && connBtn) {
+              const connPop = document.getElementById("conn-pop");
+              connBtn.click();
+              const popOpen =
+                !!connPop &&
+                !connPop.hasAttribute("hidden") &&
+                getComputedStyle(connPop).display !== "none";
+              check(popOpen, `Connections popover (#conn-pop) did not open on click`);
+              if (popOpen && connPop) {
+                const pr = connPop.getBoundingClientRect();
+                check(
+                  pr.top >= -EPS &&
+                    pr.left >= -EPS &&
+                    pr.right <= vw + EPS &&
+                    pr.bottom <= vh + EPS &&
+                    pr.width >= 160 &&
+                    pr.height >= 40,
+                  `Connections popover overflows screen: [${pr.left.toFixed(1)}, ${pr.top.toFixed(1)}, ${pr.right.toFixed(1)}, ${pr.bottom.toFixed(1)}] in ${vw}x${vh}`
+                );
+                if (kbEl) {
+                  const kbr = kbEl.getBoundingClientRect();
+                  const overlapY = Math.min(pr.bottom, kbr.bottom) - Math.max(pr.top, kbr.top);
+                  const overlapX = Math.min(pr.right, kbr.right) - Math.max(pr.left, kbr.left);
+                  check(
+                    !(overlapX > 1 && overlapY > 1),
+                    `Connections popover covers keyboard (#kb): pop.bottom=${pr.bottom.toFixed(1)} > kb.top=${kbr.top.toFixed(1)}`
+                  );
+                }
+                for (const id of ["midi-btn", "midi-learn-btn", "midi-panic-btn", "engine-btn"]) {
+                  const b = document.getElementById(id);
+                  check(
+                    !!b && b.getBoundingClientRect().width > 10,
+                    `Connections popover missing button #${id}`
+                  );
+                }
+              }
+              document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+              check(
+                !!connPop && connPop.hasAttribute("hidden"),
+                `Connections popover (#conn-pop) did not close on Escape`
               );
             }
 
@@ -241,8 +356,9 @@ async function main() {
             );
 
             // (c) panel empty space below the last section <= 15% of panel height on paged layouts
-            const tabsEl = document.querySelector(".synth-tabs");
-            const isPaged = !!tabsEl && getComputedStyle(tabsEl).display !== "none";
+            const isPaged =
+              window.matchMedia("(max-width: 760px), (max-height: 560px) and (orientation: landscape)").matches ||
+              (shell ? shell.classList.contains("is-fit-paged") : false);
             const panelEl = document.querySelector(".synth-panel");
             if (isPaged && panelEl && visibleSecs.length > 0) {
               const pr = panelEl.getBoundingClientRect();

@@ -15,6 +15,7 @@ import {
   getSelectedMidiDevice,
   isLearnMode,
   isMidiEnabled,
+  isMidiUnavailable,
   isParamMapped,
   onMidiStateChange,
   requestMidi,
@@ -513,12 +514,31 @@ function renderPresetButton(): string {
 function renderMachineOptions(): string {
   const cur = getMachine().id;
   return getMachines().map((m) =>
-    `<option value="${m.id}"${m.id === cur ? " selected" : ""}>${escapeHtml(m.name)} · ${escapeHtml(m.role)}</option>`).join("");
+    `<option value="${m.id}"${m.id === cur ? " selected" : ""}>${escapeHtml(m.name)}</option>`).join("");
 }
 
 // Small screens show the panel as pages (tabs); large screens show every section.
 const PAGE_KEY = (id: string) => `sy1.m.${id}.page`;
+const PAGED_MQ = "(max-width: 760px), (max-height: 560px) and (orientation: landscape)";
 let currentPage = "";
+let connOpen = false;
+
+function isPagedLayout(): boolean {
+  const shell = document.querySelector<HTMLElement>(".sy1-shell");
+  return window.matchMedia(PAGED_MQ).matches || (!!shell && shell.classList.contains("is-fit-paged"));
+}
+
+function setConnOpen(v: boolean): void {
+  connOpen = v;
+  const btn = document.getElementById("conn-btn");
+  const pop = document.getElementById("conn-pop");
+  if (btn) {
+    btn.setAttribute("aria-expanded", v ? "true" : "false");
+    btn.classList.toggle("is-open", v);
+  }
+  if (pop) pop.hidden = !v;
+  if (v) updateMidiBarDOM();
+}
 
 function applyPageVisibility(): void {
   const m = getMachine();
@@ -573,11 +593,6 @@ function stepPanelPage(dir: number): void {
   if (next) setPanelPage(next.id);
 }
 
-function tabsVisible(): boolean {
-  const tabs = document.querySelector(".synth-tabs") as HTMLElement | null;
-  return !!tabs && getComputedStyle(tabs).display !== "none";
-}
-
 export function previewPreset(presetId: string): void {
   applySynthPreset(presetId);
   const m = getMachine();
@@ -593,9 +608,9 @@ export function renderSynthPanelHtml(): string {
   const m = getMachine();
   const tempo = m.tempo
     ? `<div class="synth-tempo" role="group" aria-label="Tempo">
-        <button type="button" class="synth-midi-btn" data-action="tempo-down" aria-label="Slower">−</button>
+        <button type="button" class="synth-midi-btn tempo-step-btn" data-action="tempo-down" aria-label="Slower">−</button>
         <button type="button" class="synth-tempo-val" id="tempo-val" data-action="tempo-tap" title="Tempo (BPM). Tap in time to set it.">${getTempo()}</button>
-        <button type="button" class="synth-midi-btn" data-action="tempo-up" aria-label="Faster">+</button>
+        <button type="button" class="synth-midi-btn tempo-step-btn" data-action="tempo-up" aria-label="Faster">+</button>
         <button type="button" class="synth-midi-btn tempo-tap-btn" data-action="tempo-tap" title="Tap in time to set the tempo">TAP</button>
       </div>`
     : "";
@@ -604,24 +619,43 @@ export function renderSynthPanelHtml(): string {
       <div class="synth-top">
         <label class="synth-brand"><span class="synth-brand-maker">SY-1 </span><select class="synth-machine-select" id="machine-select" aria-label="Instrument">${renderMachineOptions()}</select></label>
         <canvas class="synth-scope" width="320" height="56" aria-hidden="true"></canvas>
-        <div class="synth-preset-nav">
-          <button type="button" class="synth-midi-btn" data-action="preset-prev" aria-label="Previous preset">◀</button>
-          <button type="button" class="preset-display synth-preset-select" id="preset-btn" aria-haspopup="dialog" aria-expanded="false" title="Open the sound library">${renderPresetButton()}</button>
-          <button type="button" class="synth-midi-btn" data-action="preset-next" aria-label="Next preset">▶</button>
+        <div class="synth-conn-wrap">
+          <button type="button" class="synth-conn-btn${connOpen ? " is-open" : ""}" id="conn-btn" data-action="conn-toggle" aria-label="Connections" aria-haspopup="dialog" aria-expanded="${connOpen ? "true" : "false"}" title="Connections">
+            <svg class="conn-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M2 12h4" />
+              <rect x="6" y="8.5" width="6" height="7" rx="1.5" />
+              <path d="M12 12h4.5" />
+              <path d="M14.5 10.5v3" />
+              <path d="M18 7v10" />
+              <path d="M18 8.5h3a1 1 0 0 1 1 1v5a1 1 0 0 1-1 1h-3" />
+            </svg>
+            <span class="conn-dot" id="conn-dot" aria-hidden="true"></span>
+          </button>
+          <div class="conn-pop" id="conn-pop" role="dialog" aria-label="Connections"${connOpen ? "" : " hidden"}>
+            <div class="conn-pop-row">
+              <button type="button" class="synth-midi-btn" id="midi-btn" data-action="midi-enable">MIDI</button>
+              <span class="midi-led" id="midi-led" title="MIDI Activity" aria-hidden="true"></span>
+              <button type="button" class="synth-midi-btn" id="midi-learn-btn" data-action="midi-learn" title="Click LEARN, click a knob, then move a MIDI CC">LEARN</button>
+              <button type="button" class="synth-midi-btn synth-panic-btn" id="midi-panic-btn" data-action="synth-panic" title="Release all notes">PANIC</button>
+              <button type="button" class="synth-midi-btn" id="engine-btn" data-action="engine-toggle" aria-pressed="false">HQ</button>
+            </div>
+            <div class="conn-pop-selects" id="conn-pop-selects" hidden>
+              <select class="synth-midi-select" id="midi-device" aria-label="MIDI Input Device" hidden>${renderDeviceOptions()}</select>
+              <select class="synth-midi-select" id="midi-channel" aria-label="MIDI Channel" hidden>${renderChannelOptions()}</select>
+            </div>
+            <div class="synth-midi-msg" id="midi-msg" role="status" aria-live="polite" hidden></div>
+          </div>
         </div>
+      </div>
+      <div class="synth-subbar">
+        <div class="synth-preset-nav">
+          <button type="button" class="synth-midi-btn preset-step-btn" data-action="preset-prev" aria-label="Previous preset">◀</button>
+          <button type="button" class="preset-display synth-preset-select" id="preset-btn" aria-haspopup="dialog" aria-expanded="false" title="Open the sound library">${renderPresetButton()}</button>
+          <button type="button" class="synth-midi-btn preset-step-btn" data-action="preset-next" aria-label="Next preset">▶</button>
+        </div>
+        ${tempo}
         <nav class="synth-tabs" role="tablist" aria-label="Panel pages">${m.pages.map((pg) =>
           `<button type="button" class="synth-tab" role="tab" data-action="synth-page" data-page="${pg.id}">${escapeHtml(pg.label)}</button>`).join("")}</nav>
-        <div class="synth-midi-bar">
-          ${tempo}
-          <button type="button" class="synth-midi-btn" id="engine-btn" data-action="engine-toggle" aria-pressed="false">HQ</button>
-          <button type="button" class="synth-midi-btn" id="midi-btn" data-action="midi-enable">MIDI</button>
-          <span class="midi-led" id="midi-led" title="MIDI Activity" aria-hidden="true"></span>
-          <select class="synth-midi-select" id="midi-device" aria-label="MIDI Input Device" hidden>${renderDeviceOptions()}</select>
-          <select class="synth-midi-select" id="midi-channel" aria-label="MIDI Channel" hidden>${renderChannelOptions()}</select>
-          <button type="button" class="synth-midi-btn" id="midi-learn-btn" data-action="midi-learn" title="Click LEARN, click a knob, then move a MIDI CC">LEARN</button>
-          <button type="button" class="synth-midi-btn synth-panic-btn" id="midi-panic-btn" data-action="synth-panic" title="Release all notes">PANIC</button>
-          <span class="synth-midi-msg" id="midi-msg" role="status" aria-live="polite"></span>
-        </div>
       </div>
       <div class="synth-sections">
         ${m.sections.map(renderSection).join("")}
@@ -635,17 +669,26 @@ export function updateSynthPresetDOM(): void {
   if (btn) btn.innerHTML = renderPresetButton();
 }
 
-function updateMidiBarDOM(): void {
-  const enabled = isMidiEnabled();
-  const midiBtn = document.getElementById("midi-btn");
+export function updateMidiBarDOM(): void {
+  const unavail = isMidiUnavailable();
+  const enabled = !unavail && isMidiEnabled();
+  const learning = !unavail && isLearnMode();
+  const midiBtn = document.getElementById("midi-btn") as HTMLButtonElement | null;
   const devSelect = document.getElementById("midi-device") as HTMLSelectElement | null;
   const chSelect = document.getElementById("midi-channel") as HTMLSelectElement | null;
-  const learnBtn = document.getElementById("midi-learn-btn");
+  const selectsWrap = document.getElementById("conn-pop-selects");
+  const learnBtn = document.getElementById("midi-learn-btn") as HTMLButtonElement | null;
   const msgEl = document.getElementById("midi-msg");
+  const connDot = document.getElementById("conn-dot");
+
   if (midiBtn) {
+    midiBtn.disabled = unavail;
+    midiBtn.classList.toggle("is-disabled", unavail);
     midiBtn.classList.toggle("active", enabled);
+    midiBtn.setAttribute("aria-disabled", unavail ? "true" : "false");
     midiBtn.textContent = enabled ? "MIDI ON" : "MIDI";
   }
+  if (selectsWrap) selectsWrap.hidden = !enabled;
   if (devSelect) {
     devSelect.hidden = !enabled;
     if (enabled) { devSelect.innerHTML = renderDeviceOptions(); devSelect.value = getSelectedMidiDevice(); }
@@ -654,14 +697,36 @@ function updateMidiBarDOM(): void {
     chSelect.hidden = !enabled;
     if (enabled) chSelect.value = String(getSelectedMidiChannel());
   }
-  if (learnBtn) learnBtn.classList.toggle("active", isLearnMode());
+  if (learnBtn) {
+    learnBtn.disabled = unavail;
+    learnBtn.classList.toggle("is-disabled", unavail);
+    learnBtn.classList.toggle("active", learning);
+    learnBtn.setAttribute("aria-disabled", unavail ? "true" : "false");
+  }
+  if (connDot) {
+    connDot.className =
+      "conn-dot" +
+      (learning
+        ? " is-learn"
+        : enabled
+          ? " is-connected"
+          : unavail
+            ? " is-unavailable"
+            : "");
+  }
   if (msgEl) {
     const statusMsg = getMidiStatusMessage();
-    if (statusMsg) msgEl.textContent = statusMsg;
-    else if (isLearnMode()) {
+    if (unavail) {
+      msgEl.textContent = "MIDI needs Chrome or Edge on desktop or Android";
+    } else if (statusMsg) {
+      msgEl.textContent = statusMsg;
+    } else if (learning) {
       const target = getLearnTargetParam();
       msgEl.textContent = target ? `Move a CC to map ${target}…` : "Click a knob, then move a CC…";
-    } else msgEl.textContent = "";
+    } else {
+      msgEl.textContent = "";
+    }
+    msgEl.hidden = !msgEl.textContent;
   }
   updateMidiLearnDOM();
 }
@@ -711,6 +776,7 @@ export function fitPanel(): void {
   const panel = document.querySelector<HTMLElement>(".synth-panel");
   if (!shell || !panel) return;
   shell.classList.remove("is-fit-paged");
+  applyPageVisibility();
   const secs = panel.querySelector<HTMLElement>(".synth-sections");
   const overflowing = () =>
     panel.scrollHeight > panel.clientHeight + 1 ||
@@ -719,7 +785,7 @@ export function fitPanel(): void {
     Array.from(panel.querySelectorAll<HTMLElement>(".synth-sec")).some(
       (s) => getComputedStyle(s).display !== "none" && s.scrollHeight > s.clientHeight + 1
     );
-  if (!tabsVisible() && overflowing()) {
+  if (!window.matchMedia(PAGED_MQ).matches && overflowing()) {
     shell.classList.add("is-fit-paged");
   }
   applyPageVisibility();
@@ -742,13 +808,13 @@ function bindPanelElements(): void {
     sel.addEventListener("change", () => { setSynthParam(sel.getAttribute("data-param")!, sel.value); sel.blur(); });
   });
 
-  // Swipe left/right on empty panel space to change page (small screens only).
+  // Swipe left/right on empty panel space to change page (paged layouts only).
   const sections = document.querySelector(".synth-sections") as HTMLElement | null;
   if (sections) {
     let swipe: { x: number; y: number; id: number } | null = null;
     sections.addEventListener("pointerdown", (e) => {
       const t = e.target as HTMLElement;
-      if (!tabsVisible() || t.closest(".sk, .vec-svg, .vec-axis-pill, button, select")) return;
+      if (!isPagedLayout() || t.closest(".sk, .vec-svg, .vec-axis-pill, button, select")) return;
       swipe = { x: e.clientX, y: e.clientY, id: e.pointerId };
     });
     sections.addEventListener("pointerup", (e) => {
@@ -773,7 +839,7 @@ export function initPanelInteractions(): void {
   onPresetChange(() => updateSynthPresetDOM());
   onMidiStateChange(() => updateMidiBarDOM());
   onEngineChange(updateEngineDOM);
-  onMachineChange(() => renderPanel());
+  onMachineChange(() => { connOpen = false; renderPanel(); });
   onTempoChange((bpm) => {
     document.querySelectorAll(".synth-tempo-val").forEach((el) => (el.textContent = String(bpm)));
   });
@@ -801,11 +867,28 @@ export function initPanelInteractions(): void {
     ledTimer = setTimeout(clearLed, 90);
   });
 
+  // Close Connections popover on outside tap or Escape
+  document.addEventListener("pointerdown", (e) => {
+    if (!connOpen) return;
+    const t = e.target as HTMLElement | null;
+    if (t && (t.closest("#conn-pop") || t.closest("#conn-btn"))) return;
+    setConnOpen(false);
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && connOpen) {
+      setConnOpen(false);
+    }
+  });
+
   document.addEventListener("click", (e) => {
     const btn = (e.target as HTMLElement)?.closest?.("[data-action]") as HTMLElement | null;
     if (!btn) return;
     const action = btn.getAttribute("data-action");
     switch (action) {
+      case "conn-toggle": {
+        setConnOpen(!connOpen);
+        break;
+      }
       case "synth-set": {
         if (isLearnMode()) return;
         const param = btn.getAttribute("data-param");
@@ -831,8 +914,8 @@ export function initPanelInteractions(): void {
       case "tempo-up": setTempo(getTempo() + 1); break;
       case "tempo-tap": tapTempo(); break;
       case "engine-toggle": switchEngine(getEngine() === "hq" ? "classic" : "hq"); break;
-      case "midi-enable": requestMidi(); break;
-      case "midi-learn": toggleLearnMode(); break;
+      case "midi-enable": if (!isMidiUnavailable()) requestMidi(); break;
+      case "midi-learn": if (!isMidiUnavailable()) toggleLearnMode(); break;
       case "synth-panic": stopDrums(); allNotesOff(); break;
       // drum machine
       case "drum-play":
