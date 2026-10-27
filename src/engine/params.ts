@@ -2,8 +2,10 @@
  * SY-1 Engine — Parameters and Normalization
  */
 
+import { keyMap, SCALES } from "./scales";
+
 export interface ParamDef {
-  type?: "wave" | "filter" | "lfo" | "poly" | "onoff" | "lfoShape" | "arpMode" | "tuning" | "strModel" | "fmAlgo" | "wave3" | "orbitMode";
+  type?: "wave" | "filter" | "lfo" | "poly" | "onoff" | "lfoShape" | "arpMode" | "tuning" | "micro" | "strModel" | "fmAlgo" | "wave3" | "orbitMode";
   min?: number;
   max?: number;
   step?: number;
@@ -23,7 +25,8 @@ export const PARAM_CHOICES: Record<string, string[]> = {
   onoff: ["off", "on"],
   lfoShape: ["sine", "triangle", "square", "sawtooth", "sh"],
   arpMode: ["up", "down", "updown", "random", "played", "euclid"],
-  tuning: ["12tet", "shur", "homayoun", "chahargah", "segah", "bayati", "rast", "hijaz", "custom"],
+  tuning: [...SCALES.map((sc) => sc.id), "custom", "12tet"],
+  micro: ["24tet", "practice"],
   strModel: ["santur", "setar", "tar", "kanun", "oud", "harp"],
   fmAlgo: ["1", "2", "3", "4", "5", "6", "7", "8"],
   orbitMode: ["off", "circle", "figure8", "drawn"]
@@ -145,8 +148,10 @@ export const SYNTH_PARAMS: Record<string, ParamDef> = {
 
   // tuning and ornaments (HQ & Strings engines)
   oriental:   { type: "onoff", def: "off" },
-  tuning:     { type: "tuning", def: "12tet" },
-  tuneRoot:   { min: 0, max: 11, step: 1, def: 7, fmt: (v) => NOTE_LABELS[v] },
+  tuning:     { type: "tuning", def: "shur" },
+  tuneRoot:   { min: 0, max: 11, step: 1, def: 0, fmt: (v) => NOTE_LABELS[v] },
+  microTone:  { type: "micro", def: "24tet" },
+  scaleAlt:   { min: 0, max: 15, step: 1, def: 0, fmt: (v) => String(v) },
   scoop:      { min: 0, max: 1, def: 0, fmt: (v) => Math.round(v * 100) + "%" },
   scoopTime:  { min: 0.01, max: 0.6, curve: "log", def: 0.08, fmt: fmtSec },
   vibDelay:   { min: 0, max: 1.5, def: 0.3, fmt: fmtSec },
@@ -255,90 +260,6 @@ SYNTH_PARAMS.vecDVowel = {
 };
 SYNTH_PARAMS.vecDLevel = { min: 0, max: 1, def: 0.85, fmt: (v) => Math.round(v * 100) + "%" };
 
-export interface TuningDef {
-  name: string;
-  tonic: number;
-  /** Alias for `tonic` kept for compatibility. */
-  root: number;
-  offsets: number[];
-  approx?: boolean;
-  source: string;
-}
-
-/**
- * Tunings: cents offset from 12-TET for each of the 12 semitones relative to
- * the tonic (0..11), with default tonic and documented musicological source.
- * Koron and the Arabic half-flat lower a degree by a quarter-tone (-50 cents,
- * 24-TET Vaziri / Cairo 1932 convention).
- */
-export const TUNINGS: Record<string, TuningDef> = {
-  "12tet": {
-    name: "Equal (12-TET)",
-    tonic: 0,
-    root: 0,
-    offsets: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    source: "Standard 12-tone equal temperament (A4 = 440 Hz)."
-  },
-  shur: {
-    name: "Shur",
-    tonic: 7,
-    root: 7,
-    offsets: [0, 0, -50, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    source: "Vaziri 24-TET & Farhat (1990, ch. 3): G A-koron Bb C D Eb F — 2nd degree (+2 st) is koron (−50¢)."
-  },
-  homayoun: {
-    name: "Homayoun",
-    tonic: 7,
-    root: 7,
-    approx: true,
-    offsets: [0, 0, -50, 0, 0, 0, 0, 0, 0, -50, 0, 0],
-    source: "Vaziri 24-TET & Farhat (1990, ch. 6, Homayoun/Bidad): G A-koron B C D Eb/E-koron F — 2nd (+2 st) & 6th (+9 st) degrees koron (−50¢, approximate)."
-  },
-  chahargah: {
-    name: "Chahargah",
-    tonic: 0,
-    root: 0,
-    offsets: [0, 0, -50, 0, 0, 0, 0, 0, 0, -50, 0, 0],
-    source: "Vaziri 24-TET & Farhat (1990, ch. 5): C D-koron E F G A-koron B — symmetrical tetrachords with 2nd (+2 st) & 6th (+9 st) degrees koron (−50¢)."
-  },
-  segah: {
-    name: "Segah",
-    tonic: 4,
-    root: 4,
-    approx: true,
-    offsets: [-50, 0, 0, 0, 0, -50, 0, 0, 0, 0, 0, 0],
-    source: "Vaziri 24-TET & Farhat (1990, ch. 4): E-koron F G A-koron Bb C D — tonic (0 st) & 4th (+5 st) on koron degrees of the C staff (−50¢, approximate)."
-  },
-  bayati: {
-    name: "Bayati (maqam)",
-    tonic: 2,
-    root: 2,
-    offsets: [0, 0, -50, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    source: "Arabic 24-TET maqam theory (Touma 1996): D E-half-flat F G A Bb C — 2nd degree (+2 st) is half-flat (−50¢)."
-  },
-  rast: {
-    name: "Rast (maqam)",
-    tonic: 0,
-    root: 0,
-    offsets: [0, 0, 0, 0, -50, 0, 0, 0, 0, 0, 0, -50],
-    source: "Arabic 24-TET maqam theory (Touma 1996): C D E-half-flat F G A B-half-flat — 3rd (+4 st) & 7th (+11 st) degrees are half-flat (−50¢)."
-  },
-  hijaz: {
-    name: "Hijaz (maqam)",
-    tonic: 2,
-    root: 2,
-    offsets: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    source: "Arabic 24-TET maqam theory (Touma 1996): D Eb F# G A Bb C — augmented 2nd between Eb and F#, all 12-TET offsets 0¢."
-  },
-  custom: {
-    name: "Custom",
-    tonic: 0,
-    root: 0,
-    offsets: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    source: "Custom per-key cent offsets (−100¢ to +100¢) or imported 12-note Scala (.scl) file, saved per machine."
-  }
-};
-
 const customTuningKey = (machineId: string) => `sy1.m.${machineId}.customTuning`;
 const customTuningCache: Record<string, number[]> = {};
 
@@ -366,7 +287,6 @@ export function getCustomTuning(machineId = "sy1"): number[] {
 export function setCustomTuning(machineId: string, offsets: number[]): number[] {
   const clean = Array.from({ length: 12 }, (_, i) => clampCentOffset(offsets[i] ?? 0));
   customTuningCache[machineId] = clean;
-  TUNINGS.custom.offsets = clean.slice();
   try {
     localStorage.setItem(customTuningKey(machineId), JSON.stringify(clean));
   } catch (e) {}
@@ -454,17 +374,11 @@ export function parseScalaScl(text: string): { ok: true; offsets: number[]; desc
   return { ok: true, offsets, description };
 }
 
-/** Cents offset for a MIDI note under a tuning (root override optional). */
-export function tuningCents(tuningId: string, midi: number, root?: number, machineId?: string): number {
-  const t = TUNINGS[tuningId];
-  if (!t) return 0;
-  const r = root === undefined ? t.tonic : root;
-  const deg = (((midi - r) % 12) + 12) % 12;
-  if (tuningId === "custom") {
-    const custom = machineId ? getCustomTuning(machineId) : t.offsets;
-    return custom[deg] ?? 0;
-  }
-  return t.offsets[deg] ?? 0;
+/** Cents offset for a MIDI note: scale template on a tonic (see scales.ts). */
+export function tuningCents(tuningId: string, midi: number, root = 0, machineId = "sy1", altMask = 0, micro = "24tet"): number {
+  const pc = ((midi % 12) + 12) % 12;
+  const map = keyMap(tuningId, root, altMask, micro, tuningId === "custom" ? getCustomTuning(machineId) : undefined);
+  return map[pc].cents;
 }
 
 export function synthDefaults(): SynthPatch {

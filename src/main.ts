@@ -28,12 +28,12 @@ import {
   setSynthParam
 } from "./engine/synth";
 import { getTempo, setTempo } from "./engine/tempo";
-import { initKeyboardInteractions, renderKeyboard } from "./ui/keyboard";
+import { initKeyboardInteractions, renderKeyboard, syncOriental } from "./ui/keyboard";
 import { initKnobInteractions } from "./ui/knob";
 import { initPanelInteractions, renderPanel, selectDrumVoiceForNote } from "./ui/panel";
 import { startSynthScope } from "./ui/scope";
 import { initArpPanel } from "./ui/arp-panel";
-import { initOrientalPanel, syncOrientalButton } from "./ui/oriental-panel";
+import { initOrientalPanel } from "./ui/oriental-panel";
 import { initLibrary } from "./ui/library";
 
 function initApp(): void {
@@ -41,7 +41,7 @@ function initApp(): void {
   onMachineChange((m) => {
     applySkin(m.skin);
     renderKeyboard();
-    syncOrientalButton();
+    syncOriental();
   });
   initPanelInteractions();
   initArpPanel();

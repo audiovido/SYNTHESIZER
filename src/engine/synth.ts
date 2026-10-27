@@ -9,7 +9,7 @@
  */
 
 import { getAudioCtx, getAudioCtxIfAny, getSynthBus, makeDriveCurve, makeReverbImpulse, unlockAudio } from "./bus";
-import { getCustomTuning, setCustomTuning, setOrbitSyncFormat, SYNC_DIVS, SYNTH_PARAMS, SynthPatch, synthDefaults, TUNINGS, tuningCents } from "./params";
+import { getCustomTuning, setCustomTuning, setOrbitSyncFormat, SYNC_DIVS, SYNTH_PARAMS, SynthPatch, synthDefaults, tuningCents } from "./params";
 import { createHQVoice, EngineId, hqPost, initHQ, setEngine, useHQ } from "./hq";
 import { createStringsVoice, initStrings, stringsPost, useStrings } from "./strings";
 import { createFmVoice, fmPost, initFm, useFm } from "./fm";
@@ -163,9 +163,6 @@ export function setSynthParam(
       const r = syncedLfoRate();
       if (r !== null) setSynthParam("lfoRate", r, { internal: true });
     }
-    if (key === "tuning" && !fromPreset && TUNINGS[value] && value !== "custom") {
-      setSynthParam("tuneRoot", TUNINGS[value].tonic, { internal: true });
-    }
     if (key === "arpOn" && value !== before) releaseEverything();
     if (key === "polyMode" && value !== before) releaseEverything();
   }
@@ -216,7 +213,7 @@ export function setSynthParam(
   } else if (key === "orbitRate") {
     syncVectorOrbitRate(synthPatch);
   }
-  if (!fromPreset && (key === "oriental" || key === "tuning" || key === "tuneRoot")) {
+  if (!fromPreset && (key === "oriental" || key === "tuning" || key === "tuneRoot" || key === "scaleAlt" || key === "microTone")) {
     retuneActiveVoices();
   }
   paramChangeListeners.forEach((cb) => cb(key, synthPatch[key]));
@@ -282,7 +279,6 @@ export function setMachine(id: string): void {
   releaseEverything();
   stopDrums();
   machine = next;
-  TUNINGS.custom.offsets = getCustomTuning(machine.id).slice();
   if (machine.kind === "drums") {
     setDrumKit(machine.drumModel, machine.drumLabels);
     useDrumBank(machine.id, machine.presets[0]?.patterns);
@@ -380,7 +376,7 @@ export const downKeys = new Map<string, number>(); // computer key -> midi
 
 export function centsFor(midi: number): number {
   if (synthPatch.oriental !== "on") return 0;
-  return tuningCents(synthPatch.tuning || "12tet", midi, synthPatch.tuneRoot, machine.id);
+  return tuningCents(synthPatch.tuning || "shur", midi, Number(synthPatch.tuneRoot) || 0, machine.id, Number(synthPatch.scaleAlt) || 0, synthPatch.microTone || "24tet");
 }
 
 export function freqFor(midi: number): number {

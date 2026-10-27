@@ -219,25 +219,45 @@ Machine definitions live in `src/machines/*.ts`. Each defines its sections, page
 
 **QA:** all 104 synth presets were rendered offline (no NaN, peak ≤ 1.0 before the limiter, none silent). All 8 machines were checked on 10 viewports, every page, with no page scroll.
 
-## 15. Oriental tunings & microtonality (added October 2026)
+## 15. Oriental scales & microtonality (rebuilt October 27, 2026)
 
-The ORIENTAL button on the performance bar toggles microtonal scale tunings (`oriental` parameter, `"off"` by default on machines). Clicking the gear icon ⚙ or long-pressing opens the Oriental & Custom Tuning panel.
+**Logic.** Every dastgah / avaz / maqam is ONE template of 7 degrees measured from the tonic: `[semitones, cents]` (`src/engine/scales.ts`). The template is transposed to any of the 12 tonics. A degree sits on the key named by its semitone (koron D = the D key, −50¢). Keys outside the scale stay exact 12-TET. `centsFor(midi)` in `synth.ts` is the single source of pitch for every engine, pitch bend, glide, ARP and MIDI.
 
-### Supported Scales & Musicological Sources
-- **Equal (12-TET):** Standard equal temperament (0¢ on all degrees).
-- **Shur (default tonic G):** G A-koron Bb C D Eb F — 2nd degree (+2 st) is koron (−50¢). Source: Vaziri 24-TET & Farhat (1990, ch. 3).
-- **Homayoun (default tonic G, approx.):** G A-koron B C D Eb/E-koron F — 2nd (+2 st) & 6th (+9 st) degrees koron (−50¢). Marked `(approx.)`. Source: Vaziri 24-TET & Farhat (1990, ch. 6).
-- **Chahargah (default tonic C):** C D-koron E F G A-koron B — 2nd (+2 st) & 6th (+9 st) degrees koron (−50¢). Source: Vaziri 24-TET & Farhat (1990, ch. 5).
-- **Segah (default tonic E, approx.):** E-koron F G A-koron Bb C D — tonic (0 st) & 4th (+5 st) on koron degrees (−50¢). Marked `(approx.)`. Source: Vaziri 24-TET & Farhat (1990, ch. 4).
-- **Bayati (maqam, default tonic D):** D E-half-flat F G A Bb C — 2nd degree (+2 st) is half-flat (−50¢). Source: Touma (1996).
-- **Rast (maqam, default tonic C):** C D E-half-flat F G A B-half-flat — 3rd (+4 st) & 7th (+11 st) degrees half-flat (−50¢). Source: Touma (1996).
-- **Hijaz (maqam, default tonic D):** D Eb F# G A Bb C — 0¢ 12-TET offsets. Source: Touma (1996).
-- **Custom:** 12 per-key cent inputs (−100¢ to +100¢) stored per machine, plus a Scala `.scl` file importer (validates 12 notes, converts ratios and absolute cents to 12-TET cent deviations).
+**Params (saved per machine):** `oriental` (off by default; off = exact 12-TET), `tuning` (scale id), `tuneRoot` (tonic 0–11, independent of the scale), `scaleAlt` (bitmask of variable degrees), `microTone` (`24tet` = −50¢, `practice` = ×0.7 ≈ −35¢).
 
-### Measured Frequency Accuracy
-- **12-TET C4 / A4 / E4:** 261.63 Hz / 440.00 Hz / 329.63 Hz (Oriental OFF).
-- **Rast on C (E4 half-flat):** 329.63 × 2^(−50/1200) = 320.24 Hz (−50.0¢).
-- **Shur on G (A4 koron):** 440.00 × 2^(−50/1200) = 427.47 Hz (−50.0¢).
+**UI.** One ORIENTAL button above the keys (phones: inside the HOLD/ARP bar) shows the active scale ("C Shur") and opens the panel: on/off, tonic, Persian and Arabic scale lists, the spelled notes, variable degrees, quarter-tone size, Custom (12 cent fields + Scala .scl import). With ORIENTAL on, the keys show a small accent dot on the tonic, a faint dot on scale notes, a teal dot + cents on koron/sori notes, and slightly dim the notes outside the scale. A strip lists the notes (C Dᵏ E♭ F G A♭ B♭). A range slider (mini keyboard C1–C8) moves the visible two octaves.
+
+**Templates (cents above the tonic; on C):**
+
+| Scale | Cents | Notes on C |
+|---|---|---|
+| Shur / Abu-Ata / Dashti~ | 0 150 300 500 700 800 1000 | C Dk E♭ F G A♭ B♭ (alts: 5th koron, 6th koron) |
+| Bayat-e Tork | 0 200 400 500 700 900 1050 | C D E F G A Bk |
+| Afshari | 0 200 350 500 700 800 1000 | C D Ek F G A♭ B♭ |
+| Homayoun | 0 150 400 500 700 800 1000 | C Dk E F G A♭ B♭ |
+| Bayat-e Esfahan~ | 0 200 300 500 700 850 1100 | C D E♭ F G Ak B |
+| Segah | 0 150 350 500 650 850 1050 | C Dk Ek F Gk Ak Bk (traditionally on E koron) |
+| Chahargah | 0 150 400 500 700 850 1100 | C Dk E F G Ak B |
+| Mahur / Rast-Panjgah | 0 200 400 500 700 900 1100 | major (alts: ♭7, koron 6th) |
+| Nava~ | 0 200 300 500 700 850 1000 | C D E♭ F G Ak B♭ |
+| Rast (maqam) | 0 200 350 500 700 900 1050 | C D Eh F G A Bh (alt ♭7) |
+| Bayati | 0 150 300 500 700 800 1000 | C Dh E♭ F G A♭ B♭ |
+| Sikah~ | 0 150 350 550 700 850 1050 | C Dh Eh Fs G Ah Bh |
+| Hijaz | 0 100 400 500 700 800 1000 | C D♭ E F G A♭ B♭ |
+| Hijaz Kar | 0 100 400 500 700 800 1100 | C D♭ E F G A♭ B |
+| Saba | 0 150 300 400 700 800 1000 | C Dh E♭ F♭ G A♭ B♭ |
+| Huzam~ | 0 150 350 450 750 850 1050 | C Dh Eh Fh Gs Ah Bh |
+| Suznak | 0 200 350 500 700 800 1100 | C D Eh F G A♭ B |
+| Nahawand | 0 200 300 500 700 800 1100 | harmonic minor (alt ♭7) |
+| Kurd | 0 100 300 500 700 800 1000 | phrygian |
+| Nikriz | 0 200 300 600 700 900 1000 | C D E♭ F♯ G A B♭ |
+| Ajam | major | |
+
+~ = approximate (sources disagree); the player's ear decides. Sources: Farhat 1990, Vaziri 24-TET, Talai radif, Touma 1996, maqamworld.
+
+**Verified (2026-10-27):** 19,585 unit checks (every scale × 12 tonics × MIDI 36–96) = 0 failures. Pitch measured from the audio output: 12-TET A4 440.0 Hz and C4 261.6 Hz, C Shur D4 285.3 Hz (−50¢), C Rast E4 320.2 Hz, practice −35¢, all within ~1¢ on Classic, HQ, Strings, Analog and FM.
+
+**Keyboard size.** The keys have one height on every machine (`--keys-h`, per layout). On desktop/tablet, a panel that does not fit above the keys switches to pages (tabs). On phones a very tall page may shrink the keys slightly.
 
 ## 16. New machines, drum models and the sound library (added October 2026)
 

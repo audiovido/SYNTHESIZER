@@ -676,7 +676,32 @@ export function renderPanel(): void {
   updateEngineDOM();
   updateMidiBarDOM();
   renderHooks.forEach((fn) => fn());
+  fitPanel();
 }
+
+/**
+ * The keyboard has one fixed height on every machine. When a machine's panel
+ * does not fit in the space left above it, the panel switches to pages (tabs)
+ * on any screen size, so nothing overflows and the keys never shrink.
+ */
+export function fitPanel(): void {
+  const shell = document.querySelector<HTMLElement>(".sy1-shell");
+  const panel = document.querySelector<HTMLElement>(".synth-panel");
+  if (!shell || !panel) return;
+  shell.classList.remove("is-fit-paged");
+  const secs = panel.querySelector<HTMLElement>(".synth-sections");
+  const overflowing = () =>
+    panel.scrollHeight > panel.clientHeight + 1 ||
+    (!!secs && secs.scrollHeight > secs.clientHeight + 1) ||
+    document.documentElement.scrollHeight > window.innerHeight + 1;
+  if (!tabsVisible() && overflowing()) shell.classList.add("is-fit-paged");
+}
+
+let fitRaf = 0;
+window.addEventListener("resize", () => {
+  cancelAnimationFrame(fitRaf);
+  fitRaf = requestAnimationFrame(fitPanel);
+});
 
 function bindPanelElements(): void {
   const devSelect = document.getElementById("midi-device") as HTMLSelectElement | null;

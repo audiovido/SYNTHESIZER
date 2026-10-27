@@ -6,6 +6,7 @@
  * rendered from this data, so a new machine is one new file in src/machines.
  */
 
+import { SCALES } from "../engine/scales";
 export type ChoiceOption = [value: string, text: string, title?: string];
 
 export interface ChoiceDef {
@@ -123,14 +124,7 @@ export const ARP_MODE_OPTS: ChoiceOption[] = [
   ["played", "PLAY", "As played"]
 ];
 export const TUNING_OPTS: ChoiceOption[] = [
-  ["12tet", "Equal"],
-  ["shur", "Shur"],
-  ["homayoun", "Homayoun (approx.)"],
-  ["chahargah", "Chahargah"],
-  ["segah", "Segah (approx.)"],
-  ["bayati", "Bayati"],
-  ["rast", "Rast"],
-  ["hijaz", "Hijaz"],
+  ...SCALES.map((sc): ChoiceOption => [sc.id, sc.name + (sc.approx ? " ~" : "")]),
   ["custom", "Custom"]
 ];
 

@@ -1,5 +1,6 @@
 import { centsFor, downKeys, getMachine, getSynthPatch, isNoteSounding, midiToName, noteOff, noteOn, NOTE_NAMES, onParamChange, prepareAudio, releasePhysicalNotes, setModWheel, setPitchBend, setSynthParam } from "../engine/synth";
-import { TUNINGS } from "../engine/params";
+import { getCustomTuning } from "../engine/params";
+import { getScale, keyMap, KeyInfo, spellScale, TONIC_NAMES } from "../engine/scales";
 import { drumLabel, DRUM_NOTES, DRUM_VOICES } from "../engine/drums";
 
 /** Computer keys for the 8 drum pads (home row). */
@@ -10,6 +11,17 @@ const DRUM_KEYMAP: Record<string, number> = {
 const DRUM_KEY_LETTERS = ["A", "S", "D", "F", "G", "H", "J", "K"];
 
 let baseMidi = 48; // C3
+const MIN_BASE = 24; // C1
+const MAX_BASE = 84; // C6 (keyboard then ends on C8)
+
+/** Pitch-class map of the active oriental scale, or null when ORIENTAL is off. */
+function activeKeyMap(): KeyInfo[] | null {
+  const p = getSynthPatch();
+  if (p.oriental !== "on" || getMachine().kind === "drums") return null;
+  const id = String(p.tuning || "shur");
+  return keyMap(id, Number(p.tuneRoot) || 0, Number(p.scaleAlt) || 0, String(p.microTone || "24tet"),
+    id === "custom" ? getCustomTuning(getMachine().id) : undefined);
+}
 
 export function getBaseMidi(): number {
   return baseMidi;
@@ -45,33 +57,111 @@ export function renderKeyboard(): void {
     (NOTE_NAMES[m % 12].includes("#") ? blacks : whites).push(m);
   }
 
-  const p = getSynthPatch();
-  const orientalOn = p.oriental === "on";
+  const map = activeKeyMap();
+  kb.classList.toggle("is-oriental", !!map);
 
+  const keyClass = (m: number) => {
+    if (!map) return "";
+    const k = map[((m % 12) + 12) % 12];
+    if (!k.inScale) return " out-scale";
+    return " in-scale" + (k.isRoot ? " is-root" : "") + (Math.abs(k.cents) > 0.001 ? " is-micro" : "");
+  };
   const renderKeyContent = (m: number, nameLabel: string) => {
-    const c = centsFor(m);
-    const badge = orientalOn && Math.abs(c) > 0.001 ? `<span class="key-cents">${fmtCentBadge(c)}</span>` : "";
     const labelHtml = nameLabel ? `<span class="key-lbl">${nameLabel}</span>` : "";
-    return `${labelHtml}${badge}`;
+    if (!map) return labelHtml;
+    const k = map[((m % 12) + 12) % 12];
+    const c = centsFor(m);
+    const badge = k.inScale && Math.abs(c) > 0.001 ? `<span class="key-cents">${fmtCentBadge(c)}</span>` : "";
+    const mark = k.inScale ? `<span class="key-mark" aria-hidden="true"></span>` : "";
+    return `${badge}${mark}${labelHtml}`;
   };
 
   kb.style.setProperty("--whites", String(whites.length));
   kb.innerHTML =
     whites.map((m) => {
       const sounding = isNoteSounding(m) ? " is-pressed" : "";
-      return `<div class="key${sounding}" data-midi="${m}">${renderKeyContent(m, m % 12 === 0 ? midiToName(m) : "")}</div>`;
+      return `<div class="key${keyClass(m)}${sounding}" data-midi="${m}">${renderKeyContent(m, m % 12 === 0 ? midiToName(m) : "")}</div>`;
     }).join("") +
     blacks.map((m) => {
       const leftWhite = whites.indexOf(m - 1);
       const left = ((leftWhite + 1) / whites.length) * 100;
       const sounding = isNoteSounding(m) ? " is-pressed" : "";
-      return `<div class="key black${sounding}" data-midi="${m}" style="left:calc(${left}% - (100% / ${whites.length} * 0.29))">${renderKeyContent(m, "")}</div>`;
+      return `<div class="key black${keyClass(m)}${sounding}" data-midi="${m}" style="left:calc(${left}% - (100% / ${whites.length} * 0.29))">${renderKeyContent(m, "")}</div>`;
     }).join("");
 
   const rangeEl = document.getElementById("kb-range");
   if (rangeEl) {
     rangeEl.textContent = midiToName(baseMidi) + " – " + midiToName(baseMidi + 24);
   }
+  syncMini();
+}
+
+/** Range slider above the keys: a mini keyboard C1–C8 with the visible window. */
+function syncMini(): void {
+  const win = document.querySelector<HTMLElement>(".kb-mini-win");
+  const mini = document.getElementById("kb-mini");
+  if (!win || !mini) return;
+  const span = MAX_BASE + 24 - MIN_BASE;
+  win.style.left = ((baseMidi - MIN_BASE) / span) * 100 + "%";
+  win.style.width = (24 / span) * 100 + "%";
+  mini.setAttribute("aria-valuenow", String(baseMidi));
+  mini.setAttribute("aria-valuetext", midiToName(baseMidi) + " – " + midiToName(baseMidi + 24));
+}
+
+function setBase(next: number): void {
+  next = Math.max(MIN_BASE, Math.min(MAX_BASE, Math.round((next - MIN_BASE) / 12) * 12 + MIN_BASE));
+  if (next === baseMidi) return;
+  baseMidi = next;
+  renderKeyboard();
+}
+
+/**
+ * Phones: the strip (ORIENTAL + range slider) moves into the HOLD/ARP bar so
+ * it costs no extra row; larger screens show it as a thin row above the keys.
+ */
+const PHONE_MQ = "(max-width: 760px), (max-height: 560px) and (orientation: landscape)";
+function placeStrip(): void {
+  const strip = document.querySelector(".kb-strip");
+  const bar = document.querySelector(".kb-bar");
+  const col = document.querySelector(".kb-col");
+  if (!strip || !bar || !col) return;
+  const phone = window.matchMedia(PHONE_MQ).matches;
+  if (phone && strip.parentElement !== bar) bar.appendChild(strip);
+  else if (!phone && strip.parentElement !== col) col.insertBefore(strip, col.firstChild);
+}
+
+function initMini(): void {
+  placeStrip();
+  window.matchMedia(PHONE_MQ).addEventListener("change", placeStrip);
+  const mini = document.getElementById("kb-mini");
+  if (!mini) return;
+  const span = MAX_BASE + 24 - MIN_BASE;
+  let id: number | null = null;
+  let grab = 0; // where inside the window the pointer grabbed (in notes)
+  const noteAt = (x: number) => {
+    const r = mini.getBoundingClientRect();
+    return MIN_BASE + ((x - r.left) / Math.max(1, r.width)) * span;
+  };
+  mini.addEventListener("pointerdown", (e) => {
+    e.preventDefault();
+    id = e.pointerId;
+    try { mini.setPointerCapture(id); } catch (err) {}
+    const n = noteAt(e.clientX);
+    const inside = n >= baseMidi && n <= baseMidi + 24;
+    grab = inside ? n - baseMidi : 12;
+    mini.classList.add("dragging");
+    setBase(n - grab);
+  });
+  mini.addEventListener("pointermove", (e) => { if (e.pointerId === id) setBase(noteAt(e.clientX) - grab); });
+  const end = (e: PointerEvent) => { if (e.pointerId !== id) return; id = null; mini.classList.remove("dragging"); };
+  mini.addEventListener("pointerup", end);
+  mini.addEventListener("pointercancel", end);
+  mini.addEventListener("keydown", (e) => {
+    const d = { ArrowLeft: -12, ArrowDown: -12, ArrowRight: 12, ArrowUp: 12 }[e.key];
+    if (!d) return;
+    e.preventDefault();
+    setBase(baseMidi + d);
+  });
 }
 
 function syncHold(): void {
@@ -84,20 +174,31 @@ function syncHold(): void {
 
 export function syncOriental(): void {
   const btn = document.getElementById("kb-oriental");
-  const subEl = document.getElementById("kb-oriental-sub");
+  const notesEl = document.getElementById("kb-scale-notes");
   if (!btn) return;
   const p = getSynthPatch();
   const on = p.oriental === "on";
-  const tId = p.tuning || "12tet";
-  const tDef = TUNINGS[tId] || TUNINGS["12tet"];
-  const rootName = NOTE_NAMES[((p.tuneRoot ?? tDef.tonic) % 12 + 12) % 12];
-  const approxMark = tDef.approx ? " ~" : "";
-  const subText = `${tDef.name.replace(/ \(maqam\)/, "")}${approxMark} · ${rootName}`;
-
+  const id = String(p.tuning || "shur");
+  const tonic = ((Number(p.tuneRoot) || 0) % 12 + 12) % 12;
+  const def = getScale(id);
+  const scaleName = id === "custom" ? "Custom" : def ? def.name : "Scale";
+  const label = `${TONIC_NAMES[tonic]} ${scaleName}`;
+  const lbl = btn.querySelector(".kb-or-scale");
+  if (lbl) lbl.textContent = on ? label : "";
   btn.classList.toggle("active", on);
-  btn.setAttribute("aria-pressed", on ? "true" : "false");
-  btn.title = `Oriental tuning: ${subText}${tDef.approx ? " (approximate)" : ""} — click to toggle, ⚙ or long-press to edit`;
-  if (subEl) subEl.textContent = subText;
+  btn.setAttribute("aria-label", on ? `Oriental tuning on: ${label}. Open tuning settings` : "Oriental tuning off. Open tuning settings");
+  btn.title = on ? `${label}${def?.approx ? " (approximate)" : ""}: tap to change scale or turn off` : "Oriental scales: tap to choose a dastgah or maqam";
+  if (notesEl) {
+    if (!on) notesEl.innerHTML = "";
+    else if (id === "custom") notesEl.innerHTML = `<span class="sn-hint">Custom cents per note</span>`;
+    else {
+      notesEl.innerHTML = spellScale(id, tonic, Number(p.scaleAlt) || 0, String(p.microTone || "24tet")).map((n, i) =>
+        `<span class="sn${i === 0 ? " sn-root" : ""}${n.micro ? " sn-micro" : ""}" title="${n.micro ? (n.micro === "k" ? "koron / half-flat " : "sori / half-sharp ") + fmtCentBadge(n.cents) + "¢" : ""}">${n.letter}${n.acc}${n.micro ? `<sup>${n.micro === "k" ? "k" : "s"}</sup>` : ""}</span>`
+      ).join("");
+    }
+  }
+  const strip = document.querySelector(".kb-strip");
+  if (strip) strip.classList.toggle("is-oriental", on);
 }
 
 /** Pitch bend (springs back to centre) and mod wheel (stays), beside the keys. */
@@ -136,10 +237,7 @@ function initWheels(): void {
 }
 
 export function shiftOctave(d: number): void {
-  const next = Math.max(24, Math.min(84, baseMidi + d * 12));
-  if (next === baseMidi) return;
-  baseMidi = next;
-  renderKeyboard();
+  setBase(baseMidi + d * 12);
 }
 
 function keyAt(kbEl: HTMLElement, x: number, y: number): number | null {
@@ -172,12 +270,13 @@ export function initKeyboardInteractions(): void {
   
   onParamChange((k) => {
     if (k === "hold") syncHold();
-    if (k === "oriental" || k === "tuning" || k === "tuneRoot") {
+    if (k === "oriental" || k === "tuning" || k === "tuneRoot" || k === "scaleAlt" || k === "microTone") {
       syncOriental();
       renderKeyboard();
     }
   });
   initWheels();
+  initMini();
 
   // Pointer tracking for mouse + touch multi-touch with glide
   const pointerNotes = new Map<number, number>(); // pointerId -> midi

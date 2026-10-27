@@ -111,6 +111,10 @@
   --sk-w: 54px;               /* knob column width */
   --scope-h: 48px;
   --kb-min: 96px;
+  /* one keyboard size for every machine (see .kb-main) */
+  --keys-h: clamp(160px, 26vh, 320px);
+  --strip-h: 22px;
+  --micro-ink: #1aa6b7;
   --kb-max: clamp(140px, 22vh, 240px);
 }
 
@@ -234,8 +238,7 @@ body {
    Keyboard & Performance Bar
    ============================================================ */
 .kb-area {
-  flex: 1 1 auto;
-  min-height: var(--kb-min);
+  flex: none;
   display: flex;
   gap: var(--sp-2);
   margin: 0;
@@ -263,10 +266,9 @@ body {
 
 #kb-hold { grid-area: 1 / 1; }
 #kb-arp { grid-area: 1 / 2; }
-.kb-orient-group { grid-area: 2 / 1 / 3 / 3; }
-#oct-down { grid-area: 3 / 1; }
-#oct-up { grid-area: 3 / 2; }
-.kb-range { grid-area: 4 / 1 / 5 / 3; }
+#oct-down { grid-area: 2 / 1; }
+#oct-up { grid-area: 2 / 2; }
+.kb-range { grid-area: 3 / 1 / 4 / 3; }
 
 .kb-bar #oct-down,
 .kb-bar #oct-up {
@@ -1209,7 +1211,7 @@ body {
 .kb-main {
   flex: 1 1 auto;
   min-width: 0;
-  min-height: 0;
+  height: calc(var(--keys-h) + var(--strip-h) + var(--sp-1));
   display: flex;
   gap: var(--sp-2);
   container-type: size;
@@ -1347,100 +1349,191 @@ body {
 /* ============================================================
    Oriental & Custom Tuning UI
    ============================================================ */
+/* ---- keyboard column: thin strip (ORIENTAL, scale notes, range) above the keys ---- */
+.kb-col {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+}
+.kb-col > .kb { flex: 1 1 auto; }
+
+.kb-strip {
+  flex: 0 0 var(--strip-h);
+  height: var(--strip-h);
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  min-width: 0;
+}
+
+.kb-or {
+  flex: none;
+  height: 100%;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0 var(--sp-2);
+  border-radius: 999px;
+  border: 1px solid var(--btn-border);
+  background: var(--btn-bg);
+  color: var(--kb-btn-ink);
+  font: 800 0.62rem/1 var(--font-ui);
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  white-space: nowrap;
+  max-width: 46%;
+  transition: background-color 120ms ease, border-color 120ms ease, box-shadow 120ms ease, color 120ms ease;
+}
+.kb-or:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.kb-or:hover { border-color: var(--accent); }
+.kb-or-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: transparent;
+  box-shadow: inset 0 0 0 1.5px currentColor;
+  opacity: 0.55;
+  flex: none;
+}
+.kb-or-scale {
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+.kb-or-scale:empty { display: none; }
+.kb-or-caret { flex: none; opacity: 0.6; transition: transform 120ms ease; }
+.kb-or.is-open .kb-or-caret { transform: rotate(180deg); }
+.kb-or.active {
+  border-color: var(--accent);
+  box-shadow: 0 0 8px var(--accent-glow-soft);
+}
+.kb-or.active .kb-or-dot { background: var(--accent); box-shadow: 0 0 6px var(--accent); opacity: 1; }
+.kb-or.active .kb-or-lbl { display: none; }
+
+.kb-scale-notes {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  overflow: hidden;
+  white-space: nowrap;
+  font: 700 0.7rem/1 var(--font-ui);
+  color: var(--ink-dim);
+  font-variant-numeric: tabular-nums;
+}
+.kb-scale-notes .sn sup { font-size: 0.72em; margin-left: 1px; color: var(--micro-ink); font-weight: 800; }
+.kb-scale-notes .sn-root { color: var(--accent); }
+.kb-scale-notes .sn-micro { color: var(--ink); }
+.kb-scale-notes .sn-hint { font-weight: 600; }
+
+/* range slider: mini keyboard C1–C8, window = the visible two octaves */
+.kb-mini {
+  position: relative;
+  flex: 0 1 clamp(120px, 34%, 300px);
+  height: calc(var(--strip-h) - 6px);
+  margin-left: auto;
+  border-radius: 5px;
+  border: 1px solid var(--key-line);
+  overflow: hidden;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.kb-mini.dragging { cursor: grabbing; }
+.kb-mini:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.kb-mini-keys {
+  position: absolute;
+  inset: 0;
+  background:
+    repeating-linear-gradient(90deg, transparent 0 calc(100% / 50 - 1px), var(--key-line) calc(100% / 50 - 1px) calc(100% / 50)),
+    var(--key-white);
+  opacity: 0.85;
+}
+.kb-mini-keys::after {
+  /* black keys, drawn per octave (C# D# · F# G# A#) */
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 58%;
+  background: repeating-linear-gradient(90deg,
+    transparent 0 calc(100% / 7.142857 * 0.10),
+    var(--key-black-mini, #1b1a20) calc(100% / 7.142857 * 0.10) calc(100% / 7.142857 * 0.18),
+    transparent calc(100% / 7.142857 * 0.18) calc(100% / 7.142857 * 0.24),
+    var(--key-black-mini, #1b1a20) calc(100% / 7.142857 * 0.24) calc(100% / 7.142857 * 0.32),
+    transparent calc(100% / 7.142857 * 0.32) calc(100% / 7.142857 * 0.524),
+    var(--key-black-mini, #1b1a20) calc(100% / 7.142857 * 0.524) calc(100% / 7.142857 * 0.604),
+    transparent calc(100% / 7.142857 * 0.604) calc(100% / 7.142857 * 0.667),
+    var(--key-black-mini, #1b1a20) calc(100% / 7.142857 * 0.667) calc(100% / 7.142857 * 0.747),
+    transparent calc(100% / 7.142857 * 0.747) calc(100% / 7.142857 * 0.81),
+    var(--key-black-mini, #1b1a20) calc(100% / 7.142857 * 0.81) calc(100% / 7.142857 * 0.89),
+    transparent calc(100% / 7.142857 * 0.89) calc(100% / 7.142857));
+}
+.kb-mini-win {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-radius: 4px;
+  border: 2px solid var(--accent);
+  background: color-mix(in srgb, var(--accent) 22%, transparent);
+  box-shadow: 0 0 8px var(--accent-glow-soft);
+  transition: left 120ms ease;
+  pointer-events: none;
+}
+.kb-mini.dragging .kb-mini-win { transition: none; }
+
+/* ---- scale markers on the keys (ORIENTAL on only) ---- */
+.kb.is-oriental .key.out-scale:not(.is-pressed) { filter: saturate(0.6) brightness(0.9); }
+.kb.is-oriental .key.black.out-scale:not(.is-pressed) { filter: brightness(1.18) saturate(0.6); }
+
+.key-mark {
+  position: absolute;
+  left: 50%;
+  bottom: calc(var(--sp-2) + 1.1em);
+  width: 6px;
+  height: 6px;
+  margin-left: -3px;
+  border-radius: 50%;
+  background: var(--key-white-ink);
+  opacity: 0.4;
+  pointer-events: none;
+}
+.key.black .key-mark { bottom: 7px; background: #fff; opacity: 0.45; }
+.key.is-micro .key-mark { background: var(--micro-ink); opacity: 0.95; }
+.key.is-root .key-mark {
+  width: 9px;
+  height: 9px;
+  margin-left: -4.5px;
+  background: var(--accent);
+  opacity: 1;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 30%, transparent);
+}
+.key.is-root.is-micro .key-mark { box-shadow: 0 0 0 2px var(--micro-ink); }
+
 .key-cents {
   position: absolute;
-  bottom: 2px;
   left: 50%;
+  bottom: calc(var(--sp-2) + 1.1em + 9px);
   transform: translateX(-50%);
-  font-size: 0.58rem;
+  font-size: 0.56rem;
   font-weight: 800;
-  padding: 1px 3px;
-  border-radius: 4px;
-  background: rgba(0, 0, 0, 0.45);
-  color: var(--accent);
+  color: var(--micro-ink);
   pointer-events: none;
   font-variant-numeric: tabular-nums;
   line-height: 1;
   white-space: nowrap;
 }
-
-.key.black .key-cents {
-  bottom: auto;
-  top: 4px;
-  background: rgba(0, 0, 0, 0.7);
-}
-
-.kb-orient-group {
-  display: flex;
-  gap: var(--sp-1);
-  min-width: 0;
-}
-
-.kb-orient-group .kb-oriental {
-  flex: 1 1 auto;
-  min-width: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--sp-1);
-  padding: 0 var(--sp-1);
-}
-
-.kb-oriental.active {
-  background: var(--accent);
-  color: var(--accent-ink);
-  border-color: var(--accent);
-  box-shadow: 0 0 10px var(--accent-glow-soft);
-}
-
-.kb-oriental-main {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-width: 0;
-  text-align: center;
-  line-height: 1.1;
-}
-
-.kb-oriental-lbl {
-  font-size: 0.66rem;
-  font-weight: 800;
-}
-
-.kb-oriental-sub {
-  font-size: 0.52rem;
-  font-weight: 700;
-  color: var(--ink-dim);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 65px;
-}
-
-.kb-oriental.active .kb-oriental-sub {
-  color: var(--accent-ink);
-}
-
-.kb-orient-group .kb-tune {
-  flex: 0 0 34px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 0;
-  padding: 0;
-}
-
-.kb-tune svg {
-  display: block;
-}
-
-.kb-orient-group .kb-tune.is-open {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: var(--accent-ink);
-  box-shadow: 0 0 10px var(--accent-glow-soft);
-}
+.key.black .key-cents { bottom: 17px; color: #fff; opacity: 0.85; }
+.key.is-pressed .key-mark,
+.key.is-pressed .key-cents { opacity: 1; }
 
 .oriental-pop {
   top: auto;
@@ -2218,8 +2311,6 @@ body {
   .kb-bar #oct-down, .kb-bar #oct-up { flex: none; width: 58px; }
   .kb-range { flex: none; }
   .kb-perf #kb-hold, .kb-perf #kb-arp { flex: 0 0 46px; }
-  .kb-perf .kb-orient-group { flex: 1 1 auto; min-width: 0; }
-  .kb-orient-group .kb-tune { flex-basis: 38px; }
   .kb-wheel { width: 24px; }
   .synth-panel[data-count="3"] .synth-sections { grid-template-columns: 1fr 1fr; }
   .synth-panel[data-count="3"] .synth-sec.is-page-first { grid-column: 1 / -1; }
@@ -2372,10 +2463,6 @@ body {
   .kb-range { display: none; }
   .kb-wheel { width: 22px; }
   .kb-bar .kb-btn { min-height: 26px; font-size: 0.64rem; }
-  .kb-oriental-lbl { font-size: 0.6rem; }
-  .kb-oriental-sub { display: none; }
-  .kb-orient-group .kb-tune { flex-basis: 28px; }
-  .kb-tune svg { width: 14px; height: 14px; }
 
   .or-inner { padding: var(--sp-2); gap: var(--sp-2); }
   .or-scales { grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); }
@@ -2412,6 +2499,88 @@ body {
   .synth-tab { min-height: 26px; }
   .kb-bar .kb-btn { min-height: 24px; }
 }
+
+
+/* scale chips: name above the Persian/Arabic name */
+.or-scale { flex-direction: column; gap: 1px; line-height: 1.15; padding: 5px var(--sp-1); }
+.or-scale .or-chip-name { max-width: 100%; }
+.or-scale .or-chip-sub { font-size: 0.66rem; font-weight: 600; opacity: 0.7; }
+.or-notes { display: flex; flex-wrap: wrap; gap: var(--sp-1); }
+.or-note {
+  min-width: 46px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 6px var(--sp-1);
+  border-radius: 8px;
+  border: 1px solid var(--sec-border);
+  background: var(--sec-bg);
+  font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
+}
+.or-note sup { font-size: 0.62em; color: var(--micro-ink); margin-left: 1px; }
+.or-note small { font-size: 0.6rem; font-weight: 800; color: var(--micro-ink); }
+.or-note.is-root { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+.or-note.is-root b { color: var(--accent); }
+.or-note.is-micro { border-color: color-mix(in srgb, var(--micro-ink) 55%, transparent); }
+.or-alts { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-1); margin-top: var(--sp-2); }
+.or-alts .or-label { margin-right: var(--sp-1); }
+.or-alts .or-chip { min-height: 30px; }
+.or-seg { display: flex; gap: var(--sp-1); }
+.or-seg .or-chip { flex: 0 1 auto; padding: 0 var(--sp-3); }
+.or-seg .or-chip small { font-weight: 700; opacity: 0.7; margin-left: 4px; }
+.or-micro { flex-direction: row; align-items: center; gap: var(--sp-2); flex-wrap: wrap; }
+
+/* desktop: wheels line up with the keys, not with the strip above them */
+.kb-main:has(> .kb-col > .kb-strip) .kb-wheels { margin-top: calc(var(--strip-h) + var(--sp-1)); }
+
+/* ============================================================
+   One keyboard size for every machine (keys + strip above them)
+   ============================================================ */
+@media (pointer: coarse) and (min-width: 761px) and (min-height: 561px) {
+  :root { --keys-h: clamp(220px, 34vh, 400px); --strip-h: 28px; }
+}
+@media (max-width: 760px) and (orientation: portrait) {
+  :root { --keys-h: clamp(150px, 38vh, 380px); }
+  /* phones: same size on every machine, but a tall page may borrow room */
+  .kb-area { flex: 0 1000 auto; min-height: 0; }
+  .kb-main { height: auto; flex: 0 1 calc(var(--keys-h) + var(--strip-h) + var(--sp-1)); min-height: calc(var(--kb-min) * 0.7); }
+}
+@media (max-height: 560px) and (orientation: landscape) {
+  :root { --keys-h: clamp(84px, 33vh, 170px); --strip-h: 20px; }
+  .kb-area { flex: 0 1000 calc(var(--keys-h) + var(--strip-h) + var(--sp-1)); min-height: calc(var(--kb-min) + var(--strip-h)); }
+  .kb-main { height: auto; }
+  .kb-or { font-size: 0.56rem; }
+}
+@media (max-height: 360px) and (orientation: landscape) {
+  :root { --keys-h: clamp(76px, 31vh, 120px); --strip-h: 18px; }
+}
+/* phones: strip lives inside the HOLD/ARP bar; the range slider replaces Oct −/+ */
+@media (max-width: 760px), (max-height: 560px) and (orientation: landscape) {
+  :root { --strip-h: 0px; }
+  .kb-col { gap: 0; }
+  .kb-bar #oct-down, .kb-bar #oct-up, .kb-range { display: none; }
+  .kb-bar .kb-strip { height: auto; flex: 1 1 auto; gap: var(--sp-1); min-width: 0; }
+  .kb-bar .kb-scale-notes { display: none; }
+  .kb-bar .kb-or { height: 100%; max-width: none; flex: 1 1 auto; min-width: 0; justify-content: center; }
+  .kb-bar .kb-mini { height: 100%; margin-left: 0; }
+}
+@media (max-width: 760px) and (orientation: portrait) {
+  .kb-bar { align-items: stretch; }
+  .kb-bar .kb-strip { align-self: stretch; }
+  .kb-bar .kb-mini { flex: 0 1 34%; min-height: 28px; }
+}
+@media (max-height: 560px) and (orientation: landscape) {
+  .kb-bar .kb-strip { grid-column: 1 / -1; display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--sp-1); }
+  .kb-bar .kb-or { min-height: 26px; padding: 0 var(--sp-1); }
+  .kb-bar .kb-mini { min-height: 20px; }
+}
+
+/* Panels that do not fit above the keyboard switch to pages on any screen */
+.sy1-shell.is-fit-paged .synth-tabs { display: flex; }
+.sy1-shell.is-fit-paged .synth-sec { display: none; }
+.sy1-shell.is-fit-paged .synth-sec.is-on-page { display: flex; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {

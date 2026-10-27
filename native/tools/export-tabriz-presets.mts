@@ -4,8 +4,9 @@
 //   npx esbuild native/tools/export-tabriz-presets.mts --bundle --platform=node --format=esm --outfile=native/tools/.exp.mjs
 //   node native/tools/.exp.mjs && rm native/tools/.exp.mjs
 import { writeFileSync } from "fs";
-import { PARAM_CHOICES, SYNC_DIVS, SYNTH_PARAMS, TUNINGS } from "../../src/engine/params";
-import { ARP_MODE_OPTS, TUNING_OPTS } from "../../src/machines/types";
+import { PARAM_CHOICES, SYNC_DIVS, SYNTH_PARAMS } from "../../src/engine/params";
+import { keyMap, SCALES } from "../../src/engine/scales";
+import { ARP_MODE_OPTS } from "../../src/machines/types";
 import { TABRIZ } from "../../src/machines/tabriz";
 
 // ---- every key the panel shows + FX bus + engine-only keys ----
@@ -78,10 +79,9 @@ const panel = {
   })),
   params,
   arpModes: ARP_MODE_OPTS.filter(([v]) => v !== "euclid").map(([value, text, title]) => ({ value, text, title: title ?? text })),
-  tunings: TUNING_OPTS.map(([id, label]) => {
-    const t = TUNINGS[id];
-    return { id, label: label.replace(/ \(approx\.\)/, ""), name: t.name, tonic: t.tonic, offsets: t.offsets, approx: !!t.approx, source: t.source };
-  }),
+  tunings: SCALES.map((t) => ({
+    id: t.id, label: t.name, name: t.name, tonic: t.tonic, offsets: keyMap(t.id, 0).map((k) => k.cents), approx: !!t.approx, source: t.note
+  })),
 };
 
 const presets = TABRIZ.presets.map((p) => {

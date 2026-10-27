@@ -118,7 +118,7 @@ export const SHIRAZ: MachineDef = {
       name: "Bright Santur · Mahur",
       group: "Santur",
       patch: {
-        oriental: "on", strModel: "santur", tuning: "12tet", tuneRoot: 0,
+        oriental: "on", strModel: "santur", tuning: "mahur", tuneRoot: 0,
         strCourses: 3, strDetune: 3, strHard: 0.78, strPos: 0.12,
         strDecay: 5.0, strDamp: 0.15, strBright: 0.88, strStiff: 0.45,
         strBody: 0.4, strTone: 0.62, strBuzz: 0, riz: "off"
@@ -143,7 +143,7 @@ export const SHIRAZ: MachineDef = {
       name: "Setar · Segah",
       group: "Setar & Tar",
       patch: {
-        oriental: "on", strModel: "setar", tuning: "segah", tuneRoot: 4,
+        oriental: "on", strModel: "setar", tuning: "segah", tuneRoot: 0,
         strCourses: 2, strDetune: 3, strHard: 0.52, strPos: 0.14,
         strDecay: 2.8, strDamp: 0.32, strBright: 0.68, strStiff: 0.15,
         strBody: 0.55, strTone: 0.58, strBuzz: 0.38, riz: "off"
@@ -236,7 +236,7 @@ export const SHIRAZ: MachineDef = {
       name: "Harp Glass",
       group: "Other",
       patch: {
-        oriental: "off", strModel: "harp", tuning: "12tet", tuneRoot: 0,
+        oriental: "off", strModel: "harp", tuning: "mahur", tuneRoot: 0,
         strCourses: 1, strDetune: 0, strHard: 0.38, strPos: 0.32,
         strDecay: 6.5, strDamp: 0.2, strBright: 0.75, strStiff: 0.12,
         strBody: 0.38, strTone: 0.55, strBuzz: 0, riz: "off",
@@ -248,7 +248,7 @@ export const SHIRAZ: MachineDef = {
       name: "Muted Pluck",
       group: "Other",
       patch: {
-        oriental: "off", strModel: "harp", tuning: "12tet", tuneRoot: 0,
+        oriental: "off", strModel: "harp", tuning: "mahur", tuneRoot: 0,
         strCourses: 1, strDetune: 0, strHard: 0.35, strPos: 0.26,
         strDecay: 0.55, strDamp: 0.78, strBright: 0.42, strStiff: 0.05,
         strBody: 0.42, strTone: 0.45, strBuzz: 0, riz: "off",
@@ -256,16 +256,16 @@ export const SHIRAZ: MachineDef = {
       }
     },
 { id: "santurChahargahRiz", name: "Santur Riz · Chahargah", group: "Santur", patch: { oriental: "on", strModel: "santur", tuning: "chahargah", tuneRoot: 0, riz: "on", rizRate: 13, strCourses: 3, strDetune: 4, strHard: 0.66, strPos: 0.15, strDecay: 3.5, strDamp: 0.24, strBright: 0.78, strStiff: 0.4, strBody: 0.45, strTone: 0.55, strBuzz: 0 } },
-    { id: "santurSoft", name: "Felt Santur · Segah", group: "Santur", patch: { oriental: "on", strModel: "santur", tuning: "segah", tuneRoot: 4, strCourses: 3, strDetune: 5, strHard: 0.28, strPos: 0.22, strDecay: 5.5, strDamp: 0.4, strBright: 0.45, strStiff: 0.3, strBody: 0.55, strTone: 0.4, strBuzz: 0, riz: "off", revMix: 0.4 } },
-    { id: "dulcimer", name: "Hammered Dulcimer", group: "Santur", patch: { oriental: "off", strModel: "santur", tuning: "12tet", tuneRoot: 0, strCourses: 2, strDetune: 6, strHard: 0.7, strPos: 0.14, strDecay: 4.2, strDamp: 0.25, strBright: 0.8, strStiff: 0.42, strBody: 0.42, strTone: 0.6, strBuzz: 0, riz: "off" } },
-    { id: "setarMahur", name: "Setar · Mahur", group: "Setar & Tar", patch: { oriental: "on", strModel: "setar", tuning: "12tet", tuneRoot: 0, strCourses: 2, strDetune: 2, strHard: 0.55, strPos: 0.15, strDecay: 3, strDamp: 0.28, strBright: 0.7, strStiff: 0.15, strBody: 0.5, strTone: 0.58, strBuzz: 0.35, riz: "off" } },
+    { id: "santurSoft", name: "Felt Santur · Segah", group: "Santur", patch: { oriental: "on", strModel: "santur", tuning: "segah", tuneRoot: 0, strCourses: 3, strDetune: 5, strHard: 0.28, strPos: 0.22, strDecay: 5.5, strDamp: 0.4, strBright: 0.45, strStiff: 0.3, strBody: 0.55, strTone: 0.4, strBuzz: 0, riz: "off", revMix: 0.4 } },
+    { id: "dulcimer", name: "Hammered Dulcimer", group: "Santur", patch: { oriental: "off", strModel: "santur", tuning: "mahur", tuneRoot: 0, strCourses: 2, strDetune: 6, strHard: 0.7, strPos: 0.14, strDecay: 4.2, strDamp: 0.25, strBright: 0.8, strStiff: 0.42, strBody: 0.42, strTone: 0.6, strBuzz: 0, riz: "off" } },
+    { id: "setarMahur", name: "Setar · Mahur", group: "Setar & Tar", patch: { oriental: "on", strModel: "setar", tuning: "mahur", tuneRoot: 0, strCourses: 2, strDetune: 2, strHard: 0.55, strPos: 0.15, strDecay: 3, strDamp: 0.28, strBright: 0.7, strStiff: 0.15, strBody: 0.5, strTone: 0.58, strBuzz: 0.35, riz: "off" } },
     { id: "tarShurBright", name: "Tar Mezrab · Shur", group: "Setar & Tar", patch: { oriental: "on", strModel: "tar", tuning: "shur", tuneRoot: 7, riz: "on", rizRate: 9, strCourses: 2, strDetune: 3, strHard: 0.75, strPos: 0.12, strDecay: 2.2, strDamp: 0.34, strBright: 0.78, strStiff: 0.22, strBody: 0.6, strTone: 0.5, strBuzz: 0.42 } },
     { id: "kanunHijaz", name: "Kanun · Hijaz", group: "Kanun & Oud", patch: { oriental: "on", strModel: "kanun", tuning: "hijaz", tuneRoot: 2, strCourses: 3, strDetune: 3, strHard: 0.6, strPos: 0.12, strDecay: 4, strDamp: 0.22, strBright: 0.8, strStiff: 0.18, strBody: 0.45, strTone: 0.6, strBuzz: 0, riz: "off", revMix: 0.3 } },
     { id: "oudRast", name: "Oud · Rast", group: "Kanun & Oud", patch: { oriental: "on", strModel: "oud", tuning: "rast", tuneRoot: 0, strCourses: 2, strDetune: 4, strHard: 0.45, strPos: 0.2, strDecay: 3.2, strDamp: 0.42, strBright: 0.55, strStiff: 0.1, strBody: 0.65, strTone: 0.42, strBuzz: 0.05, riz: "off", revMix: 0.28 } },
     { id: "oudTremolo", name: "Oud Tremolo · Bayati", group: "Kanun & Oud", patch: { oriental: "on", strModel: "oud", tuning: "bayati", tuneRoot: 2, riz: "on", rizRate: 12, strCourses: 2, strDetune: 4, strHard: 0.5, strPos: 0.18, strDecay: 2.6, strDamp: 0.4, strBright: 0.6, strStiff: 0.1, strBody: 0.62, strTone: 0.45, strBuzz: 0.05 } },
-    { id: "nylonGuitar", name: "Nylon Guitar", group: "Other", patch: { oriental: "off", strModel: "oud", tuning: "12tet", tuneRoot: 0, strCourses: 1, strDetune: 0, strHard: 0.4, strPos: 0.2, strDecay: 3.6, strDamp: 0.45, strBright: 0.55, strStiff: 0.08, strBody: 0.6, strTone: 0.45, strBuzz: 0, riz: "off", revMix: 0.25 } },
-    { id: "kotoish", name: "Koto-ish", group: "Other", patch: { oriental: "off", strModel: "kanun", tuning: "12tet", tuneRoot: 0, strCourses: 1, strDetune: 0, strHard: 0.68, strPos: 0.1, strDecay: 3, strDamp: 0.3, strBright: 0.72, strStiff: 0.3, strBody: 0.5, strTone: 0.55, strBuzz: 0.1, riz: "off", revMix: 0.35 } },
-    { id: "celestialHarp", name: "Celestial Harp", group: "Other", patch: { oriental: "off", strModel: "harp", tuning: "12tet", tuneRoot: 0, strCourses: 2, strDetune: 6, strHard: 0.3, strPos: 0.3, strDecay: 8, strDamp: 0.15, strBright: 0.7, strStiff: 0.1, strBody: 0.35, strTone: 0.6, strBuzz: 0, riz: "off", delayMix: 0.3, delayTime: 0.5, delayFb: 0.45, revMix: 0.55, revSize: 5 } },
-    { id: "sitarish", name: "Sitar-ish Drone", group: "Other", patch: { oriental: "off", strModel: "setar", tuning: "12tet", tuneRoot: 0, strCourses: 3, strDetune: 7, strHard: 0.6, strPos: 0.1, strDecay: 6, strDamp: 0.2, strBright: 0.8, strStiff: 0.2, strBody: 0.5, strTone: 0.6, strBuzz: 0.75, riz: "off", revMix: 0.35 } }
+    { id: "nylonGuitar", name: "Nylon Guitar", group: "Other", patch: { oriental: "off", strModel: "oud", tuning: "mahur", tuneRoot: 0, strCourses: 1, strDetune: 0, strHard: 0.4, strPos: 0.2, strDecay: 3.6, strDamp: 0.45, strBright: 0.55, strStiff: 0.08, strBody: 0.6, strTone: 0.45, strBuzz: 0, riz: "off", revMix: 0.25 } },
+    { id: "kotoish", name: "Koto-ish", group: "Other", patch: { oriental: "off", strModel: "kanun", tuning: "mahur", tuneRoot: 0, strCourses: 1, strDetune: 0, strHard: 0.68, strPos: 0.1, strDecay: 3, strDamp: 0.3, strBright: 0.72, strStiff: 0.3, strBody: 0.5, strTone: 0.55, strBuzz: 0.1, riz: "off", revMix: 0.35 } },
+    { id: "celestialHarp", name: "Celestial Harp", group: "Other", patch: { oriental: "off", strModel: "harp", tuning: "mahur", tuneRoot: 0, strCourses: 2, strDetune: 6, strHard: 0.3, strPos: 0.3, strDecay: 8, strDamp: 0.15, strBright: 0.7, strStiff: 0.1, strBody: 0.35, strTone: 0.6, strBuzz: 0, riz: "off", delayMix: 0.3, delayTime: 0.5, delayFb: 0.45, revMix: 0.55, revSize: 5 } },
+    { id: "sitarish", name: "Sitar-ish Drone", group: "Other", patch: { oriental: "off", strModel: "setar", tuning: "mahur", tuneRoot: 0, strCourses: 3, strDetune: 7, strHard: 0.6, strPos: 0.1, strDecay: 6, strDamp: 0.2, strBright: 0.8, strStiff: 0.2, strBody: 0.5, strTone: 0.6, strBuzz: 0.75, riz: "off", revMix: 0.35 } }
   ]
 };
