@@ -5,6 +5,7 @@
 import "./index.css";
 import { getAnalogState } from "./engine/analog";
 import "./ui/skins.css";
+import "./ui/keyboard.css";
 import { installAudioUnlock } from "./engine/bus";
 import { applySkin } from "./ui/skins";
 import { getEngine, getHQState } from "./engine/hq";

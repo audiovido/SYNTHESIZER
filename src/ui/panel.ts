@@ -102,7 +102,18 @@ export function renderControl(c: ControlDef): string {
       `</select></label>`;
   }
   // knob row
-  const cls = "sk-row" + (c.small ? " sk-row-small" : "");
+  const isLg =
+    !c.small &&
+    c.knobs.some(
+      ([k]) =>
+        k === "cutoff" ||
+        k === "res" ||
+        k === "oscMix" ||
+        k === "volume" ||
+        k === "delayMix" ||
+        k === "revMix"
+    );
+  const cls = "sk-row" + (c.small ? " sk-row-small" : isLg ? " sk-row-lg" : "");
   return (c.caption ? `<div class="sk-caption">${escapeHtml(c.caption)}</div>` : "") +
     `<div class="${cls}">${c.knobs.map(([k, l]) => renderSynthKnob(k, l)).join("")}</div>`;
 }

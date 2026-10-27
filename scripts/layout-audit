@@ -238,6 +238,51 @@ async function main() {
               );
             }
 
+            // LOCKED Keyboard height rule (PART A):
+            // desktop/tablet: clamp(150px, 34vh, 320px); phone portrait (width < 600): clamp(150px, 30vh, 260px); short landscape (height < 500): clamp(110px, 38vh, 200px)
+            const expectedKeysH =
+              vh < 500
+                ? Math.min(200, Math.max(110, vh * 0.38))
+                : vw < 600
+                  ? Math.min(260, Math.max(150, vh * 0.3))
+                  : Math.min(320, Math.max(150, vh * 0.34));
+            if (kbEl && kbMain) {
+              const kbr = kbEl.getBoundingClientRect();
+              const mr = kbMain.getBoundingClientRect();
+              if (window.__refKbH == null || window.__refVpTag !== vpTagIn) {
+                window.__refKbH = kbr.height;
+                window.__refVpTag = vpTagIn;
+              }
+              check(
+                Math.abs(kbr.height - window.__refKbH) <= 1 &&
+                  Math.abs(mr.height - window.__refKbH) <= 1,
+                `keyboard height mismatch across machines: #kb=${kbr.height.toFixed(1)}px vs ref=${window.__refKbH.toFixed(1)}px`
+              );
+              check(
+                Math.abs(kbr.height - expectedKeysH) <= 1.5,
+                `keyboard height ${kbr.height.toFixed(1)}px != locked rule (${expectedKeysH.toFixed(1)}px)`
+              );
+              const whiteKey = kbEl.querySelector(".key:not(.black):not(.pad)");
+              const blackKey = kbEl.querySelector(".key.black");
+              if (whiteKey && blackKey) {
+                const wkr = whiteKey.getBoundingClientRect();
+                const bkr = blackKey.getBoundingClientRect();
+                check(
+                  Math.abs(bkr.height / wkr.height - 0.62) <= 0.025 &&
+                    Math.abs(bkr.width / wkr.width - 0.58) <= 0.035,
+                  `black key ratio mismatch: h=${(bkr.height / wkr.height).toFixed(3)} (want 0.62), w=${(bkr.width / wkr.width).toFixed(3)} (want 0.58)`
+                );
+              }
+              const wheelsEl = document.querySelector(".kb-wheels");
+              if (wheelsEl && getComputedStyle(wheelsEl).display !== "none") {
+                const wr = wheelsEl.getBoundingClientRect();
+                check(
+                  Math.abs(wr.height - kbr.height) <= 1,
+                  `pitch-bend/mod wheels height (${wr.height.toFixed(1)}px) != keyboard height (${kbr.height.toFixed(1)}px)`
+                );
+              }
+            }
+
             // Bottom bar machine name & no overlap with keyboard
             const badgeName = document.getElementById("kb-machine-name");
             const badgeEl = document.getElementById("kb-machine-badge");
@@ -569,6 +614,43 @@ async function main() {
                         Math.abs(dCenter - vCenter) <= 1.5,
                       `section "${secTitle}" knob label/value not centered under dial`
                     );
+                    if (machineId === "sy1") {
+                      const ticks = dial.querySelectorAll(".sk-scale .sk-tick");
+                      const skirt = dial.querySelector(".sk-skirt");
+                      const cap = dial.querySelector(".sk-cap");
+                      const rotor = dial.querySelector(".sk-rotor");
+                      check(
+                        ticks.length === 11 &&
+                          !!skirt &&
+                          !!cap &&
+                          !!rotor &&
+                          getComputedStyle(cap).display !== "none",
+                        `SY-1 knob "${k.getAttribute("data-param")}" missing 3D scale/skirt/cap/rotor layers`
+                      );
+                      if (vw >= 761 && vh >= 561) {
+                        if (row.classList.contains("sk-row-lg")) {
+                          check(
+                            dr.width >= 72 - EPS && dr.width <= 96 + EPS,
+                            `SY-1 big knob "${k.getAttribute("data-param")}" width=${dr.width.toFixed(1)}px not in [72, 96]`
+                          );
+                        } else if (row.classList.contains("sk-row-small")) {
+                          check(
+                            dr.width >= 44 - EPS && dr.width <= 56 + EPS,
+                            `SY-1 small knob "${k.getAttribute("data-param")}" width=${dr.width.toFixed(1)}px not in [44, 56]`
+                          );
+                        } else {
+                          check(
+                            dr.width >= 56 - EPS && dr.width <= 72 + EPS,
+                            `SY-1 standard knob "${k.getAttribute("data-param")}" width=${dr.width.toFixed(1)}px not in [56, 72]`
+                          );
+                        }
+                      } else if (vw < 600) {
+                        check(
+                          dr.width >= 44 - EPS,
+                          `SY-1 phone knob "${k.getAttribute("data-param")}" width=${dr.width.toFixed(1)}px < 44px`
+                        );
+                      }
+                    }
                   }
                 }
               }

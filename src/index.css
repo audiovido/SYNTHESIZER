@@ -84,6 +84,16 @@
   --knob-arc-filter: none;
   --knob-ind: #F2B33D;
   --knob-ind-glow: rgba(242,179,61,0.8);
+  --knob-cap:
+    radial-gradient(circle at 32% 28%, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0) 42%),
+    repeating-radial-gradient(circle at 50% 50%, rgba(255,255,255,0.03) 0px 1px, rgba(0,0,0,0.04) 1px 2px),
+    conic-gradient(from -45deg at 50% 50%, #f2f0ec 0deg, #b8b5ae 42deg, #706e69 90deg, #bcb9b2 135deg, #e4e1dc 180deg, #9e9b95 225deg, #66645f 270deg, #c9c6bf 315deg, #f2f0ec 360deg);
+  --knob-skirt:
+    repeating-conic-gradient(from 0deg, #1b1b1f 0deg 4deg, #2d2d33 4deg 6deg, #101013 6deg 9deg);
+  --knob-tick: #f0b15d;
+  --knob-pointer: #ffae2b;
+  --knob-pointer-glow: rgba(255,166,43,0.9);
+  --knob-label-font: var(--font-ui);
   --label-ink: #b8b0cc;
   --value-ink: #ECE6DA;
 
@@ -111,8 +121,6 @@
   --sk-w: 54px;               /* knob column width */
   --scope-h: 48px;
   --kb-min: 96px;
-  /* one keyboard size for every machine (see .kb-main) */
-  --keys-h: clamp(160px, 26vh, 320px);
   --strip-h: 22px;
   --micro-ink: #1aa6b7;
   --kb-max: clamp(140px, 22vh, 240px);
@@ -238,7 +246,7 @@ body {
    Keyboard & Bottom Performance Bar
    ============================================================ */
 .kb-area {
-  flex: 0 1000 auto;
+  flex: 0 0 auto;
   min-height: 0;
   display: flex;
   flex-direction: column;
@@ -376,57 +384,6 @@ body {
   font-weight: 700;
   letter-spacing: 0.04em;
   color: var(--badge-role-ink, var(--ink-dim));
-}
-
-.kb {
-  position: relative;
-  display: flex;
-  flex: 1 1 auto;
-  min-width: 0;
-  min-height: 0;
-  border-radius: 10px;
-  overflow: hidden;
-  border: 2px solid var(--key-line);
-  touch-action: none;
-  user-select: none;
-  -webkit-user-select: none;
-  direction: ltr;
-}
-
-.key {
-  position: relative;
-  flex: 1 1 0;
-  border-right: 1px solid var(--key-line);
-  border-radius: 0 0 5px 5px;
-  box-shadow: inset 0 -4px 0 rgba(0,0,0,0.08);
-  background: var(--key-white);
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  padding-bottom: var(--sp-2);
-  font-size: 0.7rem;
-  font-weight: 800;
-  color: var(--key-white-ink);
-  cursor: pointer;
-}
-
-.key.black {
-  position: absolute;
-  top: 0;
-  width: calc(100% / var(--whites) * 0.58);
-  height: 63%;
-  z-index: 2;
-  border: 1px solid var(--key-line);
-  border-radius: 0 0 6px 6px;
-  background: var(--key-black);
-  color: var(--key-black-ink);
-  flex: none;
-}
-
-.key.is-pressed {
-  background: var(--key-pressed) !important;
-  box-shadow: 0 0 14px var(--accent-glow);
-  color: var(--key-pressed-ink);
 }
 
 /* ============================================================
@@ -906,6 +863,7 @@ body {
   align-items: flex-start;
   justify-content: space-around;
   gap: var(--sp-1);
+  container-type: inline-size;
 }
 
 .sk-row-lg {
@@ -972,6 +930,79 @@ body {
   pointer-events: none;
 }
 
+.sk-scale,
+.sk-skirt,
+.sk-cap {
+  display: none;
+  pointer-events: none;
+}
+
+.sk-scale {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.sk-tick {
+  stroke: var(--knob-tick, var(--label-ink));
+  stroke-width: 1.3;
+  stroke-linecap: round;
+  opacity: 0.78;
+}
+
+.sk-tick.is-major {
+  stroke-width: 1.9;
+  opacity: 0.96;
+}
+
+.sk-num {
+  fill: var(--knob-tick, var(--label-ink));
+  font-family: var(--knob-label-font, var(--font-ui));
+  font-size: 5.5px;
+  font-weight: 800;
+  text-anchor: middle;
+  dominant-baseline: central;
+  opacity: 0.9;
+}
+
+.sk-num.is-bipolar {
+  font-size: 7.2px;
+}
+
+.sk-skirt {
+  position: absolute;
+  inset: 15.5%;
+  border-radius: 50%;
+  background: var(--knob-skirt);
+  box-shadow:
+    0 6px 12px rgba(0, 0, 0, 0.82),
+    0 2px 4px rgba(0, 0, 0, 0.7),
+    inset 0 1px 1px rgba(255, 255, 255, 0.16),
+    0 0 0 1px rgba(0, 0, 0, 0.85);
+}
+
+.sk-cap {
+  position: absolute;
+  inset: 23%;
+  border-radius: 50%;
+  background: var(--knob-cap);
+  box-shadow:
+    0 3px 6px rgba(0, 0, 0, 0.82),
+    inset 0 1px 1px rgba(255, 255, 255, 0.88),
+    inset 0 -1px 2px rgba(0, 0, 0, 0.45),
+    0 0 0 1.5px #18181b;
+}
+
+.sk-rotor {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  transform: rotate(calc(-135deg + var(--n) * 270deg));
+  pointer-events: none;
+}
+
 .sk-ind {
   position: absolute;
   left: 50%;
@@ -981,8 +1012,6 @@ body {
   margin-left: -1.25px;
   border-radius: 2px;
   background: var(--knob-ind);
-  transform-origin: 50% calc(var(--k) * 0.4);
-  transform: rotate(calc(-135deg + var(--n) * 270deg));
   box-shadow: 0 0 4px var(--knob-ind-glow);
 }
 
@@ -1035,6 +1064,7 @@ body {
 
 .sk-label {
   margin-top: var(--sp-1);
+  font-family: var(--knob-label-font, var(--font-ui));
   font-size: var(--fs-label);
   line-height: 1.15;
   letter-spacing: 0.06em;
@@ -1414,6 +1444,9 @@ body {
 }
 
 .kb.is-pads .key.pad {
+  position: relative;
+  flex: 1 1 0;
+  display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
@@ -1427,6 +1460,13 @@ body {
   min-width: 0;
   min-height: 0;
   overflow: hidden;
+  cursor: pointer;
+}
+
+.kb.is-pads .key.pad.is-pressed {
+  background: var(--key-pressed) !important;
+  box-shadow: 0 0 14px var(--accent-glow);
+  color: var(--key-pressed-ink);
 }
 
 @container (min-height: 220px) {
@@ -1473,80 +1513,8 @@ body {
 }
 
 /* ============================================================
-   Keyboard extras: HOLD, pitch bend and mod wheels, Oriental
+   Keyboard extras: HOLD, ARP, Oriental
    ============================================================ */
-.kb-main {
-  flex: 0 1 var(--keys-h);
-  min-width: 0;
-  height: var(--keys-h);
-  min-height: calc(var(--kb-min) * 0.7);
-  display: flex;
-  gap: var(--sp-2);
-  container-type: size;
-}
-
-.kb-wheels {
-  flex: none;
-  display: flex;
-  gap: var(--sp-1);
-}
-
-.kb-wheel {
-  position: relative;
-  width: 28px;
-  border-radius: 8px;
-  border: 1px solid var(--btn-border);
-  background: var(--ctl-bg);
-  box-shadow: inset 0 2px 6px rgba(0,0,0,0.35);
-  touch-action: none;
-  cursor: ns-resize;
-  overflow: hidden;
-  user-select: none;
-  -webkit-user-select: none;
-}
-
-.kb-wheel[data-wheel="bend"]::before {
-  content: "";
-  position: absolute;
-  left: 4px;
-  right: 4px;
-  top: 50%;
-  height: 1px;
-  background: var(--ink-faint);
-  opacity: 0.6;
-}
-
-.kb-wheel[data-wheel="mod"] {
-  background:
-    linear-gradient(to top, var(--accent-glow-soft) calc(var(--v) * 100%), transparent 0),
-    var(--ctl-bg);
-}
-
-.kb-wheel-thumb {
-  position: absolute;
-  left: 3px;
-  right: 3px;
-  height: 20%;
-  bottom: calc(var(--v) * 80%);
-  border-radius: 5px;
-  background: var(--btn-bg);
-  border: 1px solid var(--btn-border);
-  box-shadow: 0 2px 4px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.25);
-}
-
-.kb-wheel-label {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 3px;
-  text-align: center;
-  font-size: 0.5rem;
-  font-weight: 800;
-  letter-spacing: 0.04em;
-  color: var(--ink-dim);
-  pointer-events: none;
-}
-
 .kb-hold.active {
   background: var(--accent);
   color: var(--accent-ink);
@@ -2622,35 +2590,32 @@ body {
   .kb-machine-emblem { display: none; }
 }
 
+/* Medium-height portrait phones (412x780) */
+@media (max-width: 760px) and (orientation: portrait) and (max-height: 800px) {
+  :root {
+    --sec-pad: var(--sp-2);
+    --sec-gap: 6px;
+    --sec-row-gap: 6px;
+    --k-lg: 28px;
+    --k: 22px;
+    --k-small: 19px;
+    --ring-pad: 4px;
+  }
+  .synth-sec h4 { font-size: 0.64rem; line-height: 1.1; padding: 0; }
+  .synth-choice-btn, .synth-param-select { min-height: 24px; }
+  .sk-caption { display: none; }
+}
+
 /* Short phones held upright (390x664, 360x560) */
 @media (max-width: 760px) and (orientation: portrait) and (max-height: 700px) {
   :root {
+    --shell-pad: var(--sp-1);
+    --panel-pad: var(--sp-1);
+    --sec-pad: 6px;
+    --sec-gap: 6px;
+    --sec-row-gap: 6px;
     --kb-min: 88px;
-    --k-lg: 30px;
-    --k: 24px;
-    --k-small: 20px;
-    --ring-pad: 4px;
-    --scope-h: 28px;
-  }
-  .sk-caption { display: none; }
-  .synth-choice-btn,
-  .synth-param-select,
-  .drum-slot,
-  .drum-voice-btn {
-    min-height: 24px;
-  }
-  .drum-play { min-height: 26px; }
-  .drum-step { height: 32px; min-height: 32px; }
-  .synth-custom[data-custom="euclid-rings"],
-  .synth-custom[data-custom="vector-pad"] { min-height: 104px; }
-  .fm-lcd svg { min-height: 46px; }
-}
-
-/* Very short portrait phones (360x560) */
-@media (max-width: 760px) and (orientation: portrait) and (max-height: 580px) {
-  :root {
-    --kb-min: 72px;
-    --k-lg: 25px;
+    --k-lg: 24px;
     --k: 20px;
     --k-small: 17px;
     --ring-pad: 4px;
@@ -2660,15 +2625,62 @@ body {
   .synth-panel { gap: var(--sp-1); }
   .synth-top { gap: var(--sp-1); }
   .kb-area { gap: var(--sp-1); }
-  .synth-conn-btn { min-height: 28px; min-width: 34px; }
+  .synth-conn-btn { min-height: 26px; min-width: 34px; }
+  .synth-sec h4 { font-size: 0.62rem; line-height: 1.05; padding: 0; }
+  .sk-label { font-size: 0.54rem; margin-top: 2px; line-height: 1.05; }
+  .sk-val { font-size: 0.56rem; line-height: 1.05; min-height: 1.05em; }
+  .sk-caption { display: none; }
   .synth-choice-btn,
   .synth-param-select,
   .drum-slot,
   .drum-voice-btn {
-    min-height: 22px;
+    min-height: 20px;
+    font-size: 0.64rem;
   }
-  .drum-play { min-height: 24px; }
+  .drum-play { min-height: 22px; }
+  .drum-steps { grid-template-columns: repeat(var(--len), minmax(0, 1fr)); gap: 2px; }
   .drum-step { height: 32px; min-height: 32px; }
+  .drum-voices { grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 2px; }
+  .drum-voice-name { display: none; }
+  .synth-custom[data-custom="euclid-rings"],
+  .synth-custom[data-custom="vector-pad"] { min-height: 104px; }
+  .fm-lcd svg { min-height: 46px; }
+}
+
+/* Very short portrait phones (360x560) */
+@media (max-width: 760px) and (orientation: portrait) and (max-height: 580px) {
+  :root {
+    --sec-pad: var(--sp-1);
+    --sec-gap: 6px;
+    --sec-row-gap: 6px;
+    --kb-min: 72px;
+    --k-lg: 17px;
+    --k: 15px;
+    --k-small: 14px;
+    --ring-pad: 3.5px;
+    --scope-h: 22px;
+  }
+  .sy1-shell { gap: 3px; }
+  .synth-panel { gap: 3px; }
+  .synth-top { gap: var(--sp-1); }
+  .kb-area { gap: 3px; }
+  .synth-conn-btn { min-height: 24px; min-width: 32px; }
+  .synth-sec h4 { font-size: 0.56rem; line-height: 1; padding: 0; }
+  .sk-label { font-size: 0.48rem; margin-top: 1px; line-height: 1; }
+  .sk-val { font-size: 0.5rem; line-height: 1; min-height: 1em; }
+  .synth-choice-btn,
+  .synth-param-select,
+  .drum-slot,
+  .drum-voice-btn {
+    min-height: 18px;
+    font-size: 0.6rem;
+  }
+  .drum-play { min-height: 20px; }
+  .drum-step { height: 32px; min-height: 32px; }
+  .synth-custom[data-custom="euclid-rings"],
+  .synth-custom[data-custom="vector-pad"] { min-height: 84px; }
+  .fm-lcd { min-height: 42px; }
+  .fm-lcd svg { min-height: 40px; }
 }
 
 /* Phone landscape and very short screens (740x340, 932x400) */
@@ -2676,29 +2688,32 @@ body {
   :root {
     --shell-pad: var(--sp-1);
     --panel-pad: var(--sp-1);
-    --sec-pad: var(--sp-2);
+    --sec-pad: 6px;
     --sec-gap: var(--sp-2);
     --sec-row-gap: 6px;
     --ring-pad: 4px;
-    --k-lg: 28px;
-    --k: 23px;
-    --k-small: 19px;
+    --k-lg: 22px;
+    --k: 19px;
+    --k-small: 16px;
     --sk-w: 40px;
-    --scope-h: 24px;
+    --scope-h: 22px;
     --kb-min: 70px;
     --kb-max: 112px;
   }
-  .sy1-shell { gap: var(--sp-1); }
-  .synth-panel { gap: var(--sp-1); }
+  .sy1-shell { padding: 2px var(--sp-1); gap: 2px; }
+  .synth-panel { padding: 2px var(--sp-1); gap: 2px; }
+  .kb-area { gap: 2px; }
   .synth-top { flex-wrap: nowrap; gap: var(--sp-1); }
-  .synth-conn-btn { min-height: 28px; min-width: 34px; }
+  .synth-conn-btn { min-height: 24px; min-width: 32px; }
   .synth-brand-maker { display: none; }
   .synth-machine-select { font-size: 0.82rem; padding-right: 16px; max-width: 120px; }
-  .synth-sec h4 { font-size: 0.62rem; line-height: 1; padding: 0; }
+  .synth-sec h4 { font-size: 0.6rem; line-height: 1; padding: 0; }
+  .sk-label { font-size: 0.52rem; margin-top: 2px; line-height: 1.05; }
+  .sk-val { font-size: 0.54rem; line-height: 1.05; min-height: 1.05em; }
   .synth-choice-btn,
   .synth-param-select {
-    min-height: 22px;
-    font-size: 0.7rem;
+    min-height: 20px;
+    font-size: 0.66rem;
   }
   .synth-preset-nav { flex: 0 1 auto; }
   .preset-display { min-height: 40px; width: 130px; padding: 2px var(--sp-2); }
@@ -2724,17 +2739,107 @@ body {
   .synth-param-select-wrap > span { display: none; }
   .sk-caption { display: none; }
 
+  /* Place 2 knob rows or choice + knob row side-by-side on short landscape screens */
+  .synth-sec:has(> .sk-row ~ .sk-row),
+  .synth-sec:has(> .synth-choice ~ .synth-choice),
+  .synth-sec:has(> .synth-choice + .sk-row:last-child),
+  .synth-sec:has(> .synth-param-select-wrap ~ .synth-choice ~ .sk-row) {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-content: space-between;
+    column-gap: var(--sp-1);
+  }
+  .synth-sec:has(> .sk-row ~ .sk-row) > .sk-row {
+    flex: 1 1 40%;
+    min-width: 0;
+    width: auto;
+    align-self: center;
+    margin: 0;
+  }
+  .synth-sec:has(> .synth-choice ~ .synth-choice) > .synth-choice {
+    flex: 1 1 40%;
+    min-width: 0;
+    width: auto;
+    align-self: center;
+    margin: 0;
+  }
+  .synth-sec:has(> .synth-choice + .sk-row:last-child) > .synth-choice {
+    flex: 0 1 34%;
+    min-width: 0;
+    width: auto;
+    align-self: center;
+    margin: 0;
+  }
+  .synth-sec:has(> .synth-choice + .sk-row:last-child) > .sk-row {
+    flex: 1 1 56%;
+    min-width: 0;
+    width: auto;
+    align-self: center;
+    margin: 0;
+  }
+  .synth-sec:has(> .synth-param-select-wrap ~ .synth-choice ~ .sk-row) > .synth-param-select-wrap,
+  .synth-sec:has(> .synth-param-select-wrap ~ .synth-choice ~ .sk-row) > .synth-choice {
+    flex: 1 1 40%;
+    min-width: 0;
+    width: auto;
+    align-self: center;
+    margin: 0;
+  }
+  .synth-sec:has(> .synth-toggles + .sk-row-small) {
+    column-gap: 4px;
+  }
+  .synth-sec:has(> .synth-toggles + .sk-row-small) > .synth-choice:not(.synth-toggles) {
+    flex: 2 1 36%;
+    min-width: 0;
+    width: auto;
+    align-self: center;
+    margin: 0;
+  }
+  .synth-sec:has(> .synth-toggles + .sk-row-small) > .sk-row:not(.sk-row-small) {
+    flex: 2 1 32%;
+    min-width: 0;
+    width: auto;
+    align-self: center;
+    margin: 0;
+  }
+  .synth-sec:has(> .synth-toggles + .sk-row-small:last-child) > .synth-toggles {
+    flex: 0 1 11%;
+    min-width: 0;
+    width: auto;
+    align-self: center;
+    margin: 0;
+  }
+  .synth-sec:has(> .synth-toggles + .sk-row-small:last-child) > .sk-row.sk-row-small {
+    flex: 1 1 13%;
+    min-width: 0;
+    width: auto;
+    align-self: center;
+    margin: 0;
+  }
+  .synth-custom[data-custom="fm-algo"] {
+    display: grid;
+    grid-template-columns: 1.15fr 1fr;
+    grid-template-rows: minmax(0, 1fr);
+    column-gap: var(--sp-2);
+    row-gap: 4px;
+    align-items: center;
+  }
+  .synth-custom[data-custom="fm-algo"] > .fm-lcd {
+    grid-row: 1;
+    height: 100%;
+    min-height: 0;
+  }
+
   .drum-steps { grid-template-columns: repeat(var(--len), minmax(0, 1fr)); gap: var(--sp-1); }
   .drum-step { height: 32px; min-height: 32px; }
   .drum-voices { grid-template-columns: repeat(8, minmax(0, 1fr)); }
   .drum-voice-btn, .drum-slot { min-height: 22px; font-size: 0.56rem; letter-spacing: 0; }
   .drum-play { min-height: 22px; min-width: 64px; }
+  .drum-voice-name { display: none; }
   .synth-custom[data-custom="euclid-rings"],
-  .synth-custom[data-custom="vector-pad"] { min-height: 84px; }
+  .synth-custom[data-custom="vector-pad"] { min-height: 76px; }
   .fm-lcd { min-height: 44px; }
   .fm-lcd svg { min-height: 40px; }
-
-  .kb-wheel { width: 22px; }
 
   .or-inner { padding: var(--sp-2); gap: var(--sp-2); }
   .or-scales { grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); }
@@ -2764,21 +2869,31 @@ body {
 @media (max-height: 360px) and (orientation: landscape) {
   :root {
     --sec-pad: var(--sp-1);
-    --k-lg: 20px;
-    --k: 17px;
-    --k-small: 15px;
-    --ring-pad: 4px;
-    --scope-h: 20px;
+    --sec-row-gap: 6px;
+    --k-lg: 17px;
+    --k: 15px;
+    --k-small: 14px;
+    --ring-pad: 3.5px;
+    --scope-h: 18px;
     --kb-min: 52px;
   }
   .sy1-shell { padding: 2px var(--sp-1); gap: 2px; }
   .synth-panel { padding: 2px var(--sp-1); gap: 2px; }
   .kb-area { gap: 2px; }
-  .synth-conn-btn { min-height: 24px; min-width: 32px; }
-  .synth-sec h4 { font-size: 0.58rem; line-height: 1; padding: 0; }
-  .sk-label { font-size: 0.52rem; margin-top: 2px; line-height: 1; }
-  .sk-val { font-size: 0.54rem; line-height: 1; min-height: 1em; }
-  .synth-choice-btn, .synth-param-select { min-height: 19px; font-size: 0.64rem; }
+  .synth-machine-select { font-size: 0.74rem; line-height: 1.1; padding: 1px 16px 1px 4px; }
+  .synth-conn-btn { min-height: 24px; height: 24px; min-width: 32px; }
+  .synth-sec h4 { font-size: 7px !important; line-height: 1 !important; padding: 0 !important; border-width: 0 !important; box-shadow: none !important; }
+  .sk-label { font-size: 0.48rem; margin-top: 1px; line-height: 1; }
+  .sk-val { font-size: 0.5rem; line-height: 1; min-height: 1em; }
+  .synth-choice-btn, .synth-param-select { min-height: 18px; font-size: 0.62rem; }
+  .drum-voice-btn, .drum-slot { min-height: 19px; font-size: 0.54rem; }
+  .drum-play { min-height: 19px; min-width: 58px; }
+  .synth-custom[data-custom="euclid-rings"],
+  .synth-custom[data-custom="vector-pad"] { min-height: 50px; }
+  .fm-lcd { min-height: 0; padding: 1px 4px !important; border-width: 1px !important; gap: 1px; }
+  .fm-lcd-head { font-size: 6px; line-height: 1; }
+  .fm-lcd-head b { font-size: 6px; line-height: 1; }
+  .fm-lcd svg { min-height: 41px; }
 }
 
 
@@ -2812,27 +2927,6 @@ body {
 .or-seg .or-chip { flex: 0 1 auto; padding: 0 var(--sp-3); }
 .or-seg .or-chip small { font-weight: 700; opacity: 0.7; margin-left: 4px; }
 .or-micro { flex-direction: row; align-items: center; gap: var(--sp-2); flex-wrap: wrap; }
-
-/* ============================================================
-   One keyboard size for every machine (keys + strip above them)
-   ============================================================ */
-@media (pointer: coarse) and (min-width: 761px) and (min-height: 561px) {
-  :root { --keys-h: clamp(220px, 34vh, 400px); --strip-h: 28px; }
-}
-@media (max-width: 760px) and (orientation: portrait) {
-  :root { --keys-h: clamp(150px, 38vh, 380px); }
-  /* phones: same size on every machine, but a tall page may borrow room */
-  .kb-area { flex: 0 1000 auto; min-height: 0; }
-  .kb-main { height: auto; flex: 0 1 var(--keys-h); min-height: calc(var(--kb-min) * 0.7); }
-}
-@media (max-height: 560px) and (orientation: landscape) {
-  :root { --keys-h: clamp(84px, 33vh, 170px); --strip-h: 20px; }
-  .kb-area { flex: 0 1000 auto; min-height: 0; }
-  .kb-main { height: auto; flex: 0 1 var(--keys-h); min-height: var(--kb-min); }
-}
-@media (max-height: 360px) and (orientation: landscape) {
-  :root { --keys-h: clamp(76px, 31vh, 120px); --strip-h: 18px; }
-}
 
 /* Panels that do not fit above the keyboard switch to pages on any screen */
 .sy1-shell.is-fit-paged .synth-tabs { display: flex; }

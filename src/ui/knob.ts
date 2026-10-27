@@ -13,6 +13,44 @@ import {
 import { escapeHtml, SYNTH_PARAMS, synthDenorm, synthNorm } from "../engine/params";
 import { getSynthPatch, prepareAudio, setSynthParam } from "../engine/synth";
 
+function buildKnobScaleSvg(bipolar: boolean): string {
+  let lines = "";
+  let nums = "";
+  for (let i = 0; i <= 10; i++) {
+    const deg = -135 + i * 27;
+    const rad = (deg * Math.PI) / 180;
+    const sin = Math.sin(rad);
+    const cos = -Math.cos(rad);
+    const major = bipolar ? i === 0 || i === 5 || i === 10 : i % 2 === 0;
+    const r1 = major ? 34.5 : 35.8;
+    const r2 = major ? 40.5 : 39.4;
+    const x1 = (50 + sin * r1).toFixed(2);
+    const y1 = (50 + cos * r1).toFixed(2);
+    const x2 = (50 + sin * r2).toFixed(2);
+    const y2 = (50 + cos * r2).toFixed(2);
+    lines += `<line class="sk-tick${major ? " is-major" : ""}" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" />`;
+
+    if (bipolar) {
+      if (i === 0 || i === 5 || i === 10) {
+        const txt = i === 0 ? "−" : i === 5 ? "0" : "+";
+        const rt = 45.6;
+        const tx = (50 + sin * rt).toFixed(2);
+        const ty = (50 + cos * rt).toFixed(2);
+        nums += `<text class="sk-num is-bipolar" x="${tx}" y="${ty}">${txt}</text>`;
+      }
+    } else {
+      const rt = 45.8;
+      const tx = (50 + sin * rt).toFixed(2);
+      const ty = (50 + cos * rt).toFixed(2);
+      nums += `<text class="sk-num" x="${tx}" y="${ty}">${i}</text>`;
+    }
+  }
+  return `<svg class="sk-scale" viewBox="0 0 100 100" aria-hidden="true">${lines}${nums}</svg>`;
+}
+
+const UNIPOLAR_SCALE_SVG = buildKnobScaleSvg(false);
+const BIPOLAR_SCALE_SVG = buildKnobScaleSvg(true);
+
 export function renderSynthKnob(key: string, label: string): string {
   const patch = getSynthPatch();
   const v = patch[key];
@@ -23,9 +61,11 @@ export function renderSynthKnob(key: string, label: string): string {
   const cc = getParamMappedCc(key);
   const learning = isLearnMode() && getLearnTargetParam() === key;
   const titleAttr = mapped ? ` title="Mapped to CC${cc} (right-click, or long-press in LEARN, to unmap)"` : "";
+  const isBipolar = typeof def?.min === "number" && typeof def?.max === "number" && def.min < 0 && def.max > 0;
+  const scaleSvg = isBipolar ? BIPOLAR_SCALE_SVG : UNIPOLAR_SCALE_SVG;
 
   return `<div class="sk${mapped ? " is-mapped" : ""}${learning ? " is-learning" : ""}" data-param="${key}" role="slider" tabindex="0" aria-label="${label}" aria-valuetext="${escapeHtml(fmtVal)}"${titleAttr}>
-      <div class="sk-dial" style="--n:${n.toFixed(4)}"><span class="sk-ind"></span><span class="sk-dot"></span></div>
+      <div class="sk-dial" style="--n:${n.toFixed(4)}">${scaleSvg}<span class="sk-skirt"></span><span class="sk-cap"></span><span class="sk-rotor"><span class="sk-ind"></span></span><span class="sk-dot"></span></div>
       <div class="sk-label">${label}</div>
       <div class="sk-val">${escapeHtml(fmtVal)}</div>
     </div>`;
