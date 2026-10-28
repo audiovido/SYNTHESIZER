@@ -9,18 +9,25 @@
 
 
 /* ------------------------------------------------------------
-   SY-1 AMBER — premium dark hardware (flagship)
-   Brushed charcoal metal, recessed sections, knurled black
-   knobs with glowing amber rings, amber CRT scope.
+   SY-1 AMBER — premium dark brushed-metal hardware (flagship)
+   Textured charcoal outer cheeks with Phillips screws, horizontal
+   brushed gunmetal faceplate, recessed amber CRT scope, dark
+   recessed section panels with corner Phillips screws, illuminated
+   amber LED waveform switches, 3D spun-aluminium knobs with
+   glowing amber radial tick scales, brushed metallic wheel bay,
+   and high-contrast readable dark sound library.
    ------------------------------------------------------------ */
 [data-skin="sy1"],
 [data-machine="sy1"] {
-  --kb-btn-ink: #1d1d1f;
-  --midi-btn-ink: #ded9cf;
+  --kb-btn-ink: #1a1a1d;
+  --midi-btn-ink: #dedbd2;
   --font-ui: "Helvetica Neue", "Inter", "Segoe UI", Roboto, Arial, sans-serif;
   --font-head: var(--font-ui);
 
-  --page-bg: #0c0c0d;
+  /* Gunmetal Phillips-head screw SVG for chassis and section corners */
+  --sy1-screw: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 14 14'%3E%3Cdefs%3E%3CradialGradient id='g' cx='36%25' cy='30%25' r='65%25'%3E%3Cstop offset='0%25' stop-color='%23565860'/%3E%3Cstop offset='55%25' stop-color='%232b2c31'/%3E%3Cstop offset='100%25' stop-color='%23121316'/%3E%3C/radialGradient%3E%3C/defs%3E%3Ccircle cx='7' cy='7' r='5.4' fill='url(%23g)' stroke='%23090a0c' stroke-width='1.1'/%3E%3Cpath d='M4.2,7 L9.8,7 M7,4.2 L7,9.8' stroke='%23101114' stroke-width='1.5' stroke-linecap='round'/%3E%3Cpath d='M4.5,7.6 L9.5,7.6 M7.6,4.5 L7.6,9.5' stroke='%23686a73' stroke-opacity='0.38' stroke-width='0.6' stroke-linecap='round'/%3E%3C/svg%3E");
+
+  --page-bg: #0c0c0e;
   --ink: #efece6;
   --ink-dim: #b5b0a8;
   --ink-faint: #948f87;
@@ -28,173 +35,331 @@
   --accent: #ffa62b;
   --accent-2: #e07f12;
   --accent-ink: #1a1206;
-  --accent-glow: rgba(255,166,43,0.75);
-  --accent-glow-soft: rgba(255,166,43,0.35);
+  --accent-glow: rgba(255, 166, 43, 0.78);
+  --accent-glow-soft: rgba(255, 166, 43, 0.36);
 
+  /* Pebbled dark charcoal chassis frame */
   --shell-bg:
-    repeating-linear-gradient(90deg, rgba(255,255,255,0.022) 0 1px, transparent 1px 3px),
-    linear-gradient(180deg, #2b2b2e 0%, #161618 100%);
+    radial-gradient(circle at 25% 25%, rgba(255, 255, 255, 0.03) 0 1px, transparent 1px 3px),
+    radial-gradient(circle at 75% 75%, rgba(0, 0, 0, 0.35) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.018) 0 1px, rgba(0, 0, 0, 0.18) 1px 3px),
+    linear-gradient(180deg, #2c2d31 0%, #1c1d20 50%, #121315 100%);
 
+  /* Horizontal brushed dark gunmetal aluminum faceplate with corner screws */
   --panel-bg:
-    radial-gradient(ellipse at 50% 0%, rgba(255,255,255,0.06) 0%, transparent 65%),
-    repeating-linear-gradient(90deg, rgba(255,255,255,0.018) 0 1px, rgba(0,0,0,0.025) 1px 3px, transparent 3px 5px),
-    linear-gradient(180deg, #28282c 0%, #1e1e22 48%, #17171a 100%);
-  --panel-border: #3d3d42;
-  --panel-radius: 12px;
+    var(--sy1-screw) 10px 10px / 11px 11px no-repeat,
+    var(--sy1-screw) calc(100% - 10px) 10px / 11px 11px no-repeat,
+    radial-gradient(ellipse at 50% 6%, rgba(255, 255, 255, 0.08) 0%, transparent 62%),
+    repeating-linear-gradient(180deg, rgba(255, 255, 255, 0.018) 0 1px, rgba(0, 0, 0, 0.08) 1px 2px, transparent 2px 4px),
+    linear-gradient(180deg, #2b2c31 0%, #202126 46%, #17181c 100%);
+  --panel-border: #3e4047;
+  --panel-radius: 10px;
   --panel-shadow:
-    inset 0 1px 0 rgba(255,255,255,0.14),
-    inset 0 -2px 0 rgba(0,0,0,0.7),
-    0 14px 32px rgba(0,0,0,0.65);
+    inset 0 1px 0 rgba(255, 255, 255, 0.16),
+    inset 0 0 0 2px #111215,
+    0 14px 32px rgba(0, 0, 0, 0.72);
 
+  /* Recessed dark anodized section cards with 4 Phillips corner screws */
   --sec-bg:
-    radial-gradient(circle at 10px 10px, #35353a 0 2.5px, #111113 3px 4px, transparent 4.5px),
-    radial-gradient(circle at calc(100% - 10px) 10px, #35353a 0 2.5px, #111113 3px 4px, transparent 4.5px),
-    radial-gradient(circle at 10px calc(100% - 10px), #35353a 0 2.5px, #111113 3px 4px, transparent 4.5px),
-    radial-gradient(circle at calc(100% - 10px) calc(100% - 10px), #35353a 0 2.5px, #111113 3px 4px, transparent 4.5px),
-    repeating-linear-gradient(90deg, rgba(255,255,255,0.012) 0 1px, transparent 1px 4px),
-    linear-gradient(180deg, #1f1f23 0%, #18181b 55%, #141417 100%);
-  --sec-border: #34343a;
-  --sec-radius: 9px;
+    var(--sy1-screw) 8px 8px / 11px 11px no-repeat,
+    var(--sy1-screw) calc(100% - 8px) 8px / 11px 11px no-repeat,
+    var(--sy1-screw) 8px calc(100% - 8px) / 11px 11px no-repeat,
+    var(--sy1-screw) calc(100% - 8px) calc(100% - 8px) / 11px 11px no-repeat,
+    radial-gradient(ellipse at 50% 35%, rgba(255, 255, 255, 0.03) 0%, transparent 65%),
+    repeating-linear-gradient(180deg, rgba(255, 255, 255, 0.012) 0 1px, rgba(0, 0, 0, 0.08) 1px 2px, transparent 2px 4px),
+    linear-gradient(180deg, #212226 0%, #191a1e 55%, #141518 100%);
+  --sec-border: #373840;
+  --sec-radius: 8px;
   --sec-shadow:
-    inset 0 1px 0 rgba(255,255,255,0.09),
-    inset 0 -1px 0 rgba(0,0,0,0.8),
-    inset 0 2px 8px rgba(0,0,0,0.65),
-    0 2px 5px rgba(0,0,0,0.5),
-    0 1px 0 rgba(255,255,255,0.05);
-  --sec-head: #f5b349;
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.85),
+    inset 0 2px 8px rgba(0, 0, 0, 0.65),
+    0 0 0 1.5px #0e0f12,
+    0 2px 5px rgba(0, 0, 0, 0.55);
+  --sec-head: #f5aa3b;
 
-  --btn-bg: linear-gradient(180deg, #d9d9db 0%, #a7a7ab 100%);
-  --btn-ink: #1d1d1f;
-  --btn-border: #5b5b60;
-  --ctl-bg: linear-gradient(180deg, #2a2a2d 0%, #1f1f22 100%);
-  --ctl-ink: #d0cbc2;
-  --choice-active-bg: linear-gradient(180deg, #3a2a12 0%, #2a1e0c 100%);
-  --choice-active-ink: #ffc168;
+  /* Warm brushed silver/putty hardware buttons */
+  --btn-bg: linear-gradient(180deg, #dcd9d0 0%, #c4c1b8 52%, #aeaba2 100%);
+  --btn-ink: #1b1b1e;
+  --btn-border: #232428;
+  --ctl-bg: linear-gradient(180deg, #2d2e34 0%, #202126 100%);
+  --ctl-ink: #d6d1c7;
+  --choice-active-bg: linear-gradient(180deg, #3a2e1c 0%, #261e12 100%);
+  --choice-active-ink: #ffd280;
 
-  --scope-bg: radial-gradient(ellipse at 50% 50%, #1d1309 0%, #0b0805 75%);
-  --scope-border: #3f3f43;
-  --scope-line: #ffa62b;
-  --scope-grid: rgba(255,166,43,0.16);
+  /* Deep recessed dark amber CRT scope */
+  --scope-bg:
+    linear-gradient(180deg, transparent 48.5%, rgba(255, 166, 43, 0.22) 50%, transparent 51.5%),
+    radial-gradient(ellipse at 50% 50%, #28190a 0%, #140d06 62%, #0a0704 100%);
+  --scope-border: #3a3b42;
+  --scope-line: #f7a22b;
+  --scope-grid: rgba(255, 166, 43, 0.14);
 
-  /* Shared 3D Knob Tokens (SY-1: brushed aluminium cap, dark knurled skirt, amber pointer & engraved amber ticks/labels) */
+  /* Shared 3D Knob Tokens (SY-1: spun silver-aluminium cap, dark knurled skirt, glowing amber pointer & radial ticks) */
   --knob-cap:
-    radial-gradient(circle at 32% 26%, rgba(255,255,255,0.62) 0%, rgba(255,255,255,0) 40%),
-    repeating-radial-gradient(circle at 50% 50%, rgba(255,255,255,0.035) 0px 1px, rgba(0,0,0,0.045) 1px 2px),
+    radial-gradient(circle at 32% 24%, rgba(255, 255, 255, 0.78) 0%, rgba(255, 255, 255, 0) 42%),
+    repeating-radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.04) 0px 1px, rgba(0, 0, 0, 0.05) 1px 2px),
     conic-gradient(
       from -45deg at 50% 50%,
-      #f5f3ef 0deg,
-      #bab7b0 42deg,
-      #6e6c67 90deg,
-      #c2bfba 135deg,
-      #eae7e2 180deg,
-      #9c9993 225deg,
-      #63615c 270deg,
-      #ccc9c2 315deg,
-      #f5f3ef 360deg
+      #f7f5f0 0deg,
+      #c2bfb8 42deg,
+      #75736e 90deg,
+      #ccc9c2 135deg,
+      #f2efe9 180deg,
+      #a3a09a 225deg,
+      #686661 270deg,
+      #d4d1ca 315deg,
+      #f7f5f0 360deg
     );
   --knob-skirt:
-    radial-gradient(circle at 50% 35%, rgba(255,255,255,0.12) 0%, transparent 55%),
-    repeating-conic-gradient(from 0deg, #1b1b1f 0deg 3.6deg, #2e2e35 3.6deg 5.4deg, #0e0e11 5.4deg 9deg);
-  --knob-tick: #eba844;
-  --knob-pointer: #ffb53b;
-  --knob-pointer-glow: rgba(255,166,43,0.92);
+    radial-gradient(circle at 50% 32%, rgba(255, 255, 255, 0.14) 0%, transparent 55%),
+    repeating-conic-gradient(from 0deg, #1b1c20 0deg 3.6deg, #32333a 3.6deg 5.4deg, #0d0e11 5.4deg 9deg);
+  --knob-tick: #f0a535;
+  --knob-pointer: #ffb838;
+  --knob-pointer-glow: rgba(255, 166, 43, 0.95);
   --knob-label-font: "Helvetica Neue", "Inter", "Segoe UI", Roboto, Arial, sans-serif;
 
   --knob-face:
-    radial-gradient(circle at 40% 30%, rgba(255,255,255,0.22) 0%, rgba(255,255,255,0) 50%),
+    radial-gradient(circle at 40% 30%, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0) 50%),
     radial-gradient(circle, #1f1f22 0 45%, transparent 46%),
     repeating-conic-gradient(#141416 0deg 5deg, #2c2c30 5deg 10deg);
   --knob-gap: #111113;
   --knob-edge: #3a3a3e;
   --knob-arc: #ffa62b;
-  --knob-track: rgba(255,166,43,0.14);
-  --knob-arc-filter: drop-shadow(0 0 3px rgba(255,166,43,0.85));
+  --knob-track: rgba(255, 166, 43, 0.14);
+  --knob-arc-filter: drop-shadow(0 0 3px rgba(255, 166, 43, 0.85));
   --knob-ind: #ffd08a;
-  --knob-ind-glow: rgba(255,166,43,0.9);
-  --label-ink: #f2b254;
-  --value-ink: #e5e0d8;
+  --knob-ind-glow: rgba(255, 166, 43, 0.9);
+  --label-ink: #eba438;
+  --value-ink: #ece8df;
 
-  --key-white: linear-gradient(180deg, #ffffff 0%, #f1f1f1 80%, #d9d9d9 100%);
-  --key-white-ink: #5a5a5f;
-  --key-black: linear-gradient(180deg, #0a0a0b 0%, #2a2a2e 92%, #3a3a3e 100%);
+  --key-white: linear-gradient(180deg, #fbf6eb 0%, #f2ead9 80%, #dfd5c1 100%);
+  --key-white-ink: #6e6a61;
+  --key-black: linear-gradient(180deg, #18191c 0%, #2d2e33 88%, #0f1012 100%);
   --key-black-ink: #b5b5ba;
-  --key-line: #0a0a0b;
+  --key-line: #111215;
   --key-pressed: linear-gradient(180deg, #ffc56b 0%, #ff9a1f 100%);
   --key-pressed-ink: #1a1206;
 
-  --kb-white-top: #fbf7ee;
-  --kb-white-bottom: #e8dfcf;
-  --kb-black-top: #42424b;
-  --kb-black-bottom: #1c1c22;
+  --kb-white-top: #fbf6eb;
+  --kb-white-bottom: #e5dcc9;
+  --kb-black-top: #3e4047;
+  --kb-black-bottom: #151619;
   --kb-accent: #ffa62b;
   --kb-pattern: none;
-  --kb-frame: #1b1922;
-  --kb-wheel: #2b2934;
+  --kb-frame: #202125;
+  --kb-wheel: #35373d;
 
-  --led-off: #3a2a14;
-  --led-off-edge: #5a4320;
+  --led-off: #58554e;
+  --led-off-edge: #383631;
 }
-:is([data-skin="sy1"], [data-machine="sy1"]) .kb-wheel {
-  border-color: rgba(255, 166, 43, 0.45);
+
+/* ------------------------------------------------------------
+   SY-1 Sculpted Matte-Black Textured Outer Chassis & Side Cheeks
+   ------------------------------------------------------------ */
+:is([data-skin="sy1"], [data-machine="sy1"]) .sy1-shell {
+  position: relative;
+  padding-left: clamp(18px, 2.2vw, 28px);
+  padding-right: clamp(18px, 2.2vw, 28px);
+  border: 2px solid #0b0c0e;
+  border-radius: 14px;
   box-shadow:
-    inset 0 10px 14px rgba(0, 0, 0, 0.9),
-    inset 0 -10px 14px rgba(0, 0, 0, 0.9),
-    inset 2px 0 4px rgba(0, 0, 0, 0.75),
-    inset -2px 0 4px rgba(0, 0, 0, 0.75),
-    0 0 0 1px rgba(255, 166, 43, 0.3),
-    0 1px 0 rgba(255, 255, 255, 0.1);
+    inset 0 1px 1px rgba(255, 255, 255, 0.14),
+    inset 0 -3px 6px rgba(0, 0, 0, 0.85),
+    0 18px 42px rgba(0, 0, 0, 0.85);
+}
+:is([data-skin="sy1"], [data-machine="sy1"]) .sy1-shell::before,
+:is([data-skin="sy1"], [data-machine="sy1"]) .sy1-shell::after {
+  content: "";
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  width: clamp(14px, 1.8vw, 22px);
+  z-index: 5;
+  pointer-events: none;
+  border-radius: 7px;
+  background:
+    var(--sy1-screw) center calc(100% - 14px) / 11px 11px no-repeat,
+    repeating-linear-gradient(180deg, rgba(255, 255, 255, 0.025) 0 1px, rgba(0, 0, 0, 0.22) 1px 3px),
+    linear-gradient(90deg, #1b1c20 0%, #313339 38%, #26282d 70%, #141518 100%);
+  border: 1px solid #0d0e10;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.16),
+    0 4px 10px rgba(0, 0, 0, 0.7);
+}
+:is([data-skin="sy1"], [data-machine="sy1"]) .sy1-shell::before {
+  left: 3px;
+}
+:is([data-skin="sy1"], [data-machine="sy1"]) .sy1-shell::after {
+  right: 3px;
+}
+@media (max-width: 600px) {
+  :is([data-skin="sy1"], [data-machine="sy1"]) .sy1-shell {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+  :is([data-skin="sy1"], [data-machine="sy1"]) .sy1-shell::before,
+  :is([data-skin="sy1"], [data-machine="sy1"]) .sy1-shell::after {
+    width: 4px;
+    background: linear-gradient(180deg, #2e3036 0%, #17181b 100%);
+  }
+}
+
+/* Hide bottom keyboard-shortcut hint so section cards fill the faceplate cleanly */
+:is([data-skin="sy1"], [data-machine="sy1"]) .synth-hint {
+  display: none;
+}
+
+/* ------------------------------------------------------------
+   SY-1 Top Bar: Boxed Machine Selector, Wide Amber CRT Scope,
+   and Putty-Silver Connections Button
+   ------------------------------------------------------------ */
+:is([data-skin="sy1"], [data-machine="sy1"]) .synth-brand-maker {
+  display: none;
+}
+:is([data-skin="sy1"], [data-machine="sy1"]) .synth-machine-select {
+  background:
+    linear-gradient(45deg, transparent 50%, #f3a83b 50%) right 11px center / 5px 5px no-repeat,
+    linear-gradient(135deg, #f3a83b 50%, transparent 50%) right 6px center / 5px 5px no-repeat,
+    linear-gradient(180deg, #2c2d32 0%, #1d1e22 100%);
+  color: #f3a83b;
+  border: 1.5px solid #45474f;
+  border-radius: 6px;
+  padding: 5px 26px 5px 12px;
+  font-family: var(--font-head);
+  font-weight: 800;
+  font-size: 0.92rem;
+  letter-spacing: 0.04em;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 0 0 1px #111215,
+    0 2px 5px rgba(0, 0, 0, 0.6);
 }
 :is([data-skin="sy1"], [data-machine="sy1"]) .synth-scope {
   border-radius: 6px;
-  box-shadow: inset 0 3px 10px rgba(0,0,0,0.9), 0 1px 0 rgba(255,255,255,0.06);
+  border: 1.5px solid #3c3d44;
+  box-shadow:
+    inset 0 3px 10px rgba(0, 0, 0, 0.92),
+    inset 0 0 16px rgba(255, 156, 36, 0.16),
+    0 0 0 1.5px #101114,
+    0 1px 0 rgba(255, 255, 255, 0.08);
 }
-:is([data-skin="sy1"], [data-machine="sy1"]) .synth-brand {
-  color: #b5b0a8;
-  text-shadow: 0 1px 0 rgba(255,255,255,0.08);
+:is([data-skin="sy1"], [data-machine="sy1"]) .synth-conn-btn {
+  background: linear-gradient(180deg, #dcd9d0 0%, #c2bfb6 55%, #aba89f 100%);
+  color: #1d1d20;
+  border: 1.5px solid #191a1d;
+  border-radius: 6px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.78),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.3),
+    0 2px 4px rgba(0, 0, 0, 0.6);
 }
-:is([data-skin="sy1"], [data-machine="sy1"]) .synth-brand b { color: #e5e0d8; }
-:is([data-skin="sy1"], [data-machine="sy1"]) .synth-preset-btn {
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.7), 0 2px 3px rgba(0,0,0,0.6);
-  border-radius: 5px;
+
+/* ------------------------------------------------------------
+   SY-1 Subbar: Dark Recessed Preset Display & Glowing Amber / Silver Tabs
+   ------------------------------------------------------------ */
+:is([data-skin="sy1"], [data-machine="sy1"]) .preset-step-btn {
+  background: linear-gradient(180deg, #3c3e45 0%, #27292e 100%);
+  color: #d5d2c9;
+  border: 1.5px solid #484a52;
+  border-radius: 6px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.16),
+    0 0 0 1px #111215,
+    0 2px 4px rgba(0, 0, 0, 0.55);
 }
-:is([data-skin="sy1"], [data-machine="sy1"]) .synth-preset-btn.active {
-  background: linear-gradient(180deg, #ffd08a 0%, #ffa62b 100%);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.6), 0 0 12px rgba(255,166,43,0.6);
+:is([data-skin="sy1"], [data-machine="sy1"]) .preset-display {
+  background: linear-gradient(180deg, #24252a 0%, #1a1b1f 100%);
+  color: #f2efe8;
+  border: 1.5px solid #44464e;
+  border-radius: 6px;
+  box-shadow:
+    inset 0 2px 5px rgba(0, 0, 0, 0.78),
+    0 0 0 1px #111215,
+    0 1px 0 rgba(255, 255, 255, 0.08);
+}
+:is([data-skin="sy1"], [data-machine="sy1"]) .pd-name {
+  color: #f4f1ea;
+  font-weight: 800;
+}
+:is([data-skin="sy1"], [data-machine="sy1"]) .pd-sub {
+  color: #b5b0a6;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+:is([data-skin="sy1"], [data-machine="sy1"]) .pd-icon {
+  color: #c8c3b8;
+  opacity: 0.9;
+}
+
+/* Hardware Page Tabs in Subbar */
+:is([data-skin="sy1"], [data-machine="sy1"]) .synth-tab {
+  background: linear-gradient(180deg, #dcd9d0 0%, #c4c1b8 55%, #aeaba2 100%);
+  color: #1b1b1e;
+  border: 1.5px solid #1b1c20;
+  border-radius: 6px;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.78),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.28),
+    0 2px 4px rgba(0, 0, 0, 0.55);
+}
+:is([data-skin="sy1"], [data-machine="sy1"]) .synth-tab::before {
+  width: 6px;
+  height: 6px;
+  background: #625f58;
+  border: 1px solid #3d3b36;
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.5);
+}
+:is([data-skin="sy1"], [data-machine="sy1"]) .synth-tab.active {
+  background: linear-gradient(180deg, #ffc44d 0%, #f59c1e 55%, #d97b0c 100%);
+  color: #1c1103;
+  border-color: #1b1204;
+  box-shadow:
+    0 0 14px rgba(255, 166, 43, 0.55),
+    inset 0 1px 0 rgba(255, 245, 205, 0.82),
+    inset 0 -2px 0 rgba(90, 44, 0, 0.45);
+}
+:is([data-skin="sy1"], [data-machine="sy1"]) .synth-tab.active::before {
+  background: #fff9d6;
+  border-color: #d9820e;
+  box-shadow: 0 0 6px #fff9d6, 0 0 10px rgba(255, 235, 140, 0.95);
 }
 
 /* Engraved Amber Section Headers on SY-1 */
 :is([data-skin="sy1"], [data-machine="sy1"]) .synth-sec h4 {
-  color: #f4b24c;
+  color: #f4ac3d;
   text-align: center;
   letter-spacing: 0.16em;
-  text-shadow: 0 -1px 0 rgba(0,0,0,0.9), 0 0 10px rgba(255,166,43,0.2);
-  border-bottom: 1px solid rgba(255,166,43,0.2);
-  box-shadow: 0 1px 0 rgba(255,255,255,0.04);
+  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.9), 0 0 10px rgba(255, 166, 43, 0.22);
+  border-bottom: 1px solid rgba(244, 172, 61, 0.36);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
 /* 3D Hardware Switches on SY-1: recessed switch well + bevelled cap + glowing amber LED */
 :is([data-skin="sy1"], [data-machine="sy1"]) .synth-choice {
   padding: 3px;
   border-radius: 7px;
-  background: #0d0d10;
-  border: 1px solid #323238;
+  background: #0e0f12;
+  border: 1.5px solid #2f3037;
   box-shadow:
-    inset 0 2px 5px rgba(0,0,0,0.9),
-    0 1px 0 rgba(255,255,255,0.07);
-  gap: 4px;
+    inset 0 2px 5px rgba(0, 0, 0, 0.92),
+    0 1px 0 rgba(255, 255, 255, 0.07);
+  gap: 5px;
 }
 :is([data-skin="sy1"], [data-machine="sy1"]) .synth-choice-btn {
   position: relative;
   border-radius: 5px;
-  border: 1px solid #121215;
-  background: linear-gradient(180deg, #3a3a40 0%, #27272c 55%, #1d1d21 100%);
-  color: #ccc6bc;
+  border: 1px solid #141518;
+  background: linear-gradient(180deg, #3c3d44 0%, #292a2f 55%, #1e1f23 100%);
+  color: #dedad0;
   box-shadow:
-    inset 0 1px 0 rgba(255,255,255,0.22),
-    inset 0 -2px 0 rgba(0,0,0,0.65),
-    0 2px 3px rgba(0,0,0,0.7);
+    inset 0 1px 0 rgba(255, 255, 255, 0.22),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.65),
+    0 2px 3px rgba(0, 0, 0, 0.7);
   padding-top: 4px;
-  text-shadow: 0 -1px 0 rgba(0,0,0,0.8);
+  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.8);
 }
 :is([data-skin="sy1"], [data-machine="sy1"]) .synth-choice-btn::after {
   content: "";
@@ -204,22 +369,22 @@
   right: 28%;
   height: 2.5px;
   border-radius: 2px;
-  background: #2b2114;
-  box-shadow: inset 0 1px 1px rgba(0,0,0,0.85);
+  background: #2b2318;
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.85);
   pointer-events: none;
 }
 :is([data-skin="sy1"], [data-machine="sy1"]) .synth-choice-btn.active {
-  background: linear-gradient(180deg, #2e2922 0%, #221d17 60%, #191510 100%);
-  color: #ffd085;
-  border-color: rgba(255,166,43,0.65);
+  background: linear-gradient(180deg, #352d22 0%, #251f17 60%, #1b1610 100%);
+  color: #ffe09e;
+  border-color: #eb9b28;
   box-shadow:
-    inset 0 1px 3px rgba(0,0,0,0.75),
-    inset 0 0 10px rgba(255,166,43,0.18),
-    0 0 8px rgba(255,166,43,0.28);
+    inset 0 1px 3px rgba(0, 0, 0, 0.75),
+    inset 0 0 12px rgba(255, 166, 43, 0.24),
+    0 0 10px rgba(255, 166, 43, 0.35);
 }
 :is([data-skin="sy1"], [data-machine="sy1"]) .synth-choice-btn.active::after {
-  background: #ffae2b;
-  box-shadow: 0 0 7px #ffae2b, 0 0 12px rgba(255,166,43,0.85);
+  background: #ffc845;
+  box-shadow: 0 0 7px #ffb82b, 0 0 14px rgba(255, 174, 43, 0.95);
 }
 
 /* 3D Hardware Knob Component on SY-1 */
@@ -266,7 +431,7 @@
     0 0 10px var(--accent-glow-soft);
 }
 :is([data-skin="sy1"], [data-machine="sy1"]) .sk-label {
-  text-shadow: 0 -1px 0 rgba(0,0,0,0.85);
+  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.85);
 }
 
 /* SY-1 Knob Sizing: fill section cards evenly, centered & spread over card */
@@ -287,7 +452,7 @@
    - Small envelope/unison knobs: 44-56px */
 @media (min-width: 761px) and (min-height: 561px) {
   :is([data-skin="sy1"], [data-machine="sy1"]) {
-    --k-lg: 84px;
+    --k-lg: 82px;
     --k: 64px;
     --k-small: 48px;
   }
@@ -298,6 +463,10 @@
     container-type: size;
     justify-content: space-between;
   }
+  /* Tighten vertical row gap slightly on 2-knob-row cards (OSC 2, FILTER, AMP ENV) so bottom labels never clip */
+  .sy1-shell.is-fit-paged .synth-panel[data-machine="sy1"] .synth-sec:has(> .sk-row ~ .sk-row) {
+    --sec-row-gap: 6px;
+  }
   .sy1-shell.is-fit-paged .synth-panel[data-machine="sy1"] .synth-sec > h4 + * {
     margin-top: auto;
   }
@@ -306,13 +475,13 @@
   }
   /* 2-knob-row cards on SY-1 (OSC 2, FILTER, AMP ENV, DRIVE-EQ) */
   .sy1-shell.is-fit-paged .synth-panel[data-machine="sy1"] .synth-sec .sk-row-lg {
-    --k-in: clamp(72px, min(24cqw, 25cqh), 92px);
+    --k-in: clamp(72px, min(23cqw, 23cqh), 88px);
   }
   .sy1-shell.is-fit-paged .synth-panel[data-machine="sy1"] .synth-sec .sk-row:not(.sk-row-lg):not(.sk-row-small) {
-    --k-in: clamp(56px, min(22cqw, 24cqh), 72px);
+    --k-in: clamp(56px, min(21cqw, 23cqh), 72px);
   }
   .sy1-shell.is-fit-paged .synth-panel[data-machine="sy1"] .synth-sec .sk-row-small {
-    --k-in: clamp(44px, min(16cqw, 16.5cqh), 56px);
+    --k-in: clamp(44px, min(15.5cqw, 15.5cqh), 54px);
   }
   /* 1-knob-row cards on SY-1 (OSC 1, LFO, DELAY, REVERB-OUT) */
   .sy1-shell.is-fit-paged .synth-panel[data-machine="sy1"] .synth-sec:not(:has(> .sk-row ~ .sk-row)) .sk-row-lg {
@@ -392,6 +561,10 @@
 
 /* Short landscape on SY-1 (740x340, 932x400) */
 @media (max-height: 560px) and (orientation: landscape) {
+  :is([data-skin="sy1"], [data-machine="sy1"]) .synth-machine-select {
+    padding: 1px 18px 1px 6px;
+    font-size: 0.76rem;
+  }
   .synth-panel[data-machine="sy1"] {
     --k-lg: 44px;
     --k: 40px;
@@ -450,105 +623,824 @@
   }
 }
 
+/* ------------------------------------------------------------
+   SY-1 Performance Bar (.kb-bar), Brushed Metal Wheel Bay & Keys
+   ------------------------------------------------------------ */
+:is([data-skin="sy1"], [data-machine="sy1"]) .kb-bar {
+  background:
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.015) 0 1px, transparent 1px 3px),
+    linear-gradient(180deg, #212227 0%, #16171a 100%);
+  border: 1.5px solid #35363e;
+  border-radius: 7px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.07),
+    0 0 0 1px #0d0e11,
+    0 3px 8px rgba(0, 0, 0, 0.65);
+}
+:is([data-skin="sy1"], [data-machine="sy1"]) .kb-bar .kb-btn {
+  background: linear-gradient(180deg, #dcd9d0 0%, #c4c1b8 55%, #aeaba2 100%);
+  color: #1b1b1e;
+  border: 1.5px solid #191a1d;
+  border-radius: 6px;
+  font-weight: 800;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.78),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.28),
+    0 2px 4px rgba(0, 0, 0, 0.55);
+}
+:is([data-skin="sy1"], [data-machine="sy1"]) .kb-bar .kb-btn:active,
+:is([data-skin="sy1"], [data-machine="sy1"]) .kb-bar .kb-btn.active,
+:is([data-skin="sy1"], [data-machine="sy1"]) .kb-bar .kb-btn[aria-pressed="true"],
+:is([data-skin="sy1"], [data-machine="sy1"]) .kb-bar .kb-or.active {
+  background: linear-gradient(180deg, #ffc44d 0%, #f59c1e 55%, #d97b0c 100%);
+  color: #1c1103;
+  border-color: #1b1204;
+  box-shadow:
+    0 0 12px rgba(255, 166, 43, 0.55),
+    inset 0 1px 0 rgba(255, 245, 205, 0.8);
+}
+/* Glowing amber LED dot on ORIENTAL button matching the SY-1 hardware screenshot */
+:is([data-skin="sy1"], [data-machine="sy1"]) .kb-bar .kb-or .kb-or-dot {
+  background: #ffaa28;
+  border: 1px solid #b86b08;
+  box-shadow: 0 0 6px rgba(255, 170, 40, 0.85);
+}
+:is([data-skin="sy1"], [data-machine="sy1"]) .kb-range {
+  color: #d8d4cb;
+  font-weight: 800;
+}
+
+/* Brushed Stainless/Gunmetal Vertical Wheel Housing */
+:is([data-skin="sy1"], [data-machine="sy1"]) .kb-wheels {
+  background:
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.045) 0 1px, rgba(0, 0, 0, 0.06) 1px 2px, transparent 2px 4px),
+    linear-gradient(180deg, #74757b 0%, #55565c 35%, #3d3e44 75%, #2e2f34 100%);
+  border: 1.5px solid #17181b;
+  border-radius: 7px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.35),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.1),
+    0 4px 10px rgba(0, 0, 0, 0.7);
+}
+:is([data-skin="sy1"], [data-machine="sy1"]) .kb-wheel {
+  border: 1.5px solid #141518;
+  background:
+    repeating-linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.25) 0px,
+      rgba(255, 255, 255, 0.25) 1.5px,
+      rgba(16, 17, 20, 0.88) 1.5px,
+      rgba(16, 17, 20, 0.88) 4px
+    ),
+    linear-gradient(180deg, #18191c 0%, #5a5c63 28%, #8f929b 50%, #52545b 72%, #16171a 100%);
+  box-shadow:
+    inset 0 8px 12px rgba(0, 0, 0, 0.88),
+    inset 0 -8px 12px rgba(0, 0, 0, 0.88),
+    0 1px 0 rgba(255, 255, 255, 0.22);
+}
+:is([data-skin="sy1"], [data-machine="sy1"]) .kb-wheel-thumb {
+  background: linear-gradient(180deg, #e5e4df 0%, #9b9d9f 48%, #4d4e53 100%);
+  border: 1px solid #18191c;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.85), inset 0 1px 0 rgba(255, 255, 255, 0.82);
+}
+:is([data-skin="sy1"], [data-machine="sy1"]) .kb-wheel-label {
+  color: #dcd9d0;
+  font-weight: 800;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.85);
+}
 
 /* ------------------------------------------------------------
-   ISFAHAN — Persian lapis, turquoise tile and gold
-   Girih star lattice, gold-engraved knobs, khatam inlay border.
+   SY-1 Sound Library (.lib-pop) & Popovers:
+   Clean, dark, high-contrast & readable like the other synths
+   ------------------------------------------------------------ */
+:is([data-skin="sy1"], [data-machine="sy1"]) .lib-pop {
+  background: #141518;
+  border: 1.5px solid #ffa62b;
+  color: #f2efe9;
+}
+:is([data-skin="sy1"], [data-machine="sy1"]) .lib-pop::before {
+  background: linear-gradient(180deg, #1f2025 0%, #141518 100%);
+}
+:is([data-skin="sy1"], [data-machine="sy1"]) .lib-head {
+  background: rgba(14, 15, 18, 0.65);
+  border-bottom: 1px solid #34353d;
+}
+:is([data-skin="sy1"], [data-machine="sy1"]) .lib-title b {
+  color: #f7f4ee;
+}
+:is([data-skin="sy1"], [data-machine="sy1"]) .lib-title span {
+  color: #b8b3aa;
+}
+:is([data-skin="sy1"], [data-machine="sy1"]) .lib-search {
+  background: #101114;
+  border: 1px solid #3e4048;
+  color: #b8b3aa;
+}
+:is([data-skin="sy1"], [data-machine="sy1"]) .lib-q {
+  color: #f7f4ee;
+}
+:is([data-skin="sy1"], [data-machine="sy1"]) .lib-cats {
+  border-color: #34353d;
+}
+:is([data-skin="sy1"], [data-machine="sy1"]) .lib-cat {
+  color: #dedad0;
+}
+:is([data-skin="sy1"], [data-machine="sy1"]) .lib-count {
+  color: #9e9990;
+}
+:is([data-skin="sy1"], [data-machine="sy1"]) .lib-cat.active {
+  background: #27282e;
+  color: #ffffff;
+  box-shadow: inset 3px 0 0 #ffa62b;
+}
+:is([data-skin="sy1"], [data-machine="sy1"]) .lib-cat.active .lib-count {
+  color: #ffa62b;
+}
+:is([data-skin="sy1"], [data-machine="sy1"]) .lib-tile {
+  background: linear-gradient(180deg, #24252b 0%, #1b1c21 100%);
+  border: 1px solid #383a42;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 2px 6px rgba(0, 0, 0, 0.45);
+  color: #f7f4ee;
+}
+:is([data-skin="sy1"], [data-machine="sy1"]) .lib-tile.active {
+  border-color: #ffa62b;
+  box-shadow: 0 0 0 1px #ffa62b, 0 0 14px rgba(255, 166, 43, 0.35);
+}
+:is([data-skin="sy1"], [data-machine="sy1"]) .lib-name {
+  color: #f7f4ee;
+}
+:is([data-skin="sy1"], [data-machine="sy1"]) .lib-sub {
+  color: #f2b254;
+}
+:is([data-skin="sy1"], [data-machine="sy1"]) .lib-fav {
+  color: #b8b3aa;
+}
+:is([data-skin="sy1"], [data-machine="sy1"]) .lib-fav.on {
+  color: #ffa62b;
+}
+
+
+/* ------------------------------------------------------------
+   ISFAHAN — Persian lapis, turquoise Girih tilework & brushed gold
+   Brushed antique gold chassis with Khatam-kari micro-mosaic inlay cheeks,
+   turquoise & royal lapis Girih geometric tilework faceplate,
+   wide dark-teal scope with cyan beam & gold waveform,
+   gilded DASTGAH arch & ORNAMENT 12-point Girih star mandala cards,
+   spun solid gold knobs, gold/silver wheels, and royal lapis sharp keys.
    ------------------------------------------------------------ */
 [data-skin="isfahan"],
 [data-machine="isfahan"] {
-  --kb-btn-ink: #2a1c05;
-  --midi-btn-ink: #f3e6be;
-  --girih: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48'%3E%3Cg fill='none' stroke='%23e2c374' stroke-opacity='.2' stroke-width='1'%3E%3Crect x='12' y='12' width='24' height='24'/%3E%3Crect x='12' y='12' width='24' height='24' transform='rotate(45 24 24)'/%3E%3Ccircle cx='24' cy='24' r='5'/%3E%3Cpath d='M0 24h7M41 24h7M24 0v7M24 41v7M0 0l7 7M48 0l-7 7M0 48l7-7M48 48l-7-7'/%3E%3C/g%3E%3C/svg%3E");
-  --khatam: repeating-linear-gradient(45deg, #d9b45a 0 3px, #2a1a08 3px 5px, #f1e4c4 5px 7px, #8a5a24 7px 9px);
+  --kb-btn-ink: #1f1404;
+  --midi-btn-ink: #fbf3df;
 
-  --font-ui: "Gill Sans", "Gill Sans MT", "Optima", "Candara", "Segoe UI", sans-serif;
+  /* Seamless 56x56 Persian Girih Turquoise & Lapis Tilework with Gold Strapwork */
+  --girih: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='56' viewBox='0 0 56 56'%3E%3Crect width='56' height='56' fill='%230b2268'/%3E%3Cpolygon points='28,2 35,15 48,8 41,21 54,28 41,35 48,48 35,41 28,54 21,41 8,48 15,35 2,28 15,21 8,8 21,15' fill='%23117388' stroke='%23d8b45c' stroke-width='1.1'/%3E%3Cpolygon points='28,9 33,19 43,14 38,24 47,28 38,32 43,42 33,37 28,47 23,37 13,42 18,32 9,28 18,24 13,14 23,19' fill='%231ca3b8' stroke='%23ebd189' stroke-width='0.8'/%3E%3Ccircle cx='28' cy='28' r='8.5' fill='%230b2268' stroke='%23e2c06d' stroke-width='1'/%3E%3Cpath d='M24.5,24.5 L31.5,31.5 M31.5,24.5 L24.5,31.5 M28,22.5 L28,33.5 M22.5,28 L33.5,28' stroke='%23f2d98c' stroke-width='0.9'/%3E%3Cpath d='M0,12 L12,0 M44,0 L56,12 M0,44 L12,56 M44,56 L56,44' stroke='%2323b5c8' stroke-width='1.6'/%3E%3Cpath d='M0,7 L7,0 M49,0 L56,7 M0,49 L7,56 M49,56 L56,49' stroke='%23e2c06d' stroke-width='0.9'/%3E%3Ccircle cx='0' cy='0' r='4' fill='%231ca3b8' stroke='%23e2c06d' stroke-width='0.9'/%3E%3Ccircle cx='56' cy='0' r='4' fill='%231ca3b8' stroke='%23e2c06d' stroke-width='0.9'/%3E%3Ccircle cx='0' cy='56' r='4' fill='%231ca3b8' stroke='%23e2c06d' stroke-width='0.9'/%3E%3Ccircle cx='56' cy='56' r='4' fill='%231ca3b8' stroke='%23e2c06d' stroke-width='0.9'/%3E%3C/svg%3E");
+
+  /* Khatam-kari micro-mosaic geometric star marquetry strip for side cheeks */
+  --khatam-cheek: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='40' viewBox='0 0 20 40'%3E%3Crect width='20' height='40' fill='%231b1207'/%3E%3Crect x='1' y='0' width='18' height='40' fill='none' stroke='%23e5c36e' stroke-width='1'/%3E%3Cpolygon points='10,2 14,6 18,6 15,10 18,14 14,14 10,18 6,14 2,14 5,10 2,6 6,6' fill='%23188fa3' stroke='%23f3da94' stroke-width='0.8'/%3E%3Ccircle cx='10' cy='10' r='2.4' fill='%23e8c05b' stroke='%231b1207' stroke-width='0.6'/%3E%3Cpolygon points='10,22 14,26 18,26 15,30 18,34 14,34 10,38 6,34 2,34 5,30 2,26 6,26' fill='%23a83c1e' stroke='%23f3da94' stroke-width='0.8'/%3E%3Ccircle cx='10' cy='30' r='2.4' fill='%23f7ecd0' stroke='%231b1207' stroke-width='0.6'/%3E%3Cpath d='M2,20 L10,17 L18,20 L10,23 Z' fill='%23d8b04c' stroke='%23f7ecd0' stroke-width='0.5'/%3E%3Cpath d='M2,0 L10,3 L18,0 M2,40 L10,37 L18,40' fill='none' stroke='%23d8b04c' stroke-width='0.8'/%3E%3C/svg%3E");
+
+  /* Muqarnas arch cartouche under DASTGAH title */
+  --isfahan-arch: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='26' viewBox='0 0 240 26'%3E%3Cpath d='M10,25 C34,25 46,5 76,5 C96,5 108,13 120,2 C132,13 144,5 164,5 C194,5 206,25 230,25' fill='none' stroke='%23e2c06d' stroke-width='1.5'/%3E%3Cpath d='M36,24 C54,18 64,9 84,9 C100,9 112,16 120,7 C128,16 140,9 156,9 C176,9 186,18 204,24' fill='%2317899e' fill-opacity='0.55' stroke='%234de6f5' stroke-width='0.9'/%3E%3Ccircle cx='120' cy='15' r='3' fill='%23f4d57e'/%3E%3Ccircle cx='86' cy='15' r='2' fill='%234de6f5'/%3E%3Ccircle cx='154' cy='15' r='2' fill='%234de6f5'/%3E%3C/svg%3E");
+
+  /* Central 12-Pointed Girih Star Medallion & Corner Spandrels for ORNAMENT */
+  --isfahan-mandala: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='360' height='220' viewBox='0 0 360 220' preserveAspectRatio='xMidYMid slice'%3E%3Cdefs%3E%3CradialGradient id='mg' cx='50%25' cy='50%25' r='50%25'%3E%3Cstop offset='0%25' stop-color='%2323b8cf' stop-opacity='0.5'/%3E%3Cstop offset='65%25' stop-color='%23104896' stop-opacity='0.3'/%3E%3Cstop offset='100%25' stop-color='%230c2368' stop-opacity='0'/%3E%3C/radialGradient%3E%3C/defs%3E%3Ccircle cx='180' cy='110' r='96' fill='url(%23mg)'/%3E%3Cg stroke='%23d8b45c' stroke-width='1.1' fill='%23167c92' fill-opacity='0.45'%3E%3Cpath d='M0,0 L58,0 L42,24 L24,42 L0,58 Z'/%3E%3Cpath d='M360,0 L302,0 L318,24 L336,42 L360,58 Z'/%3E%3Cpath d='M0,220 L58,220 L42,196 L24,178 L0,162 Z'/%3E%3Cpath d='M360,220 L302,220 L318,196 L336,178 L360,162 Z'/%3E%3C/g%3E%3Cg transform='translate(180,110)'%3E%3Cpolygon points='0,-78 18,-48 54,-54 48,-18 78,0 48,18 54,54 18,48 0,78 -18,48 -54,54 -48,18 -78,0 -48,-18 -54,-54 -18,-48' fill='%23125b7a' fill-opacity='0.55' stroke='%23e2c06d' stroke-width='1.4'/%3E%3Cpolygon points='0,-62 14,-36 44,-44 36,-14 62,0 36,14 44,44 14,36 0,62 -14,36 -44,44 -36,14 -62,0 -36,-14 -44,-44 -14,-36' fill='%231a92a8' fill-opacity='0.52' stroke='%235ce8f7' stroke-width='1'/%3E%3Cpolygon points='0,-42 11,-24 30,-30 24,-11 42,0 24,11 30,30 11,24 0,42 -11,24 -30,30 -24,11 -42,0 -24,-11 -30,-30 -11,-24' fill='%230c2874' stroke='%23f0d27a' stroke-width='1.3'/%3E%3Ccircle r='20' fill='%23178ba1' stroke='%23f0d27a' stroke-width='1.3'/%3E%3Cpolygon points='0,-15 4,-5 15,-4 6,3 9,13 0,7 -9,13 -6,3 -15,-4 -4,-5' fill='%23f0d27a' fill-opacity='0.85'/%3E%3Ccircle r='4.5' fill='%230c2874' stroke='%23ffffff' stroke-width='0.8'/%3E%3C/g%3E%3C/svg%3E");
+
+  --font-ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --font-head: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
 
-  --page-bg: #081430;
-  --ink: #f6eed8;
-  --ink-dim: #e2d1a0;
-  --ink-faint: #b8c3dc;
+  --page-bg: #0c0d12;
+  --ink: #fbf3df;
+  --ink-dim: #dfd0a8;
+  --ink-faint: #b5a682;
 
-  --accent: #e2c374;
-  --accent-2: #b98a2e;
-  --accent-ink: #231705;
-  --accent-glow: rgba(226,195,116,0.75);
-  --accent-glow-soft: rgba(226,195,116,0.35);
+  --accent: #e5c168;
+  --accent-2: #c49735;
+  --accent-ink: #1e1303;
+  --accent-glow: rgba(235, 198, 104, 0.78);
+  --accent-glow-soft: rgba(235, 198, 104, 0.38);
 
-  --shell-bg: var(--girih) 0 0 / 48px 48px, linear-gradient(180deg, #16357a 0%, #0f2659 100%);
+  --shell-bg:
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.04) 0 1px, rgba(0, 0, 0, 0.04) 1px 3px),
+    linear-gradient(180deg, #e8cc84 0%, #caa450 28%, #b38b36 65%, #8f6a1e 100%);
 
-  --panel-bg: var(--girih) 0 0 / 48px 48px, linear-gradient(180deg, #17408a 0%, #123272 100%);
-  --panel-border: #c9a24a;
+  --panel-bg:
+    radial-gradient(ellipse at 50% 0%, rgba(72, 224, 240, 0.14) 0%, transparent 65%),
+    var(--girih) 0 0 / 56px 56px,
+    linear-gradient(180deg, #0f2f82 0%, #0a1f5c 100%);
+  --panel-border: #e2c06d;
   --panel-radius: 8px;
-  --panel-shadow: inset 0 0 0 2px #123272, inset 0 0 0 3px rgba(226,195,116,0.55), 0 12px 30px rgba(0,0,0,0.5);
+  --panel-shadow:
+    inset 0 0 0 2px #091d58,
+    inset 0 0 0 3.5px #d4b056,
+    0 12px 30px rgba(0, 0, 0, 0.65);
 
-  --sec-bg: linear-gradient(180deg, #1d4f99 0%, #18438a 100%);
-  --sec-border: #c9a24a;
+  --sec-bg:
+    radial-gradient(ellipse at 50% 35%, rgba(28, 78, 196, 0.42) 0%, transparent 70%),
+    linear-gradient(180deg, #102d82 0%, #0b2064 60%, #081850 100%);
+  --sec-border: #e2c06d;
   --sec-radius: 6px;
-  --sec-shadow: inset 0 0 0 2px #1b4891, inset 0 0 0 3px rgba(226,195,116,0.42), 0 2px 6px rgba(0,0,0,0.35);
-  --sec-head: #f6ecd2;
+  --sec-shadow:
+    inset 0 0 0 1.5px #07194e,
+    inset 0 0 0 2.5px rgba(226, 192, 109, 0.55),
+    0 5px 14px rgba(0, 0, 0, 0.6);
+  --sec-head: #fbf3df;
 
-  --btn-bg: linear-gradient(180deg, #f3dc98 0%, #d1a74b 55%, #a97b25 100%);
-  --btn-ink: #2a1c05;
-  --btn-border: #7a5718;
-  --ctl-bg: linear-gradient(180deg, #123a7a 0%, #0f3069 100%);
-  --ctl-ink: #f3e6be;
-  --choice-active-bg: linear-gradient(180deg, #f3dc98 0%, #c99a3a 100%);
-  --choice-active-ink: #231705;
+  --btn-bg: linear-gradient(180deg, #ead08a 0%, #c8a048 55%, #a17924 100%);
+  --btn-ink: #1f1404;
+  --btn-border: #f3dc99;
+  --ctl-bg: linear-gradient(180deg, #112d80 0%, #0b1f5e 100%);
+  --ctl-ink: #fbf3df;
+  --choice-active-bg: linear-gradient(180deg, #fae29c 0%, #dfb456 55%, #b88728 100%);
+  --choice-active-ink: #1c1102;
 
-  --scope-bg: radial-gradient(ellipse at 50% 40%, #0f4a55 0%, #072a33 80%);
-  --scope-border: #c9a24a;
-  --scope-line: #8ff5ea;
-  --scope-grid: rgba(143,245,234,0.16);
+  --scope-bg:
+    linear-gradient(180deg, transparent 47%, rgba(72, 245, 232, 0.45) 49.5%, rgba(145, 255, 248, 0.85) 50%, rgba(72, 245, 232, 0.45) 50.5%, transparent 53%),
+    radial-gradient(ellipse at 50% 50%, rgba(22, 138, 134, 0.55) 0%, rgba(7, 48, 54, 0.92) 70%, #041d22 100%);
+  --scope-border: #d8b560;
+  --scope-line: #f6d87e;
+  --scope-grid: rgba(88, 242, 230, 0.32);
 
-  --knob-face:
-    radial-gradient(circle at 38% 30%, rgba(255,250,225,0.85) 0%, rgba(255,250,225,0) 35%),
-    repeating-conic-gradient(rgba(90,58,10,0.38) 0deg 3deg, transparent 3deg 15deg),
-    radial-gradient(circle, #f0d68a 0%, #d3a94e 45%, #9c7124 80%, #6e4c14 100%);
-  --knob-gap: #0f2f66;
-  --knob-edge: #c9a24a;
-  --knob-arc: #7fe9df;
-  --knob-track: rgba(127,233,223,0.16);
-  --knob-arc-filter: drop-shadow(0 0 2px rgba(127,233,223,0.6));
-  --knob-ind: #3a2706;
-  --knob-ind-glow: rgba(0,0,0,0);
-  --label-ink: #f6eed8;
-  --value-ink: #c8f2ed;
+  /* Spun Solid Brushed Gold Knobs */
+  --knob-cap:
+    radial-gradient(circle at 34% 26%, rgba(255, 252, 235, 0.85) 0%, rgba(255, 252, 235, 0) 42%),
+    repeating-radial-gradient(circle at 50% 50%, rgba(255, 248, 215, 0.05) 0 1px, rgba(60, 38, 4, 0.06) 1px 2px),
+    conic-gradient(
+      from -45deg at 50% 50%,
+      #fbf0c4 0deg,
+      #d8b256 42deg,
+      #9a721e 90deg,
+      #e2bf68 135deg,
+      #fcf3cf 180deg,
+      #c69d42 225deg,
+      #8b6416 270deg,
+      #e6c570 315deg,
+      #fbf0c4 360deg
+    );
+  --knob-skirt:
+    radial-gradient(circle at 50% 30%, rgba(255, 238, 175, 0.25) 0%, transparent 60%),
+    repeating-conic-gradient(from 0deg, #3b2808 0deg 4deg, #6b4c18 4deg 6deg, #241703 6deg 9deg);
+  --knob-tick: #f0d078;
+  --knob-pointer: #231604;
+  --knob-pointer-glow: rgba(0, 0, 0, 0);
+  --knob-label-font: var(--font-ui);
 
-  --key-white: linear-gradient(180deg, #fbf6ea 0%, #ece2c8 100%);
-  --key-white-ink: #72541e;
-  --key-black: linear-gradient(180deg, #120c06 0%, #2d2216 90%, #c9a24a 100%);
-  --key-black-ink: #e2c374;
-  --key-line: #6e4c14;
-  --key-pressed: linear-gradient(180deg, #a6fff5 0%, #3fc7bb 100%);
-  --key-pressed-ink: #06302c;
+  --label-ink: #fbf3df;
+  --value-ink: #f3e6c8;
 
-  --kb-white-top: #faf5e6;
-  --kb-white-bottom: #e5dac2;
-  --kb-black-top: #243b68;
-  --kb-black-bottom: #0f1d38;
-  --kb-accent: #e2c374;
-  --kb-pattern: var(--girih);
-  --kb-frame: #0d2248;
-  --kb-wheel: #153060;
+  --key-white: linear-gradient(180deg, #fdfbf4 0%, #f5eedf 82%, #dfd4be 100%);
+  --key-white-ink: #7a6f5d;
+  --key-black: linear-gradient(180deg, #1b3a94 0%, #102568 78%, #091746 100%);
+  --key-black-ink: #e8c978;
+  --key-line: #3e2c0a;
+  --key-pressed: linear-gradient(180deg, #fae29c 0%, #d9a83e 100%);
+  --key-pressed-ink: #1e1303;
 
-  --led-off: #0b2550;
+  --kb-white-top: #fdfbf4;
+  --kb-white-bottom: #e8dec9;
+  --kb-black-top: #1d3c96;
+  --kb-black-bottom: #0b1948;
+  --kb-accent: #e5c168;
+  --kb-pattern: none;
+  --kb-frame: #b8923c;
+  --kb-wheel: #0e246a;
+
+  --led-off: #1a284d;
   --led-off-edge: #c9a24a;
 }
-:is([data-skin="isfahan"], [data-machine="isfahan"]) .synth-sec h4 {
-  text-align: center;
-  border-bottom: 1px solid rgba(226,195,116,0.35);
+
+/* ------------------------------------------------------------
+   Isfahan Chassis: Brushed Gold Frame & Khatam-kari Cheeks
+   ------------------------------------------------------------ */
+:is([data-skin="isfahan"], [data-machine="isfahan"]) .sy1-shell {
+  position: relative;
+  padding-left: clamp(26px, 3.2vw, 40px);
+  padding-right: clamp(26px, 3.2vw, 40px);
+  border: 2px solid #8a651b;
+  border-radius: 14px;
+  box-shadow:
+    inset 0 2px 2px rgba(255, 248, 215, 0.65),
+    inset 0 -3px 6px rgba(55, 36, 4, 0.75),
+    0 18px 42px rgba(0, 0, 0, 0.85);
 }
-:is([data-skin="isfahan"], [data-machine="isfahan"]) .synth-midi-bar {
-  background: rgba(15,47,102,0.55);
+:is([data-skin="isfahan"], [data-machine="isfahan"]) .sy1-shell::before,
+:is([data-skin="isfahan"], [data-machine="isfahan"]) .sy1-shell::after {
+  content: "";
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  width: clamp(22px, 2.8vw, 34px);
+  z-index: 5;
+  pointer-events: none;
+  border-radius: 8px;
+  background:
+    radial-gradient(circle at 50% 14px, #f7e3a8 0 2px, #785414 2.2px 4px, #3b2605 4.2px 5px, transparent 5.5px),
+    radial-gradient(circle at 50% calc(100% - 14px), #f7e3a8 0 2px, #785414 2.2px 4px, #3b2605 4.2px 5px, transparent 5.5px),
+    var(--khatam-cheek) center 26px / 14px calc(100% - 52px) repeat-y,
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.05) 0 1px, transparent 1px 3px),
+    linear-gradient(90deg, #9c7526 0%, #e5c675 28%, #caa44e 52%, #e8cb7c 76%, #8c661c 100%);
+  border: 1px solid #6b4b10;
+  box-shadow:
+    inset 0 1px 1px rgba(255, 250, 220, 0.75),
+    0 4px 10px rgba(0, 0, 0, 0.55);
+}
+:is([data-skin="isfahan"], [data-machine="isfahan"]) .sy1-shell::before {
+  left: 3px;
+}
+:is([data-skin="isfahan"], [data-machine="isfahan"]) .sy1-shell::after {
+  right: 3px;
+}
+@media (max-width: 600px) {
+  :is([data-skin="isfahan"], [data-machine="isfahan"]) .sy1-shell {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+  :is([data-skin="isfahan"], [data-machine="isfahan"]) .sy1-shell::before,
+  :is([data-skin="isfahan"], [data-machine="isfahan"]) .sy1-shell::after {
+    width: 6px;
+    background: linear-gradient(180deg, #e5c675 0%, #b38b36 100%);
+  }
+}
+
+/* ------------------------------------------------------------
+   Isfahan Top Bar: Royal Lapis Machine Selector, Wide Teal Scope,
+   and Gold-Bezel Connections Button
+   ------------------------------------------------------------ */
+:is([data-skin="isfahan"], [data-machine="isfahan"]) .synth-brand-maker {
+  display: none;
+}
+:is([data-skin="isfahan"], [data-machine="isfahan"]) .synth-machine-select {
+  background:
+    linear-gradient(45deg, transparent 50%, #e5c470 50%) right 11px center / 5px 5px no-repeat,
+    linear-gradient(135deg, #e5c470 50%, transparent 50%) right 6px center / 5px 5px no-repeat,
+    linear-gradient(180deg, #163ba0 0%, #0d2674 100%);
+  color: #fbf3df;
+  border: 1.5px solid #e2c06d;
+  border-radius: 6px;
+  padding: 5px 26px 5px 12px;
+  font-family: var(--font-head);
+  font-weight: 700;
+  font-size: 0.92rem;
+  letter-spacing: 0.03em;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 245, 200, 0.35),
+    0 2px 6px rgba(0, 0, 0, 0.55);
+}
+:is([data-skin="isfahan"], [data-machine="isfahan"]) .synth-scope {
+  border-radius: 8px;
+  border: 2px solid #e2c06d;
+  box-shadow:
+    inset 0 2px 10px rgba(0, 0, 0, 0.85),
+    inset 0 0 18px rgba(45, 225, 215, 0.28),
+    0 0 0 1px #081c54,
+    0 3px 8px rgba(0, 0, 0, 0.6);
+}
+:is([data-skin="isfahan"], [data-machine="isfahan"]) .synth-conn-btn {
+  background: linear-gradient(180deg, #6e7785 0%, #49505c 100%);
+  color: #f3ead8;
+  border: 1.5px solid #e2c06d;
+  border-radius: 6px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.35),
+    0 2px 5px rgba(0, 0, 0, 0.6);
+}
+
+/* ------------------------------------------------------------
+   Isfahan Subbar: Preset Selector & Gold/Slate Page Tabs
+   ------------------------------------------------------------ */
+:is([data-skin="isfahan"], [data-machine="isfahan"]) .preset-step-btn {
+  background: linear-gradient(180deg, #6f7785 0%, #4c5360 100%);
+  color: #f4ecda;
+  border: 1.5px solid #c9a85c;
+  border-radius: 6px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.3),
+    0 2px 4px rgba(0, 0, 0, 0.55);
+}
+:is([data-skin="isfahan"], [data-machine="isfahan"]) .preset-display {
+  background: linear-gradient(180deg, #2d261e 0%, #1d1812 100%);
+  color: #fbf3df;
+  border: 1.5px solid #d8b560;
+  border-radius: 6px;
+  box-shadow:
+    inset 0 1px 4px rgba(0, 0, 0, 0.8),
+    0 2px 5px rgba(0, 0, 0, 0.55);
+}
+:is([data-skin="isfahan"], [data-machine="isfahan"]) .pd-name {
+  color: #fbf3df;
+  font-weight: 800;
+}
+:is([data-skin="isfahan"], [data-machine="isfahan"]) .pd-sub {
+  color: #dfd0a8;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+:is([data-skin="isfahan"], [data-machine="isfahan"]) .pd-icon {
+  color: #e5c470;
+}
+
+/* Page Tabs in Subbar */
+:is([data-skin="isfahan"], [data-machine="isfahan"]) .synth-tabs {
+  display: flex !important;
+}
+:is([data-skin="isfahan"], [data-machine="isfahan"]) .synth-tab {
+  background: linear-gradient(180deg, #7e8694 0%, #5b6370 100%);
+  color: #171b22;
+  border: 1.5px solid #3c4452;
+  border-radius: 6px;
+  font-family: var(--font-ui);
+  font-weight: 700;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.38),
+    0 2px 5px rgba(0, 0, 0, 0.6);
+}
+:is([data-skin="isfahan"], [data-machine="isfahan"]) .synth-tab::before {
+  background: #323842;
+  border: 1px solid #1e232b;
+}
+:is([data-skin="isfahan"], [data-machine="isfahan"]) .synth-tab.active {
+  background: linear-gradient(180deg, #fce7a2 0%, #e4b857 55%, #c2902d 100%);
+  color: #211504;
+  font-weight: 800;
+  border-color: #fff2be;
+  box-shadow:
+    0 0 14px rgba(245, 204, 102, 0.65),
+    inset 0 1px 0 rgba(255, 255, 255, 0.75);
+}
+:is([data-skin="isfahan"], [data-machine="isfahan"]) .synth-tab.active::before {
+  background: #fff9d2;
+  border-color: #d49c2a;
+  box-shadow: 0 0 6px #fff9d2, 0 0 10px rgba(255, 240, 150, 0.9);
+}
+
+/* ------------------------------------------------------------
+   Isfahan Section Cards (DASTGAH & ORNAMENT)
+   ------------------------------------------------------------ */
+:is([data-skin="isfahan"], [data-machine="isfahan"]) .synth-sec {
+  display: none;
+}
+:is([data-skin="isfahan"], [data-machine="isfahan"]) .synth-sec.is-on-page {
+  display: flex;
+}
+:is([data-skin="isfahan"], [data-machine="isfahan"]) .synth-sec h4 {
+  background: linear-gradient(180deg, #13358e 0%, #0b2266 100%);
+  color: #f6ecd2;
+  text-align: center;
+  font-family: var(--font-head);
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  border-bottom: 1.5px solid #dfb960;
+  border-radius: 3px 3px 0 0;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.85);
+}
+
+/* Tuning select & MONO/LEGATO bars in DASTGAH */
+:is([data-skin="isfahan"], [data-machine="isfahan"]) .synth-param-select-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+  color: #fbf3df;
+}
+:is([data-skin="isfahan"], [data-machine="isfahan"]) .synth-param-select {
+  flex: 1 1 auto;
+  max-width: none;
+  padding: 2px 10px;
+  background: linear-gradient(180deg, #0b2162 0%, #071748 100%);
+  color: #fbf3df;
+  border: 1.5px solid #d4b056;
+  border-radius: 5px;
+  font-weight: 700;
+  box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.75);
+}
+:is([data-skin="isfahan"], [data-machine="isfahan"]) .synth-toggles {
+  gap: 8px;
 }
 :is([data-skin="isfahan"], [data-machine="isfahan"]) .synth-choice-btn {
-  border-radius: 4px;
+  border-radius: 5px;
+  border: 1.5px solid #6b7280;
+  background: linear-gradient(180deg, #a39e95 0%, #7f7a72 100%);
+  color: #1c1915;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.45),
+    0 2px 4px rgba(0, 0, 0, 0.55);
 }
+:is([data-skin="isfahan"], [data-machine="isfahan"]) .synth-choice-btn.active {
+  background: linear-gradient(180deg, #fae49e 0%, #dfb456 55%, #b88728 100%);
+  color: #1f1404;
+  border-color: #fff2be;
+  box-shadow:
+    0 0 12px rgba(235, 198, 104, 0.45),
+    inset 0 1px 1px rgba(255, 255, 255, 0.8),
+    0 2px 4px rgba(0, 0, 0, 0.6);
+}
+/* In DASTGAH, keep LEGATO in warm brushed pewter while MONO is radiant gold (matching screenshot) */
+:is([data-skin="isfahan"], [data-machine="isfahan"]) .synth-toggles .synth-toggle-btn[data-param="legato"].active {
+  background: linear-gradient(180deg, #a8a39a 0%, #858077 100%);
+  color: #181612;
+  border-color: #c7c1b6;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.5),
+    0 2px 4px rgba(0, 0, 0, 0.55);
+}
+
+/* ------------------------------------------------------------
+   Isfahan Spun Solid Gold Knobs
+   ------------------------------------------------------------ */
+:is([data-skin="isfahan"], [data-machine="isfahan"]) {
+  --ring-pad: 0px;
+}
+:is([data-skin="isfahan"], [data-machine="isfahan"]) :is(.sk-skirt, .sk-cap) {
+  display: block;
+}
+:is([data-skin="isfahan"], [data-machine="isfahan"]) .sk-scale {
+  display: none;
+}
+:is([data-skin="isfahan"], [data-machine="isfahan"]) .sk-dial {
+  background: transparent;
+  box-shadow: none;
+}
+:is([data-skin="isfahan"], [data-machine="isfahan"]) .sk-dial::before {
+  display: none;
+  inset: 0;
+}
+:is([data-skin="isfahan"], [data-machine="isfahan"]) .sk-skirt {
+  position: absolute;
+  inset: 4%;
+  border-radius: 50%;
+  background: var(--knob-skirt);
+  border: 1.5px solid #d8b45c;
+  box-shadow:
+    0 4px 9px rgba(0, 0, 0, 0.8),
+    inset 0 1px 0 rgba(255, 244, 200, 0.45);
+  z-index: 2;
+}
+:is([data-skin="isfahan"], [data-machine="isfahan"]) .sk-cap {
+  position: absolute;
+  inset: 14%;
+  border-radius: 50%;
+  background: var(--knob-cap);
+  box-shadow:
+    inset 0 1px 1px rgba(255, 252, 230, 0.92),
+    inset 0 -1px 2px rgba(70, 45, 8, 0.65),
+    0 2px 4px rgba(0, 0, 0, 0.75);
+  z-index: 3;
+}
+:is([data-skin="isfahan"], [data-machine="isfahan"]) .sk-rotor {
+  position: absolute;
+  inset: 14%;
+  z-index: 4;
+  pointer-events: none;
+}
+:is([data-skin="isfahan"], [data-machine="isfahan"]) .sk-ind {
+  position: absolute;
+  top: 5%;
+  left: 50%;
+  width: 2.2px;
+  height: 42%;
+  margin-left: -1.1px;
+  background: #231604;
+  border-radius: 1px;
+  box-shadow: 0 0 1px rgba(255, 240, 190, 0.5);
+}
+:is([data-skin="isfahan"], [data-machine="isfahan"]) .sk-label {
+  color: #fbf3df;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.95);
+}
+:is([data-skin="isfahan"], [data-machine="isfahan"]) .sk-val {
+  color: #f3e6c8;
+  font-weight: 700;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.95);
+}
+:is([data-skin="isfahan"], [data-machine="isfahan"]) .sk-row {
+  justify-content: space-evenly;
+  width: 100%;
+}
+:is([data-skin="isfahan"], [data-machine="isfahan"]) .sk {
+  --fit: calc((100cqw - (var(--cols) - 1) * var(--sp-1)) / var(--cols));
+  --k: min(var(--k-in, 54px), calc(var(--fit) - 2px));
+  width: var(--fit);
+  padding: 0;
+}
+
+/* Desktop & Tablet Layout for Isfahan (2-column pages with DASTGAH arch & ORNAMENT Girih mandala) */
+@media (min-width: 761px) and (min-height: 561px) {
+  .synth-panel[data-machine="isfahan"] .synth-sections {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    grid-auto-rows: minmax(0, 1fr);
+  }
+  .synth-panel[data-machine="isfahan"] .synth-sec {
+    container-type: size;
+    justify-content: space-between;
+  }
+  .synth-panel[data-machine="isfahan"] .synth-sec > h4 + * {
+    margin-top: auto;
+  }
+  .synth-panel[data-machine="isfahan"] .synth-sec > :last-child {
+    margin-bottom: auto;
+  }
+  /* DASTGAH Card: Turquoise & Gold Muqarnas Arch below header */
+  .synth-panel[data-machine="isfahan"] .synth-sec[data-sec="0"] {
+    background:
+      var(--isfahan-arch) center 31px / 190px 22px no-repeat,
+      radial-gradient(ellipse at 35% 45%, rgba(28, 78, 196, 0.45) 0%, transparent 68%),
+      linear-gradient(180deg, #102d82 0%, #0b2064 60%, #081850 100%);
+  }
+  /* ORNAMENT Card: Central 12-Pointed Turquoise Girih Star Mandala & Corner Spandrels */
+  .synth-panel[data-machine="isfahan"] .synth-sec[data-sec="1"] {
+    background:
+      var(--isfahan-mandala) center bottom / 100% calc(100% - 30px) no-repeat,
+      linear-gradient(180deg, #102d82 0%, #0b2064 60%, #081850 100%);
+  }
+  .synth-panel[data-machine="isfahan"] .synth-sec[data-sec="1"] .sk-row {
+    justify-content: space-between;
+    padding: 0 10%;
+  }
+  .synth-panel[data-machine="isfahan"] .synth-sec[data-sec="1"] .sk {
+    width: auto;
+    min-width: 64px;
+  }
+  .synth-panel[data-machine="isfahan"] .synth-sec:not(:has(> .sk-row ~ .sk-row)) .sk-row:not(.sk-row-small) {
+    --k-in: clamp(38px, min(18cqw, 24cqh), 58px);
+  }
+  .synth-panel[data-machine="isfahan"] .synth-sec:has(> .sk-row ~ .sk-row) .sk-row:not(.sk-row-small) {
+    --k-in: clamp(30px, min(16cqw, 19cqh), 52px);
+  }
+  .synth-panel[data-machine="isfahan"] .synth-sec .sk-row-small {
+    --k-in: clamp(24px, min(14cqw, 15cqh), 44px);
+  }
+}
+
+/* Portrait tablet (768x1000) */
+@media (min-width: 761px) and (max-width: 860px) and (orientation: portrait) {
+  .synth-panel[data-machine="isfahan"] .synth-sec[data-sec="1"] .sk-row {
+    padding: 0 6%;
+  }
+}
+
+@media (max-height: 560px) and (orientation: landscape) {
+  :is([data-skin="isfahan"], [data-machine="isfahan"]) .sy1-shell {
+    border-width: 1px;
+  }
+  :is([data-skin="isfahan"], [data-machine="isfahan"]) .synth-machine-select {
+    padding: 1px 18px 1px 6px;
+    font-size: 0.76rem;
+  }
+}
+
+/* ------------------------------------------------------------
+   Isfahan Performance Bar (.kb-bar), Badge & Dual Gold/Silver Wheels
+   ------------------------------------------------------------ */
+:is([data-skin="isfahan"], [data-machine="isfahan"]) .kb-bar {
+  background:
+    radial-gradient(ellipse at 50% 50%, rgba(28, 78, 196, 0.35) 0%, transparent 70%),
+    linear-gradient(180deg, #112d80 0%, #091b54 100%);
+  border: 1.5px solid #e2c06d;
+  border-radius: 6px;
+  box-shadow:
+    inset 0 0 0 1px #081848,
+    0 3px 10px rgba(0, 0, 0, 0.65);
+}
+:is([data-skin="isfahan"], [data-machine="isfahan"]) .kb-bar .kb-btn {
+  background: linear-gradient(180deg, #e5c87e 0%, #be9846 55%, #997426 100%);
+  color: #1f1404;
+  border: 1px solid #f5df9e;
+  border-radius: 6px;
+  font-weight: 800;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 252, 230, 0.75),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.35),
+    0 2px 4px rgba(0, 0, 0, 0.55);
+}
+:is([data-skin="isfahan"], [data-machine="isfahan"]) .kb-bar .kb-btn:active,
+:is([data-skin="isfahan"], [data-machine="isfahan"]) .kb-bar .kb-btn.active,
+:is([data-skin="isfahan"], [data-machine="isfahan"]) .kb-bar .kb-btn[aria-pressed="true"] {
+  background: linear-gradient(180deg, #fce7a2 0%, #e4b857 55%, #c2902d 100%);
+  color: #1a1003;
+  border-color: #fff4c8;
+  box-shadow:
+    0 0 12px rgba(245, 204, 102, 0.7),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+:is([data-skin="isfahan"], [data-machine="isfahan"]) .kb-range {
+  color: #fbf3df;
+  font-weight: 800;
+}
+:is([data-skin="isfahan"], [data-machine="isfahan"]) .kb-or-dot {
+  background: #fff4b8;
+  box-shadow: 0 0 6px #fff4b8, 0 0 10px rgba(255, 230, 120, 0.9);
+}
+:is([data-skin="isfahan"], [data-machine="isfahan"]) #kb-oriental::after {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #fff4b8;
+  box-shadow: 0 0 6px #fff4b8, 0 0 10px rgba(255, 230, 120, 0.9);
+  margin-left: 4px;
+  flex: none;
+}
+:is([data-skin="isfahan"], [data-machine="isfahan"]) .kb-or-caret {
+  display: none;
+}
+
+/* Pill-shaped Lapis & Gold Machine Badge */
+:is([data-skin="isfahan"], [data-machine="isfahan"]) .kb-machine-badge {
+  background: linear-gradient(180deg, #0d2158 0%, #071338 100%);
+  border: 1.5px solid #e2c06d;
+  border-radius: 999px;
+  padding: 4px 14px;
+  box-shadow:
+    inset 0 0 0 1px rgba(226, 192, 109, 0.25),
+    0 2px 6px rgba(0, 0, 0, 0.65);
+}
+:is([data-skin="isfahan"], [data-machine="isfahan"]) .kb-machine-emblem {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 38% 35%, #fff4c2 0%, #f0c254 55%, #b88620 100%);
+  box-shadow: 0 0 8px rgba(245, 204, 102, 0.85);
+}
+:is([data-skin="isfahan"], [data-machine="isfahan"]) .kb-machine-name {
+  color: #fbf3df;
+  font-family: var(--font-head);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+:is([data-skin="isfahan"], [data-machine="isfahan"]) .kb-machine-sep {
+  color: #d8b560;
+}
+:is([data-skin="isfahan"], [data-machine="isfahan"]) .kb-machine-role {
+  color: #fbf3df;
+  font-weight: 700;
+}
+
+/* Lapis Wheel Bay with Gold PB Wheel & Silver MOD Wheel */
+:is([data-skin="isfahan"], [data-machine="isfahan"]) .kb-wheels {
+  background:
+    radial-gradient(ellipse at 50% 30%, rgba(28, 78, 196, 0.4) 0%, transparent 70%),
+    linear-gradient(180deg, #112e84 0%, #091b54 100%);
+  border: 2px solid #dfb960;
+  border-radius: 10px 10px 6px 6px;
+  box-shadow:
+    inset 0 0 0 1px #081848,
+    0 4px 12px rgba(0, 0, 0, 0.7);
+}
+:is([data-skin="isfahan"], [data-machine="isfahan"]) .kb-wheel[data-wheel="bend"] {
+  border: 1.5px solid #e2c06d;
+  background:
+    repeating-linear-gradient(
+      180deg,
+      rgba(255, 245, 200, 0.35) 0px,
+      rgba(255, 245, 200, 0.35) 1.5px,
+      rgba(45, 28, 4, 0.85) 1.5px,
+      rgba(45, 28, 4, 0.85) 4px
+    ),
+    linear-gradient(180deg, #3a2606 0%, #c9a248 25%, #f4d98c 50%, #b58c34 75%, #3a2606 100%);
+}
+:is([data-skin="isfahan"], [data-machine="isfahan"]) .kb-wheel[data-wheel="bend"] .kb-wheel-thumb {
+  background: linear-gradient(180deg, #fbf0c4 0%, #e0ba62 45%, #9e7624 100%);
+  border: 1px solid #5c410d;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.8), inset 0 1px 0 #fff9df;
+}
+:is([data-skin="isfahan"], [data-machine="isfahan"]) .kb-wheel[data-wheel="mod"] {
+  border: 1.5px solid #d4b056;
+  background:
+    repeating-linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.32) 0px,
+      rgba(255, 255, 255, 0.32) 1.5px,
+      rgba(20, 24, 30, 0.85) 1.5px,
+      rgba(20, 24, 30, 0.85) 4px
+    ),
+    linear-gradient(180deg, #1e2229 0%, #8f96a2 25%, #e2e6ec 50%, #7d8490 75%, #1e2229 100%);
+}
+:is([data-skin="isfahan"], [data-machine="isfahan"]) .kb-wheel[data-wheel="mod"] .kb-wheel-thumb {
+  background: linear-gradient(180deg, #f5f7fa 0%, #b8bec8 45%, #6e747e 100%);
+  border: 1px solid #2b3038;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.8), inset 0 1px 0 #ffffff;
+}
+:is([data-skin="isfahan"], [data-machine="isfahan"]) .kb-wheel-label {
+  color: #fbf3df;
+  font-weight: 800;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9);
+}
+
 :is([data-skin="isfahan"], [data-machine="isfahan"]) .kb {
-  border-width: 2px;
-  box-shadow: 0 0 0 1px #c9a24a;
+  border: 2px solid #d8b560;
+  box-shadow:
+    inset 0 3px 6px rgba(0, 0, 0, 0.85),
+    0 0 0 1px #5e4310,
+    0 10px 24px rgba(0, 0, 0, 0.6);
+}
+:is([data-skin="isfahan"], [data-machine="isfahan"]) .key:not(.black):not(.pad) .key-lbl {
+  color: #8c8270;
+  font-weight: 700;
+  font-size: 0.64rem;
 }
 
 
@@ -743,15 +1635,42 @@
   content: "";
   display: block;
   width: 100%;
-  height: 18px;
+  height: 16px;
   flex: none;
-  margin-bottom: 2px;
   border-radius: 4px;
-  background: var(--tabriz-frieze) 0 0 / 64px 18px repeat-x;
+  background: var(--tabriz-frieze) 0 0 / 64px 100% repeat-x;
   box-shadow:
     0 2px 6px rgba(0,0,0,0.7),
     inset 0 1px 0 rgba(255,255,255,0.35),
     inset 0 -1px 0 rgba(0,0,0,0.6);
+}
+@media (max-height: 760px), (max-width: 760px) {
+  :is([data-skin="tabriz"], [data-machine="tabriz"]) .synth-panel::before {
+    height: 6px;
+  }
+}
+@media (max-height: 560px) and (orientation: landscape) {
+  :is([data-skin="tabriz"], [data-machine="tabriz"]) .synth-panel::before {
+    display: none;
+  }
+  :is([data-skin="tabriz"], [data-machine="tabriz"]) .synth-machine-select {
+    padding: 1px 18px 1px 6px;
+    font-size: 0.76rem;
+  }
+  .synth-panel[data-machine="tabriz"] .synth-sec:has(> .synth-choice + .sk-row + .sk-row-small) > .synth-choice {
+    flex: 1 1 26%;
+    min-width: 0;
+    width: auto;
+    align-self: center;
+    margin: 0;
+  }
+  .synth-panel[data-machine="tabriz"] .synth-sec:has(> .synth-choice + .sk-row + .sk-row-small) > .sk-row {
+    flex: 1 1 32%;
+    min-width: 0;
+    width: auto;
+    align-self: center;
+    margin: 0;
+  }
 }
 
 /* ------------------------------------------------------------
@@ -785,17 +1704,14 @@
   border: 1px solid #3c3933;
   border-radius: 6px;
   box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 2px 4px rgba(0,0,0,0.6);
-  padding: 3px 8px;
 }
 :is([data-skin="tabriz"], [data-machine="tabriz"]) .pd-name {
   color: #f2e9d8;
   font-weight: 800;
-  font-size: 0.78rem;
 }
 :is([data-skin="tabriz"], [data-machine="tabriz"]) .pd-sub {
   color: #f08a3c;
   font-weight: 700;
-  font-size: 0.6rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -859,14 +1775,12 @@
   background: none;
   color: #ede4d0;
   text-align: center;
-  font-size: 0.76rem;
   font-weight: 800;
   letter-spacing: 0.18em;
   border: none;
   border-radius: 0;
   box-shadow: none;
   text-shadow: 0 1px 2px rgba(0,0,0,0.8);
-  padding: 2px 0 6px 0;
 }
 
 /* 3D Waveform Rocker Buttons */
@@ -874,7 +1788,7 @@
   background: #0f0e0d;
   border: 1px solid #2e2b26;
   border-radius: 6px;
-  padding: 3px;
+  padding: 2px;
   gap: 4px;
   box-shadow:
     inset 0 2px 5px rgba(0,0,0,0.9),
@@ -891,38 +1805,37 @@
     0 2px 4px rgba(0,0,0,0.7);
   font-weight: 700;
   font-size: 0;
-  min-height: 28px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
 }
 :is([data-skin="tabriz"], [data-machine="tabriz"]) .synth-choice-btn[data-value="sawtooth"]::before {
   content: "∧";
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   line-height: 1;
 }
 :is([data-skin="tabriz"], [data-machine="tabriz"]) .synth-choice-btn[data-value="square"]::before {
   content: "Π";
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   line-height: 1;
 }
 :is([data-skin="tabriz"], [data-machine="tabriz"]) .synth-choice-btn[data-value="triangle"]::before {
   content: "Δ";
-  font-size: 0.88rem;
+  font-size: 0.84rem;
   line-height: 1;
 }
 :is([data-skin="tabriz"], [data-machine="tabriz"]) .synth-choice-btn[data-value="sine"]::before {
   content: "~";
-  font-size: 1.1rem;
+  font-size: 1.05rem;
   line-height: 1;
 }
 :is([data-skin="tabriz"], [data-machine="tabriz"]) .synth-choice-btn[data-value="revsaw"]::before {
   content: "∨";
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   line-height: 1;
 }
 :is([data-skin="tabriz"], [data-machine="tabriz"]) .synth-choice-btn:not([data-value="sawtooth"]):not([data-value="square"]):not([data-value="triangle"]):not([data-value="sine"]):not([data-value="revsaw"]) {
-  font-size: 0.7rem;
+  font-size: clamp(0.58rem, 4.8cqw, 0.72rem);
 }
 
 /* Blue buttons in Tabriz: OSC 1 triangle, and all sine buttons */
@@ -966,7 +1879,7 @@
 :is([data-skin="tabriz"], [data-machine="tabriz"]) .sk-dial::before {
   content: "";
   position: absolute;
-  inset: -4px;
+  inset: 0;
   border-radius: 50%;
   background: conic-gradient(
     from -135deg at 50% 50%,
@@ -978,13 +1891,13 @@
   );
   -webkit-mask: radial-gradient(circle, transparent 60%, black 63%, black 95%, transparent 98%);
   mask: radial-gradient(circle, transparent 60%, black 63%, black 95%, transparent 98%);
-  filter: drop-shadow(0 0 5px rgba(255, 140, 26, 0.9));
+  filter: drop-shadow(0 0 4px rgba(255, 140, 26, 0.9));
   pointer-events: none;
   z-index: 1;
 }
 :is([data-skin="tabriz"], [data-machine="tabriz"]) .sk-skirt {
   position: absolute;
-  inset: 2%;
+  inset: 7%;
   border-radius: 50%;
   background:
     radial-gradient(circle at 50% 30%, rgba(255,255,255,0.15) 0%, transparent 60%),
@@ -996,7 +1909,7 @@
 }
 :is([data-skin="tabriz"], [data-machine="tabriz"]) .sk-cap {
   position: absolute;
-  inset: 12%;
+  inset: 16%;
   border-radius: 50%;
   background:
     radial-gradient(circle at 35% 28%, rgba(255,255,255,0.75) 0%, rgba(255,255,255,0) 45%),
@@ -1021,7 +1934,7 @@
 }
 :is([data-skin="tabriz"], [data-machine="tabriz"]) .sk-rotor {
   position: absolute;
-  inset: 12%;
+  inset: 16%;
   z-index: 4;
   pointer-events: none;
 }
@@ -1039,14 +1952,12 @@
 :is([data-skin="tabriz"], [data-machine="tabriz"]) .sk-label {
   color: #ede4d0;
   font-weight: 800;
-  font-size: 0.66rem;
   letter-spacing: 0.08em;
   text-shadow: 0 1px 2px rgba(0,0,0,0.85);
 }
 :is([data-skin="tabriz"], [data-machine="tabriz"]) .sk-val {
   color: #ded4bf;
   font-weight: 700;
-  font-size: 0.68rem;
   text-shadow: 0 1px 2px rgba(0,0,0,0.85);
 }
 
@@ -1067,11 +1978,6 @@
 
 /* Desktop & Tablet Layout for Tabriz */
 @media (min-width: 761px) and (min-height: 561px) {
-  :is([data-skin="tabriz"], [data-machine="tabriz"]) {
-    --k-lg: 80px;
-    --k: 64px;
-    --k-small: 48px;
-  }
   .synth-panel[data-machine="tabriz"] .synth-sections {
     grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
     grid-auto-rows: minmax(0, 1fr);
@@ -1089,81 +1995,14 @@
   .synth-panel[data-machine="tabriz"] .synth-sec > :last-child {
     margin-bottom: auto;
   }
-  .synth-panel[data-machine="tabriz"] .synth-sec .sk-row:not(.sk-row-small) {
-    --k-in: clamp(54px, min(23cqw, 28cqh), 72px);
+  .synth-panel[data-machine="tabriz"] .synth-sec:not(:has(> .sk-row ~ .sk-row)) .sk-row:not(.sk-row-small) {
+    --k-in: clamp(44px, min(22cqw, 27cqh), 68px);
+  }
+  .synth-panel[data-machine="tabriz"] .synth-sec:has(> .sk-row ~ .sk-row) .sk-row:not(.sk-row-small) {
+    --k-in: clamp(28px, min(18cqw, 18cqh), 52px);
   }
   .synth-panel[data-machine="tabriz"] .synth-sec .sk-row-small {
-    --k-in: clamp(42px, min(16cqw, 18cqh), 54px);
-  }
-}
-
-/* Portrait tablet (768x1000) */
-@media (min-width: 761px) and (max-width: 860px) and (orientation: portrait) {
-  .synth-panel[data-machine="tabriz"] .synth-sec {
-    --sec-pad: 8px;
-    --sec-row-gap: 6px;
-  }
-  .synth-panel[data-machine="tabriz"] .sk-label {
-    font-size: 0.56rem;
-    margin-top: 1px;
-    line-height: 1;
-  }
-  .synth-panel[data-machine="tabriz"] .sk-val {
-    font-size: 0.58rem;
-    line-height: 1;
-    min-height: 1em;
-  }
-}
-
-/* Portrait phones */
-@media (max-width: 760px) and (orientation: portrait) {
-  .synth-panel[data-machine="tabriz"] {
-    --k-lg: 50px;
-    --k: 46px;
-    --k-small: 44px;
-    --sec-pad: 6px;
-    --sec-row-gap: 6px;
-  }
-  .synth-panel[data-machine="tabriz"] .synth-sections {
-    grid-template-columns: 1fr !important;
-  }
-  .synth-panel[data-machine="tabriz"] .synth-sec .sk-row:not(.sk-row-small) {
-    --k-in: clamp(44px, 27cqw, 52px);
-  }
-  .synth-panel[data-machine="tabriz"] .synth-sec .sk-row-small {
-    --k-in: clamp(44px, 26cqw, 48px);
-  }
-}
-
-/* Short landscape */
-@media (max-height: 560px) and (orientation: landscape) {
-  .synth-panel[data-machine="tabriz"] {
-    --k-lg: 44px;
-    --k: 40px;
-    --k-small: 36px;
-    --sec-pad: 4px;
-    --sec-row-gap: 6px;
-  }
-  .synth-panel[data-machine="tabriz"] .synth-sections {
-    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
-  }
-  .synth-panel[data-machine="tabriz"] .sk-label {
-    font-size: 0.46rem;
-    margin-top: 1px;
-    line-height: 1;
-  }
-  .synth-panel[data-machine="tabriz"] .sk-val {
-    font-size: 0.48rem;
-    line-height: 1;
-    min-height: 1em;
-  }
-}
-
-@media (max-height: 360px) and (orientation: landscape) {
-  .synth-panel[data-machine="tabriz"] {
-    --k-lg: 36px;
-    --k: 34px;
-    --k-small: 32px;
+    --k-in: clamp(22px, min(14cqw, 14cqh), 42px);
   }
 }
 
@@ -1421,104 +2260,688 @@
 
 
 /* ------------------------------------------------------------
-   YAZD — holographic pads
-   Pearlescent pastel panels, chrome bubble knobs, jelly buttons.
+   YAZD — Pearlescent Rose-Lilac Anodized Aluminum & Holographic Pads
+   Brushed rose-lilac anodized metal chassis with 4 corner Phillips
+   screws and engraved Badgir (Yazd windcatcher) architectural line art,
+   deep obsidian-violet CRT scope, frosted lilac section cards with
+   glowing lavender double borders, holographic pink-white-cyan active
+   waveform switches, 3D polished silver-chrome dome knobs, seafoam-mint
+   & blush-pink hardware buttons, matte plum wheel bay, amethyst-violet
+   sharp keys, and a clean readable dark sound library.
    ------------------------------------------------------------ */
 [data-skin="yazd"],
 [data-machine="yazd"] {
-  --kb-btn-ink: #3c2e56;
-  --midi-btn-ink: #3c2e56;
-  --font-ui: "Avenir Next", "Nunito", "Segoe UI", Roboto, sans-serif;
-  --font-head: "Avenir Next", "Nunito", "Segoe UI", sans-serif;
+  --kb-btn-ink: #1b1524;
+  --midi-btn-ink: #241b30;
+  --font-ui: -apple-system, BlinkMacSystemFont, "Avenir Next", "Inter", "Segoe UI", Roboto, sans-serif;
+  --font-head: var(--font-ui);
 
-  --page-bg: #e9e4f3;
-  --ink: #35294b;
-  --ink-dim: #554670;
-  --ink-faint: #6c5d88;
+  /* Silver Phillips-head screw SVG for the 4 corners of the Yazd chassis */
+  --yazd-screw: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cdefs%3E%3CradialGradient id='ys' cx='35%25' cy='30%25' r='65%25'%3E%3Cstop offset='0%25' stop-color='%23ffffff'/%3E%3Cstop offset='50%25' stop-color='%23c8c0d0'/%3E%3Cstop offset='100%25' stop-color='%236e6478'/%3E%3C/radialGradient%3E%3C/defs%3E%3Ccircle cx='8' cy='8' r='6.2' fill='url(%23ys)' stroke='%23564b60' stroke-width='1.1'/%3E%3Cpath d='M4.8,8 L11.2,8 M8,4.8 L8,11.2' stroke='%23463c50' stroke-width='1.5' stroke-linecap='round'/%3E%3Cpath d='M5.2,8.6 L10.8,8.6 M8.6,5.2 L8.6,10.8' stroke='%23ffffff' stroke-opacity='0.55' stroke-width='0.6' stroke-linecap='round'/%3E%3C/svg%3E");
 
-  --accent: #8a56d8;
-  --accent-2: #62bfb3;
-  --accent-ink: #ffffff;
-  --accent-glow: rgba(138,86,216,0.55);
-  --accent-glow-soft: rgba(138,86,216,0.28);
+  /* Engraved Badgir (Yazd Persian windcatcher towers & domes) architectural line art for top-right faceplate */
+  --yazd-badgir: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='210' viewBox='0 0 220 210'%3E%3Cg fill='none' stroke='%236e5b82' stroke-width='1.15' stroke-linecap='round' stroke-linejoin='round' opacity='0.52'%3E%3C!-- Tall left Badgir windcatcher tower --%3E%3Cpolygon points='88,16 146,8 146,15 88,23' fill='%23b5a3c8' fill-opacity='0.22'/%3E%3Cpolygon points='91,23 143,15 143,21 91,29'/%3E%3Crect x='94' y='26' width='46' height='74' fill='%23c4b2d6' fill-opacity='0.15'/%3E%3Cline x1='102' y1='26' x2='102' y2='100'/%3E%3Cline x1='110' y1='25' x2='110' y2='100'/%3E%3Cline x1='118' y1='24' x2='118' y2='100'/%3E%3Cline x1='126' y1='23' x2='126' y2='100'/%3E%3Cline x1='134' y1='22' x2='134' y2='100'/%3E%3Cpath d='M98,34 L102,32 M106,33 L110,31 M114,32 L118,30 M122,31 L126,29 M130,30 L134,28'/%3E%3Cpath d='M98,68 L136,64 M94,76 L140,72'/%3E%3C!-- Right smaller Badgir windcatcher tower --%3E%3Cpolygon points='166,68 206,63 206,69 166,74' fill='%23b5a3c8' fill-opacity='0.22'/%3E%3Crect x='170' y='73' width='32' height='58' fill='%23c4b2d6' fill-opacity='0.15'/%3E%3Cline x1='176' y1='73' x2='176' y2='131'/%3E%3Cline x1='182' y1='72' x2='182' y2='131'/%3E%3Cline x1='188' y1='71' x2='188' y2='131'/%3E%3Cline x1='194' y1='70' x2='194' y2='131'/%3E%3C!-- Yazd desert domes & arches below --%3E%3Cpath d='M42,145 Q68,108 94,145' fill='%23b5a3c8' fill-opacity='0.14'/%3E%3Cpath d='M105,155 Q138,112 171,155' fill='%23b5a3c8' fill-opacity='0.18'/%3E%3Crect x='164' y='131' width='44' height='65' fill='%23c4b2d6' fill-opacity='0.12'/%3E%3Cpath d='M173,196 L173,156 Q186,140 199,156 L199,196' fill='%239b86b0' fill-opacity='0.22'/%3E%3Cline x1='20' y1='196' x2='216' y2='196'/%3E%3C/g%3E%3C/svg%3E");
 
-  --shell-bg: linear-gradient(135deg, #f6d9ea 0%, #e3dcf7 35%, #d5f0ea 70%, #f3e9d6 100%);
-  --panel-bg: linear-gradient(135deg, rgba(255,255,255,0.68) 0%, rgba(240,230,255,0.62) 50%, rgba(220,250,242,0.62) 100%);
-  --panel-border: rgba(255,255,255,0.92);
-  --panel-radius: 18px;
-  --panel-shadow: inset 0 1px 0 #fff, 0 12px 30px rgba(120,90,170,0.22);
+  --page-bg: #221c29;
+  --ink: #1d1626;
+  --ink-dim: #4a3c5c;
+  --ink-faint: #6b5b80;
 
-  --sec-bg: linear-gradient(160deg, rgba(255,255,255,0.75) 0%, rgba(235,225,255,0.68) 100%);
-  --sec-border: rgba(255,255,255,0.95);
-  --sec-radius: 14px;
-  --sec-shadow: inset 0 1px 0 #fff, 0 3px 10px rgba(120,90,170,0.15);
-  --sec-head: #5d4588;
+  --accent: #e06cb8;
+  --accent-2: #7ccfc0;
+  --accent-ink: #1b1324;
+  --accent-glow: rgba(224, 108, 184, 0.65);
+  --accent-glow-soft: rgba(168, 132, 216, 0.35);
 
-  --btn-bg: linear-gradient(180deg, #ffffff 0%, #ece4fb 100%);
-  --btn-ink: #3c2e56;
-  --btn-border: rgba(145,120,190,0.65);
-  --ctl-bg: linear-gradient(180deg, rgba(255,255,255,0.92) 0%, rgba(236,228,252,0.92) 100%);
-  --ctl-ink: #463763;
-  --choice-active-bg: linear-gradient(180deg, #f3c7e8 0%, #c9b1f4 55%, #a9e6dc 100%);
-  --choice-active-ink: #25173d;
+  /* Brushed pearlescent rose-lilac anodized aluminum enclosure */
+  --shell-bg:
+    repeating-linear-gradient(180deg, rgba(255, 255, 255, 0.05) 0 1px, rgba(60, 40, 80, 0.03) 1px 2px, transparent 2px 4px),
+    radial-gradient(ellipse at 32% 12%, rgba(255, 235, 245, 0.65) 0%, transparent 55%),
+    radial-gradient(ellipse at 72% 18%, rgba(205, 195, 238, 0.55) 0%, transparent 55%),
+    linear-gradient(135deg, #dfcade 0%, #e6cedc 32%, #cfc2e2 68%, #d8b8cf 100%);
 
-  --scope-bg: linear-gradient(135deg, #fbeff8 0%, #ece8fb 100%);
-  --scope-border: rgba(255,255,255,0.95);
-  --scope-line: #a242be;
-  --scope-grid: rgba(162,66,190,0.16);
+  /* Main faceplate with Badgir engraving in upper right & top corner Phillips screws */
+  --panel-bg:
+    var(--yazd-screw) 10px 10px / 13px 13px no-repeat,
+    var(--yazd-screw) calc(100% - 10px) 10px / 13px 13px no-repeat,
+    var(--yazd-badgir) right 12px top 4px / 195px 190px no-repeat,
+    repeating-linear-gradient(180deg, rgba(255, 255, 255, 0.045) 0 1px, rgba(50, 30, 70, 0.025) 1px 2px, transparent 2px 4px),
+    radial-gradient(ellipse at 35% 8%, rgba(255, 242, 248, 0.6) 0%, transparent 58%),
+    linear-gradient(135deg, #dec8dd 0%, #e5cddb 34%, #cdc0e0 68%, #d7b7ce 100%);
+  --panel-border: rgba(255, 255, 255, 0.65);
+  --panel-radius: 10px;
+  --panel-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.85),
+    inset 0 -1px 2px rgba(75, 52, 95, 0.35),
+    0 12px 28px rgba(25, 16, 38, 0.45);
 
-  --knob-face:
-    radial-gradient(circle at 35% 28%, #ffffff 0%, rgba(255,255,255,0) 32%),
-    conic-gradient(from 200deg, #f6c6e6, #cdb8f6, #b2ece2, #f8e4c4, #f6c6e6);
-  --knob-gap: rgba(255,255,255,0.85);
-  --knob-edge: rgba(145,120,190,0.55);
-  --knob-arc: #8a56d8;
-  --knob-track: rgba(138,86,216,0.16);
-  --knob-arc-filter: drop-shadow(0 0 3px rgba(138,86,216,0.5));
-  --knob-ind: #3c2e56;
-  --knob-ind-glow: rgba(255,255,255,0.8);
-  --label-ink: #4c3b6b;
-  --value-ink: #35294b;
+  /* Frosted pastel lilac-rose section cards with glowing lavender double-border */
+  --sec-bg:
+    linear-gradient(180deg, rgba(238, 224, 242, 0.68) 0%, rgba(222, 204, 230, 0.62) 100%);
+  --sec-border: #a682d6;
+  --sec-radius: 10px;
+  --sec-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.6),
+    inset 0 2px 6px rgba(120, 90, 160, 0.12),
+    0 0 0 1px rgba(138, 98, 196, 0.35),
+    0 4px 12px rgba(65, 42, 95, 0.14);
+  --sec-head: #191322;
 
-  --key-white: linear-gradient(180deg, #ffffff 0%, #f4effc 85%, #e6def6 100%);
-  --key-white-ink: #645580;
-  --key-black: linear-gradient(180deg, #655880 0%, #8a79ad 60%, #b5a3d4 100%);
-  --key-black-ink: #ffffff;
-  --key-line: rgba(130,110,175,0.5);
-  --key-pressed: linear-gradient(180deg, #f6c6e6 0%, #b9a4f2 100%);
-  --key-pressed-ink: #25173d;
+  --btn-bg: linear-gradient(180deg, #bce8da 0%, #9fd4c4 100%);
+  --btn-ink: #172220;
+  --btn-border: #364947;
+  --ctl-bg: linear-gradient(180deg, #d8c8e4 0%, #c4b0d4 100%);
+  --ctl-ink: #1b1424;
+  --choice-active-bg: linear-gradient(180deg, #fcb8e6 0%, #fff7fc 48%, #aef0ff 100%);
+  --choice-active-ink: #181122;
 
-  --kb-white-top: #fbf8fe;
-  --kb-white-bottom: #e8e0f5;
-  --kb-black-top: #453762;
-  --kb-black-bottom: #1f1730;
-  --kb-accent: #a85ee6;
-  --kb-pattern: linear-gradient(180deg, transparent 0%, rgba(138,86,216,0.3) 100%);
-  --kb-frame: #2c2140;
-  --kb-wheel: #3b2e54;
+  /* Deep recessed obsidian-violet CRT oscilloscope with glowing lavender-pink wave */
+  --scope-bg:
+    linear-gradient(180deg, transparent 48%, rgba(226, 152, 255, 0.25) 50%, transparent 52%),
+    radial-gradient(ellipse at 35% 55%, rgba(168, 85, 215, 0.32) 0%, rgba(45, 22, 68, 0.85) 55%, #120c1a 100%);
+  --scope-border: #2a1f38;
+  --scope-line: #eab0ff;
+  --scope-grid: rgba(220, 160, 255, 0.15);
 
-  --led-off: #e3dcf3;
-  --led-off-edge: #9d8cc0;
+  /* 3D Polished Silver-Chrome Dome Knobs with Iridescent Lavender-Silver Collar */
+  --knob-cap:
+    radial-gradient(circle at 34% 26%, #ffffff 0%, rgba(255, 255, 255, 0.85) 16%, rgba(255, 255, 255, 0) 45%),
+    radial-gradient(circle at 68% 74%, rgba(65, 52, 82, 0.55) 0%, transparent 52%),
+    conic-gradient(
+      from -45deg at 50% 50%,
+      #fbf9fc 0deg,
+      #d0cad8 48deg,
+      #857d91 95deg,
+      #dad4e2 142deg,
+      #f8f6fa 185deg,
+      #b5aec0 230deg,
+      #787084 275deg,
+      #e2dce8 320deg,
+      #fbf9fc 360deg
+    );
+  --knob-skirt:
+    linear-gradient(180deg, rgba(248, 198, 232, 0.75) 0%, rgba(210, 198, 228, 0.85) 50%, rgba(175, 225, 235, 0.78) 100%);
+  --knob-tick: #4a3c5c;
+  --knob-pointer: #241b30;
+  --knob-pointer-glow: rgba(255, 255, 255, 0.75);
+  --knob-label-font: var(--font-ui);
+
+  --label-ink: #1a1423;
+  --value-ink: #261d33;
+
+  --key-white: linear-gradient(180deg, #fbf9f7 0%, #f4eeec 82%, #e4dcda 100%);
+  --key-white-ink: #6b5f78;
+  --key-black: linear-gradient(180deg, #523d7e 0%, #38265c 75%, #21153a 100%);
+  --key-black-ink: #f5eeff;
+  --key-line: #322448;
+  --key-pressed: linear-gradient(180deg, #fcb8e6 0%, #b9a4f2 100%);
+  --key-pressed-ink: #1d1428;
+
+  --kb-white-top: #fbf9f7;
+  --kb-white-bottom: #e8dfdd;
+  --kb-black-top: #543e82;
+  --kb-black-bottom: #22153b;
+  --kb-accent: #d972c6;
+  --kb-pattern: none;
+  --kb-frame: #524163;
+  --kb-wheel: #9c96a4;
+
+  --led-off: #639e8d;
+  --led-off-edge: #46786a;
 }
-:is([data-skin="yazd"], [data-machine="yazd"]) .synth-panel,
-:is([data-skin="yazd"], [data-machine="yazd"]) .synth-sec {
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
+
+/* ------------------------------------------------------------
+   Yazd Sculpted Rose-Lilac Anodized Chassis & Side Rails
+   ------------------------------------------------------------ */
+:is([data-skin="yazd"], [data-machine="yazd"]) .sy1-shell {
+  position: relative;
+  padding-left: clamp(14px, 1.8vw, 22px);
+  padding-right: clamp(14px, 1.8vw, 22px);
+  border: 2px solid #8c7698;
+  border-radius: 12px;
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.85),
+    inset 0 -3px 6px rgba(65, 45, 82, 0.45),
+    0 18px 42px rgba(0, 0, 0, 0.65);
 }
-:is([data-skin="yazd"], [data-machine="yazd"]) .synth-choice-btn,
-:is([data-skin="yazd"], [data-machine="yazd"]) .synth-midi-btn,
-:is([data-skin="yazd"], [data-machine="yazd"]) .kb-btn {
-  border-radius: 10px;
-  box-shadow: inset 0 1px 0 #fff, 0 2px 4px rgba(120,90,170,0.15);
+:is([data-skin="yazd"], [data-machine="yazd"]) .sy1-shell::before,
+:is([data-skin="yazd"], [data-machine="yazd"]) .sy1-shell::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  bottom: 2px;
+  width: clamp(10px, 1.3vw, 16px);
+  z-index: 5;
+  pointer-events: none;
+  border-radius: 6px;
+  background:
+    var(--yazd-screw) center calc(100% - 14px) / 13px 13px no-repeat,
+    linear-gradient(90deg, #b89eb8 0%, #ebd6e8 42%, #cfb8d2 72%, #9a829e 100%);
+  border: 1px solid #846d90;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.8),
+    0 2px 6px rgba(45, 28, 62, 0.35);
 }
-:is([data-skin="yazd"], [data-machine="yazd"]) .synth-sec h4 {
-  text-align: center;
+:is([data-skin="yazd"], [data-machine="yazd"]) .sy1-shell::before {
+  left: 2px;
 }
-:is([data-skin="yazd"], [data-machine="yazd"]) .sk-dial {
-  box-shadow: 0 3px 8px rgba(120,90,170,0.32), 0 0 0 2px rgba(255,255,255,0.85), 0 0 0 3.5px rgba(145,120,190,0.55);
+:is([data-skin="yazd"], [data-machine="yazd"]) .sy1-shell::after {
+  right: 2px;
+}
+@media (max-width: 600px) {
+  :is([data-skin="yazd"], [data-machine="yazd"]) .sy1-shell {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+  :is([data-skin="yazd"], [data-machine="yazd"]) .sy1-shell::before,
+  :is([data-skin="yazd"], [data-machine="yazd"]) .sy1-shell::after {
+    width: 4px;
+    background: linear-gradient(180deg, #e5cfe2 0%, #bfa6c4 100%);
+  }
+}
+
+/* Hide bottom keyboard-shortcut hint so section cards fill the faceplate cleanly */
+:is([data-skin="yazd"], [data-machine="yazd"]) .synth-hint {
+  display: none;
+}
+
+/* ------------------------------------------------------------
+   Yazd Top Bar: Minimal Engraved "Yazd ▾", Deep Violet CRT Scope,
+   and Flush Connections Icon
+   ------------------------------------------------------------ */
+:is([data-skin="yazd"], [data-machine="yazd"]) .synth-brand-maker {
+  display: none;
 }
 :is([data-skin="yazd"], [data-machine="yazd"]) .synth-machine-select {
-  color: #743ec2;
+  background:
+    linear-gradient(45deg, transparent 50%, #1d1626 50%) right 10px center / 5px 5px no-repeat,
+    linear-gradient(135deg, #1d1626 50%, transparent 50%) right 5px center / 5px 5px no-repeat,
+    transparent;
+  color: #1d1626;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  padding: 4px 24px 4px 8px;
+  font-family: var(--font-head);
+  font-weight: 800;
+  font-size: 0.98rem;
+  letter-spacing: 0.02em;
+  box-shadow: none;
+}
+:is([data-skin="yazd"], [data-machine="yazd"]) .synth-machine-select:hover,
+:is([data-skin="yazd"], [data-machine="yazd"]) .synth-machine-select:focus-visible {
+  border-color: rgba(90, 70, 115, 0.45);
+}
+:is([data-skin="yazd"], [data-machine="yazd"]) .synth-scope {
+  border-radius: 10px;
+  border: 2.5px solid #281e36;
+  box-shadow:
+    inset 0 3px 10px rgba(0, 0, 0, 0.92),
+    inset 0 0 20px rgba(215, 130, 255, 0.25),
+    0 1px 0 rgba(255, 255, 255, 0.7);
+}
+:is([data-skin="yazd"], [data-machine="yazd"]) .synth-conn-btn {
+  background: transparent;
+  color: #1d1626;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  box-shadow: none;
+}
+:is([data-skin="yazd"], [data-machine="yazd"]) .synth-conn-btn .conn-dot {
+  display: block;
+  width: 6px;
+  height: 6px;
+  background: #1d1626;
+  opacity: 0.88;
+}
+
+/* ------------------------------------------------------------
+   Yazd Subbar: Lilac Step Buttons, Dark Plum OLED Display,
+   Glowing Pink Active Tab & Seafoam-Mint Inactive Tabs
+   ------------------------------------------------------------ */
+:is([data-skin="yazd"], [data-machine="yazd"]) .preset-step-btn {
+  background: linear-gradient(180deg, #dfd0e8 0%, #cbb8d8 100%);
+  color: #2b2038;
+  border: 1.5px solid #574868;
+  border-radius: 8px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.78),
+    0 2px 4px rgba(45, 30, 65, 0.25);
+}
+:is([data-skin="yazd"], [data-machine="yazd"]) .preset-display {
+  background: linear-gradient(180deg, #2c2336 0%, #1e1726 100%);
+  color: #f8f4fc;
+  border: 1.5px solid #140f1b;
+  border-radius: 8px;
+  box-shadow:
+    inset 0 2px 5px rgba(0, 0, 0, 0.75),
+    0 1px 0 rgba(255, 255, 255, 0.65);
+}
+:is([data-skin="yazd"], [data-machine="yazd"]) .pd-name {
+  color: #faf6ff;
+  font-weight: 800;
+}
+:is([data-skin="yazd"], [data-machine="yazd"]) .pd-sub {
+  color: #d2c4e6;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+:is([data-skin="yazd"], [data-machine="yazd"]) .pd-icon {
+  color: #b8a6d0;
+  opacity: 0.9;
+}
+
+/* Hardware Page Tabs in Subbar */
+:is([data-skin="yazd"], [data-machine="yazd"]) .synth-tabs {
+  display: flex !important;
+}
+:is([data-skin="yazd"], [data-machine="yazd"]) .synth-tab {
+  background: linear-gradient(180deg, #bce8da 0%, #9fd4c4 100%);
+  color: #172220;
+  border: 1.5px solid #354846;
+  border-radius: 8px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.75),
+    inset 0 -2px 0 rgba(30, 55, 50, 0.2),
+    0 2px 4px rgba(45, 30, 65, 0.22);
+}
+:is([data-skin="yazd"], [data-machine="yazd"]) .synth-tab::before {
+  width: 6px;
+  height: 6px;
+  background: #639e8d;
+  border: 1px solid #487a6c;
+  box-shadow: none;
+}
+:is([data-skin="yazd"], [data-machine="yazd"]) .synth-tab.active {
+  background: linear-gradient(180deg, #fff9fd 0%, #fdeaf6 58%, #f7d4eb 100%);
+  color: #1c1424;
+  border: 1.5px solid #f06cb4;
+  box-shadow:
+    0 0 12px rgba(240, 108, 180, 0.65),
+    inset 0 1px 0 #ffffff;
+}
+:is([data-skin="yazd"], [data-machine="yazd"]) .synth-tab.active::before {
+  background: #f082ba;
+  border-color: #d95ca0;
+  box-shadow: 0 0 5px rgba(240, 130, 186, 0.85);
+}
+
+/* ------------------------------------------------------------
+   Yazd Section Cards, Holographic Waveform Buttons & Chrome Dome Knobs
+   ------------------------------------------------------------ */
+:is([data-skin="yazd"], [data-machine="yazd"]) .synth-sec h4 {
+  color: #191322;
+  text-align: center;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  border-bottom: none;
+  box-shadow: none;
+}
+
+:is([data-skin="yazd"], [data-machine="yazd"]) .synth-choice {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  padding: 0;
+  gap: 8px;
+}
+:is([data-skin="yazd"], [data-machine="yazd"]) .synth-choice-btn {
+  border-radius: 8px;
+  border: 1.5px solid #584969;
+  background: linear-gradient(180deg, #dcd0e8 0%, #c6b2d6 100%);
+  color: #1b1424;
+  font-weight: 800;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.78),
+    inset 0 -2px 0 rgba(55, 38, 75, 0.25),
+    0 3px 5px rgba(45, 30, 65, 0.25);
+}
+:is([data-skin="yazd"], [data-machine="yazd"]) .synth-choice-btn.active {
+  background: linear-gradient(180deg, #fcb8e6 0%, #fff7fc 48%, #aef0ff 100%);
+  color: #181122;
+  border: 1.5px solid #c474cc;
+  box-shadow:
+    inset 0 1px 0 #ffffff,
+    0 0 12px rgba(235, 135, 220, 0.5),
+    0 3px 6px rgba(45, 30, 65, 0.25);
+}
+
+/* 3D Polished Silver-Chrome Dome Knobs on Yazd */
+:is([data-skin="yazd"], [data-machine="yazd"]) {
+  --ring-pad: 0px;
+}
+:is([data-skin="yazd"], [data-machine="yazd"]) :is(.sk-skirt, .sk-cap) {
+  display: block;
+}
+:is([data-skin="yazd"], [data-machine="yazd"]) .sk-scale {
+  display: none;
+}
+:is([data-skin="yazd"], [data-machine="yazd"]) .sk-dial {
+  background: transparent;
+  box-shadow: none;
+}
+:is([data-skin="yazd"], [data-machine="yazd"]) .sk-dial::before {
+  display: none;
+  inset: 0;
+}
+:is([data-skin="yazd"], [data-machine="yazd"]) .sk-skirt {
+  position: absolute;
+  inset: 9%;
+  border-radius: 50%;
+  background: var(--knob-skirt);
+  border: 1.5px solid #726285;
+  box-shadow:
+    0 6px 11px rgba(52, 34, 72, 0.36),
+    inset 0 1px 1px rgba(255, 255, 255, 0.85);
+  z-index: 2;
+}
+:is([data-skin="yazd"], [data-machine="yazd"]) .sk-cap {
+  position: absolute;
+  inset: 17%;
+  border-radius: 50%;
+  background: var(--knob-cap);
+  border: 1px solid #6a5e78;
+  box-shadow:
+    inset 0 2px 3px rgba(255, 255, 255, 0.95),
+    inset 0 -2px 4px rgba(55, 42, 72, 0.55),
+    0 2px 4px rgba(35, 22, 52, 0.45);
+  z-index: 3;
+}
+:is([data-skin="yazd"], [data-machine="yazd"]) .sk-rotor {
+  position: absolute;
+  inset: 17%;
+  z-index: 4;
+  pointer-events: none;
+}
+:is([data-skin="yazd"], [data-machine="yazd"]) .sk-ind {
+  position: absolute;
+  top: 6%;
+  left: 50%;
+  width: 2.4px;
+  height: 40%;
+  margin-left: -1.2px;
+  border-radius: 2px;
+  background: #231a2e;
+  box-shadow: 1px 0 0 rgba(255, 255, 255, 0.8);
+}
+:is([data-skin="yazd"], [data-machine="yazd"]) .sk-label {
+  color: #191322;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+}
+:is([data-skin="yazd"], [data-machine="yazd"]) .sk-val {
+  color: #241b30;
+  font-weight: 700;
+}
+:is([data-skin="yazd"], [data-machine="yazd"]) .sk-caption {
+  color: #191322;
+  font-weight: 800;
+  opacity: 0.95;
+}
+:is([data-skin="yazd"], [data-machine="yazd"]) .sk-row {
+  justify-content: space-evenly;
+  width: 100%;
+}
+:is([data-skin="yazd"], [data-machine="yazd"]) .sk {
+  --fit: calc((100cqw - (var(--cols) - 1) * var(--sp-1)) / var(--cols));
+  --k: min(var(--k-in, 56px), calc(var(--fit) - 2px));
+  width: var(--fit);
+  padding: 0;
+}
+
+/* Desktop & Tablet 2-Column Paged Layout for Yazd (matching screenshot) */
+@media (min-width: 761px) and (min-height: 561px) {
+  /* Force fitPanel() to engage is-fit-paged so OSC 1 and OSC 2 sit side-by-side in 1 full-height row */
+  .sy1-shell:not(.is-fit-paged) .synth-panel[data-machine="yazd"] .synth-sec {
+    min-height: 58vh;
+  }
+  .sy1-shell.is-fit-paged .synth-panel[data-machine="yazd"] .synth-sections {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    grid-auto-rows: minmax(0, 1fr);
+  }
+  .sy1-shell.is-fit-paged .synth-panel[data-machine="yazd"] .synth-sec {
+    container-type: size;
+    justify-content: space-between;
+  }
+  .sy1-shell.is-fit-paged .synth-panel[data-machine="yazd"] .synth-sec:has(> .sk-row ~ .sk-row) {
+    --sec-row-gap: 6px;
+  }
+  .sy1-shell.is-fit-paged .synth-panel[data-machine="yazd"] .synth-sec > h4 + * {
+    margin-top: auto;
+  }
+  .sy1-shell.is-fit-paged .synth-panel[data-machine="yazd"] .synth-sec > :last-child {
+    margin-bottom: auto;
+  }
+  .sy1-shell.is-fit-paged .synth-panel[data-machine="yazd"] .synth-sec:not(:has(> .sk-row ~ .sk-row)) .sk-row:not(.sk-row-small) {
+    --k-in: clamp(46px, min(20cqw, 26cqh), 64px);
+  }
+  .sy1-shell.is-fit-paged .synth-panel[data-machine="yazd"] .synth-sec:has(> .sk-row ~ .sk-row) .sk-row:not(.sk-row-small) {
+    --k-in: clamp(38px, min(18cqw, 22cqh), 58px);
+  }
+  .sy1-shell.is-fit-paged .synth-panel[data-machine="yazd"] .synth-sec .sk-row-small {
+    --k-in: clamp(30px, min(14.5cqw, 15.5cqh), 46px);
+  }
+}
+
+@media (max-height: 560px) and (orientation: landscape) {
+  :is([data-skin="yazd"], [data-machine="yazd"]) .synth-machine-select {
+    padding: 1px 18px 1px 6px;
+    font-size: 0.76rem;
+  }
+}
+
+/* ------------------------------------------------------------
+   Yazd Performance Bar (.kb-bar), Blush-Pink Octave Buttons,
+   Seafoam-Mint Performance Buttons, Badge & Matte Plum Wheel Bay
+   ------------------------------------------------------------ */
+:is([data-skin="yazd"], [data-machine="yazd"]) .kb-bar {
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+}
+:is([data-skin="yazd"], [data-machine="yazd"]) .kb-bar #oct-down,
+:is([data-skin="yazd"], [data-machine="yazd"]) .kb-bar #oct-up {
+  background: linear-gradient(180deg, #f5d0dc 0%, #e4b6c5 100%);
+  color: #1f151d;
+  border: 1.5px solid #5e4452;
+  border-radius: 8px;
+  font-weight: 800;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.8),
+    inset 0 -2px 0 rgba(70, 40, 55, 0.22),
+    0 2px 4px rgba(45, 30, 65, 0.22);
+}
+:is([data-skin="yazd"], [data-machine="yazd"]) .kb-bar .kb-perf .kb-btn {
+  background: linear-gradient(180deg, #bce8da 0%, #9fd4c4 100%);
+  color: #172220;
+  border: 1.5px solid #354846;
+  border-radius: 8px;
+  font-weight: 800;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.78),
+    inset 0 -2px 0 rgba(30, 55, 50, 0.2),
+    0 2px 4px rgba(45, 30, 65, 0.22);
+}
+:is([data-skin="yazd"], [data-machine="yazd"]) .kb-bar .kb-btn:active,
+:is([data-skin="yazd"], [data-machine="yazd"]) .kb-bar .kb-btn.active,
+:is([data-skin="yazd"], [data-machine="yazd"]) .kb-bar .kb-btn[aria-pressed="true"],
+:is([data-skin="yazd"], [data-machine="yazd"]) .kb-bar .kb-or.active {
+  background: linear-gradient(180deg, #fff9fd 0%, #fdeaf6 58%, #f7d4eb 100%);
+  color: #1c1424;
+  border-color: #f06cb4;
+  box-shadow:
+    0 0 12px rgba(240, 108, 180, 0.6),
+    inset 0 1px 0 #ffffff;
+}
+:is([data-skin="yazd"], [data-machine="yazd"]) .kb-bar .kb-or .kb-or-dot {
+  background: #639e8d;
+  border: 1px solid #487a6c;
+}
+:is([data-skin="yazd"], [data-machine="yazd"]) .kb-range {
+  color: #1d1626;
+  font-weight: 800;
+}
+
+/* Dark Plum-Obsidian Machine Badge ("= Yazd · Pads & atmospheres") */
+:is([data-skin="yazd"], [data-machine="yazd"]) .kb-machine-badge {
+  background: linear-gradient(180deg, #2d2338 0%, #1e1726 100%);
+  border: 1.5px solid #755e8c;
+  border-radius: 7px;
+  padding: 4px 12px;
+  box-shadow:
+    inset 0 1px 3px rgba(0, 0, 0, 0.65),
+    0 1px 0 rgba(255, 255, 255, 0.6);
+}
+:is([data-skin="yazd"], [data-machine="yazd"]) .kb-machine-emblem {
+  width: 11px;
+  height: 7px;
+  border-radius: 1px;
+  background: linear-gradient(180deg, #e5d8f4 0 28%, transparent 28% 72%, #e5d8f4 72% 100%);
+  box-shadow: none;
+}
+:is([data-skin="yazd"], [data-machine="yazd"]) .kb-machine-name {
+  color: #faf5ff;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+}
+:is([data-skin="yazd"], [data-machine="yazd"]) .kb-machine-sep {
+  color: #b49ec8;
+}
+:is([data-skin="yazd"], [data-machine="yazd"]) .kb-machine-role {
+  color: #dfd2ee;
+  font-weight: 600;
+}
+
+/* Matte Plum-Violet Wheel Housing & Ribbed Silver-Chrome Wheels */
+:is([data-skin="yazd"], [data-machine="yazd"]) .kb-wheels {
+  background:
+    linear-gradient(180deg, #625074 0%, #4e3e5f 55%, #3f314e 100%);
+  border: 1.5px solid #261c30;
+  border-radius: 6px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.25),
+    0 4px 10px rgba(35, 22, 52, 0.5);
+}
+:is([data-skin="yazd"], [data-machine="yazd"]) .kb-wheel {
+  border: 1.5px solid #1c1424;
+  background:
+    repeating-linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.48) 0px,
+      rgba(255, 255, 255, 0.48) 1.5px,
+      rgba(55, 48, 65, 0.78) 1.5px,
+      rgba(55, 48, 65, 0.78) 3.5px
+    ),
+    linear-gradient(180deg, #524b5c 0%, #b8b2c2 28%, #e6e2ec 50%, #aba4b5 72%, #4a4354 100%);
+  box-shadow:
+    inset 0 7px 10px rgba(20, 14, 28, 0.75),
+    inset 0 -7px 10px rgba(20, 14, 28, 0.75),
+    0 1px 0 rgba(255, 255, 255, 0.22);
+}
+:is([data-skin="yazd"], [data-machine="yazd"]) .kb-wheel-thumb {
+  background: linear-gradient(180deg, #f7f5fa 0%, #b8b0c4 48%, #6e667a 100%);
+  border: 1px solid #2a2036;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.75), inset 0 1px 0 #ffffff;
+}
+:is([data-skin="yazd"], [data-machine="yazd"]) .kb-wheel-label {
+  color: #f4eef8;
+  font-weight: 800;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.65);
+}
+
+:is([data-skin="yazd"], [data-machine="yazd"]) .kb {
+  border: 2px solid #281d35;
+  box-shadow: 0 8px 20px rgba(35, 22, 52, 0.45);
+}
+:is([data-skin="yazd"], [data-machine="yazd"]) .key:not(.black):not(.pad) .key-lbl {
+  color: #6b5f78;
+  font-weight: 700;
+  font-size: 0.64rem;
+}
+
+/* ------------------------------------------------------------
+   Yazd Sound Library (.lib-pop) & Popovers:
+   Clean, dark plum-charcoal, high-contrast & readable like the other synths
+   ------------------------------------------------------------ */
+:is([data-skin="yazd"], [data-machine="yazd"]) .lib-pop {
+  background: #191421;
+  border: 1.5px solid #c988e8;
+  color: #f6f0fc;
+}
+:is([data-skin="yazd"], [data-machine="yazd"]) .lib-pop::before {
+  background: linear-gradient(180deg, #241d30 0%, #181320 100%);
+}
+:is([data-skin="yazd"], [data-machine="yazd"]) .lib-head {
+  background: rgba(18, 13, 24, 0.65);
+  border-bottom: 1px solid #3c304d;
+}
+:is([data-skin="yazd"], [data-machine="yazd"]) .lib-title b {
+  color: #faf6ff;
+}
+:is([data-skin="yazd"], [data-machine="yazd"]) .lib-title span {
+  color: #cbbbe0;
+}
+:is([data-skin="yazd"], [data-machine="yazd"]) .lib-search {
+  background: #130f1a;
+  border: 1px solid #4a3b5e;
+  color: #cbbbe0;
+}
+:is([data-skin="yazd"], [data-machine="yazd"]) .lib-q {
+  color: #faf6ff;
+}
+:is([data-skin="yazd"], [data-machine="yazd"]) .lib-done {
+  background: linear-gradient(180deg, #fcb8e6 0%, #e882c8 100%);
+  color: #1c1224;
+}
+:is([data-skin="yazd"], [data-machine="yazd"]) .lib-cats {
+  border-color: #3c304d;
+}
+:is([data-skin="yazd"], [data-machine="yazd"]) .lib-cat {
+  color: #e4d8f2;
+}
+:is([data-skin="yazd"], [data-machine="yazd"]) .lib-count {
+  color: #a998be;
+}
+:is([data-skin="yazd"], [data-machine="yazd"]) .lib-cat.active {
+  background: #2f253d;
+  color: #ffffff;
+  box-shadow: inset 3px 0 0 #f082ba;
+}
+:is([data-skin="yazd"], [data-machine="yazd"]) .lib-cat.active .lib-count {
+  color: #f5a4ce;
+}
+:is([data-skin="yazd"], [data-machine="yazd"]) .lib-tile {
+  background: linear-gradient(180deg, #2a2136 0%, #20192a 100%);
+  border: 1px solid #453759;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 2px 6px rgba(0, 0, 0, 0.4);
+  color: #faf6ff;
+}
+:is([data-skin="yazd"], [data-machine="yazd"]) .lib-tile.active {
+  border-color: #f082ba;
+  box-shadow: 0 0 0 1px #f082ba, 0 0 14px rgba(240, 130, 186, 0.35);
+}
+:is([data-skin="yazd"], [data-machine="yazd"]) .lib-name {
+  color: #faf6ff;
+}
+:is([data-skin="yazd"], [data-machine="yazd"]) .lib-sub {
+  color: #9ce6d6;
+}
+:is([data-skin="yazd"], [data-machine="yazd"]) .lib-fav {
+  color: #cbbbe0;
+}
+:is([data-skin="yazd"], [data-machine="yazd"]) .lib-fav.on {
+  color: #f5a4ce;
+}
+
+/* Keep Oriental, ARP & Connections popovers readable on Yazd as well */
+:is([data-skin="yazd"], [data-machine="yazd"]) :is(.or-inner, .arp-pop-inner, .conn-pop) {
+  background: linear-gradient(180deg, #261e31 0%, #1a1423 100%);
+  color: #f8f2ff;
+  border-color: #b58ce0;
+}
+:is([data-skin="yazd"], [data-machine="yazd"]) :is(.or-head h4, .arp-pop-head h4, .or-label, .or-cent-note, .synth-midi-msg) {
+  color: #e4c8ff;
 }
 
 
@@ -1953,79 +3376,125 @@
 
 
 /* ------------------------------------------------------------
-   SHIRAZ — Persian santur & lutes (oiled oak, dark walnut, brass)
-   Oiled oak and dark walnut wood grain panels, engraved brass
-   knobs, brass section plates with dark engraved headings,
-   ivory and ebony keys.
+   SHIRAZ — Persian santur & lutes (sculpted walnut, honey-oak & brass)
+   3D sculpted Persian walnut side cheeks, dark walnut faceplate with
+   warm rose-amber studio sheen, wide amber oscilloscope, honey-oak
+   section panels with slotted brass corner screws, screwed brushed-brass
+   section nameplates, 3D spun-brass knobs with radial tick marks,
+   full-width brushed brass performance bar, and readable dark sound library.
    ------------------------------------------------------------ */
 [data-skin="shiraz"],
 [data-machine="shiraz"] {
-  --kb-btn-ink: #241606;
+  --kb-btn-ink: #1e1206;
   --midi-btn-ink: #f6ead0;
-  --walnut-grain:
-    repeating-linear-gradient(179deg, rgba(22,10,3,0.28) 0 2px, transparent 2px 6px, rgba(255,215,150,0.04) 6px 9px),
-    repeating-linear-gradient(181deg, rgba(16,7,2,0.22) 0 4px, transparent 4px 13px),
-    linear-gradient(180deg, #3c2211 0%, #2b170b 52%, #211107 100%);
-  --oak-grain:
-    repeating-linear-gradient(178.5deg, rgba(50,24,7,0.18) 0 2px, transparent 2px 7px, rgba(255,220,160,0.05) 7px 11px),
-    repeating-linear-gradient(181.5deg, rgba(38,18,5,0.14) 0 3px, transparent 3px 15px),
-    linear-gradient(180deg, #6b4220 0%, #583518 55%, #492b13 100%);
-  --brass-plate:
-    repeating-linear-gradient(90deg, rgba(255,255,255,0.06) 0 1px, transparent 1px 3px),
-    linear-gradient(180deg, #e7c675 0%, #cba14a 52%, #a87d28 100%);
 
-  --font-ui: "Gill Sans", "Optima", "Segoe UI", sans-serif;
+  /* Slotted brass screw head SVG for section headers, section bottom corners, and wheel bay */
+  --shiraz-screw: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 14 14'%3E%3Cdefs%3E%3CradialGradient id='sg' cx='38%25' cy='32%25' r='65%25'%3E%3Cstop offset='0%25' stop-color='%23f7e3a8'/%3E%3Cstop offset='55%25' stop-color='%23c49a4c'/%3E%3Cstop offset='100%25' stop-color='%236e4d18'/%3E%3C/radialGradient%3E%3C/defs%3E%3Ccircle cx='7' cy='7' r='5.4' fill='url(%23sg)' stroke='%23422a09' stroke-width='1'/%3E%3Cline x1='2.8' y1='7' x2='11.2' y2='7' stroke='%23331e05' stroke-width='1.5' stroke-linecap='round'/%3E%3Cline x1='2.8' y1='7.8' x2='11.2' y2='7.8' stroke='%23f8e6b0' stroke-opacity='0.45' stroke-width='0.7' stroke-linecap='round'/%3E%3C/svg%3E");
+
+  /* Vertical dark walnut grain for 3D side cheeks */
+  --shiraz-cheek-grain:
+    radial-gradient(ellipse at 70% 35%, rgba(230, 155, 130, 0.22) 0%, transparent 60%),
+    repeating-linear-gradient(90deg, rgba(255, 220, 175, 0.04) 0 1px, rgba(18, 8, 3, 0.22) 1px 3px, transparent 3px 6px),
+    repeating-linear-gradient(89deg, rgba(28, 12, 4, 0.25) 0 2px, transparent 2px 9px),
+    linear-gradient(90deg, #281308 0%, #59331d 18%, #734428 45%, #5c341d 72%, #3b1e0f 90%, #210f06 100%);
+
+  /* Dark oiled walnut faceplate with subtle warm rose-violet & golden studio light reflection */
+  --walnut-grain:
+    radial-gradient(ellipse at 42% 18%, rgba(205, 110, 150, 0.16) 0%, transparent 52%),
+    radial-gradient(ellipse at 76% 24%, rgba(238, 172, 78, 0.15) 0%, transparent 48%),
+    repeating-linear-gradient(179.2deg, rgba(20, 9, 3, 0.26) 0 2px, transparent 2px 6px, rgba(255, 215, 160, 0.035) 6px 9px),
+    repeating-linear-gradient(180.8deg, rgba(15, 6, 2, 0.2) 0 3px, transparent 3px 12px),
+    linear-gradient(180deg, #4a2a18 0%, #381e10 48%, #28140a 100%);
+
+  /* Warm honey-oak / maple section wood grain with subtle rose & golden sheen + bottom corner brass screws */
+  --oak-grain:
+    var(--shiraz-screw) 10px calc(100% - 8px) / 11px 11px no-repeat,
+    var(--shiraz-screw) calc(100% - 10px) calc(100% - 8px) / 11px 11px no-repeat,
+    radial-gradient(ellipse at 36% 42%, rgba(215, 130, 155, 0.22) 0%, transparent 58%),
+    radial-gradient(ellipse at 72% 48%, rgba(250, 198, 95, 0.24) 0%, transparent 62%),
+    repeating-linear-gradient(179.4deg, rgba(78, 40, 12, 0.13) 0 1.5px, transparent 1.5px 5px, rgba(255, 238, 200, 0.08) 5px 8px),
+    repeating-linear-gradient(180.6deg, rgba(62, 30, 8, 0.1) 0 2.5px, transparent 2.5px 11px),
+    linear-gradient(180deg, #d7a874 0%, #ce9b64 48%, #c28c54 100%);
+
+  /* Brushed antique brass plate */
+  --brass-plate:
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.05) 0 1px, rgba(0, 0, 0, 0.03) 1px 3px),
+    linear-gradient(180deg, #dfc488 0%, #c6a562 52%, #a88642 100%);
+
+  --font-ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --font-head: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
 
-  --page-bg: #150c06;
+  --page-bg: #160e08;
   --ink: #f8eed8;
   --ink-dim: #e5d1ab;
   --ink-faint: #c9b28a;
 
-  --accent: #e5b95c;
-  --accent-2: #b88628;
-  --accent-ink: #221404;
-  --accent-glow: rgba(229,185,92,0.75);
-  --accent-glow-soft: rgba(229,185,92,0.32);
+  --accent: #f0b23a;
+  --accent-2: #c9861e;
+  --accent-ink: #221304;
+  --accent-glow: rgba(240, 178, 58, 0.78);
+  --accent-glow-soft: rgba(240, 178, 58, 0.36);
 
-  --shell-bg: var(--walnut-grain);
+  --shell-bg:
+    repeating-linear-gradient(180deg, rgba(255, 220, 175, 0.03) 0 1px, rgba(0, 0, 0, 0.16) 1px 3px),
+    linear-gradient(180deg, #5c3620 0%, #3d2112 35%, #261309 100%);
   --panel-bg: var(--walnut-grain);
-  --panel-border: #8f6829;
-  --panel-radius: 10px;
-  --panel-shadow: inset 0 1px 0 rgba(255,230,175,0.18), inset 0 0 0 2px #1c0e06, 0 14px 30px rgba(0,0,0,0.65);
+  --panel-border: #6e4626;
+  --panel-radius: 8px;
+  --panel-shadow:
+    inset 0 1px 0 rgba(255, 225, 180, 0.22),
+    inset 0 0 0 2px #1c0d05,
+    0 14px 32px rgba(0, 0, 0, 0.75);
 
   --sec-bg: var(--oak-grain);
-  --sec-border: #a87e33;
-  --sec-radius: 7px;
-  --sec-shadow: inset 0 1px 0 rgba(255,235,190,0.2), inset 0 -2px 6px rgba(0,0,0,0.45), 0 3px 7px rgba(0,0,0,0.45);
-  --sec-head: #231505;
+  --sec-border: #b58948;
+  --sec-radius: 8px;
+  --sec-shadow:
+    inset 0 1px 0 rgba(255, 240, 205, 0.55),
+    inset 0 0 0 1.5px rgba(92, 54, 18, 0.45),
+    0 5px 12px rgba(0, 0, 0, 0.6);
+  --sec-head: #221305;
 
   --btn-bg: var(--brass-plate);
-  --btn-ink: #241606;
-  --btn-border: #7a5718;
-  --ctl-bg: linear-gradient(180deg, #351e0f 0%, #251409 100%);
-  --ctl-ink: #f6ead0;
-  --choice-active-bg: var(--brass-plate);
-  --choice-active-ink: #231505;
+  --btn-ink: #221305;
+  --btn-border: #6e4e1c;
+  --ctl-bg: linear-gradient(180deg, #6b442b 0%, #4d2e1b 55%, #382011 100%);
+  --ctl-ink: #eddac0;
+  --choice-active-bg: linear-gradient(180deg, #ffe596 0%, #f5b63e 52%, #d4881c 100%);
+  --choice-active-ink: #221304;
 
-  --scope-bg: radial-gradient(ellipse at 50% 50%, #2a190b 0%, #120a04 82%);
-  --scope-border: #a87e33;
-  --scope-line: #f2c96d;
-  --scope-grid: rgba(242,201,109,0.18);
+  --scope-bg:
+    radial-gradient(ellipse at 50% 50%, rgba(160, 88, 24, 0.28) 0%, rgba(42, 22, 9, 0.92) 65%, #160b04 100%);
+  --scope-border: #6e4826;
+  --scope-line: #ffae34;
+  --scope-grid: rgba(255, 174, 52, 0.14);
 
-  --knob-face:
-    radial-gradient(circle at 35% 28%, rgba(255,250,225,0.75) 0%, rgba(255,250,225,0) 36%),
-    repeating-conic-gradient(rgba(60,36,6,0.32) 0deg 4deg, rgba(255,238,185,0.12) 4deg 8deg),
-    radial-gradient(circle, #f1d488 0%, #cfa349 48%, #9b7021 82%, #5e400e 100%);
-  --knob-gap: #231308;
-  --knob-edge: #b88b3a;
-  --knob-arc: #f5ca69;
-  --knob-track: rgba(245,202,105,0.16);
-  --knob-arc-filter: drop-shadow(0 0 2px rgba(245,202,105,0.65));
-  --knob-ind: #241505;
-  --knob-ind-glow: rgba(255,240,200,0.35);
-  --label-ink: #faf0da;
-  --value-ink: #f7d994;
+  /* Spun-Brass 3D Knobs with Radial Tick Marks */
+  --knob-cap:
+    radial-gradient(circle at 34% 26%, rgba(255, 250, 225, 0.82) 0%, rgba(255, 250, 225, 0) 44%),
+    repeating-radial-gradient(circle at 50% 50%, rgba(255, 245, 210, 0.04) 0 1px, rgba(55, 32, 6, 0.05) 1px 2px),
+    conic-gradient(
+      from -45deg at 50% 50%,
+      #faecc0 0deg,
+      #cea452 42deg,
+      #8c621c 90deg,
+      #dcbe72 135deg,
+      #fbf0c8 180deg,
+      #b58b38 225deg,
+      #785114 270deg,
+      #dfc276 315deg,
+      #faecc0 360deg
+    );
+  --knob-skirt:
+    radial-gradient(circle at 50% 30%, rgba(255, 235, 180, 0.22) 0%, transparent 60%),
+    repeating-conic-gradient(from 0deg, #38220d 0deg 4deg, #5e3d1c 4deg 6deg, #241406 6deg 9deg);
+  --knob-tick: #38200d;
+  --knob-pointer: #1e1105;
+  --knob-pointer-glow: rgba(0, 0, 0, 0);
+  --knob-label-font: var(--font-ui);
+
+  --label-ink: #1c1006;
+  --value-ink: #261609;
 
   --key-white: linear-gradient(180deg, #fdfaf0 0%, #f4ebd4 82%, #dfd1b0 100%);
   --key-white-ink: #5e441c;
@@ -2035,38 +3504,632 @@
   --key-pressed: linear-gradient(180deg, #f7d98c 0%, #d89e36 100%);
   --key-pressed-ink: #231404;
 
-  --kb-white-top: #fbf4e2;
-  --kb-white-bottom: #e6d3af;
-  --kb-black-top: #32251a;
-  --kb-black-bottom: #140d07;
+  --kb-white-top: #fbf4e4;
+  --kb-white-bottom: #e5d2b0;
+  --kb-black-top: #3a271c;
+  --kb-black-bottom: #150c07;
   --kb-accent: #e5b95c;
-  --kb-pattern: repeating-linear-gradient(90deg, rgba(74,43,18,0.35) 0 1px, transparent 1px 4px);
-  --kb-frame: #26160b;
-  --kb-wheel: #342012;
+  --kb-pattern: repeating-linear-gradient(90deg, rgba(74, 43, 18, 0.35) 0 1px, transparent 1px 4px);
+  --kb-frame: #241409;
+  --kb-wheel: #3b2818;
 
-  --led-off: #2c1a0c;
-  --led-off-edge: #a87e33;
+  --led-off: #3b2312;
+  --led-off-edge: #8c6430;
 }
-/* Brass section plate inside card padding (no negative margins) */
-:is([data-skin="shiraz"], [data-machine="shiraz"]) .synth-sec h4 {
+
+/* ------------------------------------------------------------
+   Shiraz Chassis: 3D Sculpted Walnut Side Cheeks & Top Rail
+   ------------------------------------------------------------ */
+:is([data-skin="shiraz"], [data-machine="shiraz"]) .sy1-shell {
+  position: relative;
+  padding-left: clamp(26px, 3.2vw, 40px);
+  padding-right: clamp(26px, 3.2vw, 40px);
+  border-top: 2px solid #7d4e2d;
+  border-bottom: 2px solid #1c0d05;
+  border-radius: 12px;
+  box-shadow:
+    inset 0 2px 4px rgba(255, 210, 165, 0.25),
+    0 18px 42px rgba(0, 0, 0, 0.85);
+}
+:is([data-skin="shiraz"], [data-machine="shiraz"]) .sy1-shell::before,
+:is([data-skin="shiraz"], [data-machine="shiraz"]) .sy1-shell::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: clamp(22px, 2.8vw, 34px);
+  z-index: 5;
+  pointer-events: none;
+  background: var(--shiraz-cheek-grain);
+  border: 1px solid #241107;
+}
+:is([data-skin="shiraz"], [data-machine="shiraz"]) .sy1-shell::before {
+  left: 0;
+  border-radius: 10px 4px 4px 10px;
+  box-shadow:
+    inset -3px 0 8px rgba(0, 0, 0, 0.65),
+    inset 2px 1px 2px rgba(255, 220, 175, 0.22),
+    3px 0 10px rgba(0, 0, 0, 0.65);
+}
+:is([data-skin="shiraz"], [data-machine="shiraz"]) .sy1-shell::after {
+  right: 0;
+  border-radius: 4px 10px 10px 4px;
+  box-shadow:
+    inset 3px 0 8px rgba(0, 0, 0, 0.65),
+    inset -2px 1px 3px rgba(255, 210, 175, 0.3),
+    -3px 0 10px rgba(0, 0, 0, 0.65);
+}
+@media (max-width: 600px) {
+  :is([data-skin="shiraz"], [data-machine="shiraz"]) .sy1-shell {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+  :is([data-skin="shiraz"], [data-machine="shiraz"]) .sy1-shell::before,
+  :is([data-skin="shiraz"], [data-machine="shiraz"]) .sy1-shell::after {
+    width: 7px;
+  }
+}
+
+/* ------------------------------------------------------------
+   Shiraz Top Bar: Walnut Machine Selector, Wide Amber Scope,
+   and Brushed Brass Connections Button
+   ------------------------------------------------------------ */
+:is([data-skin="shiraz"], [data-machine="shiraz"]) .synth-brand-maker {
+  display: none;
+}
+:is([data-skin="shiraz"], [data-machine="shiraz"]) .synth-machine-select {
+  background:
+    linear-gradient(45deg, transparent 50%, #e5cca8 50%) right 11px center / 5px 5px no-repeat,
+    linear-gradient(135deg, #e5cca8 50%, transparent 50%) right 6px center / 5px 5px no-repeat,
+    linear-gradient(180deg, #7c5438 0%, #5b3b24 55%, #462c1a 100%);
+  color: #f6e7ce;
+  border: 1.5px solid #966b43;
+  border-radius: 6px;
+  padding: 5px 26px 5px 12px;
+  font-family: var(--font-head);
+  font-weight: 700;
+  font-size: 0.92rem;
+  letter-spacing: 0.02em;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 235, 200, 0.32),
+    0 2px 6px rgba(0, 0, 0, 0.65);
+}
+:is([data-skin="shiraz"], [data-machine="shiraz"]) .synth-scope {
+  border-radius: 8px;
+  border: 2px solid #5c3b1e;
+  box-shadow:
+    inset 0 3px 10px rgba(0, 0, 0, 0.92),
+    inset 0 0 18px rgba(255, 168, 45, 0.16),
+    0 0 0 1px #1c0e06,
+    0 2px 6px rgba(0, 0, 0, 0.65);
+}
+:is([data-skin="shiraz"], [data-machine="shiraz"]) .synth-conn-btn {
   background: var(--brass-plate);
+  color: #241506;
+  border: 1.5px solid #5c3e16;
+  border-radius: 6px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 248, 220, 0.72),
+    0 2px 5px rgba(0, 0, 0, 0.65);
+}
+
+/* ------------------------------------------------------------
+   Shiraz Subbar: Preset Selector & Page Tabs (Strike, String, Body, Space)
+   ------------------------------------------------------------ */
+:is([data-skin="shiraz"], [data-machine="shiraz"]) .preset-step-btn {
+  background: linear-gradient(180deg, #633f27 0%, #432817 100%);
+  color: #eddac0;
+  border: 1.5px solid #865d38;
+  border-radius: 6px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 225, 185, 0.25),
+    0 2px 5px rgba(0, 0, 0, 0.6);
+}
+:is([data-skin="shiraz"], [data-machine="shiraz"]) .preset-display {
+  background: linear-gradient(180deg, #331e11 0%, #22130a 100%);
+  color: #f8eed8;
+  border: 1.5px solid #8c643c;
+  border-radius: 6px;
+  box-shadow:
+    inset 0 1px 4px rgba(0, 0, 0, 0.8),
+    0 2px 5px rgba(0, 0, 0, 0.6);
+}
+:is([data-skin="shiraz"], [data-machine="shiraz"]) .pd-name {
+  color: #fbf0db;
+  font-weight: 800;
+}
+:is([data-skin="shiraz"], [data-machine="shiraz"]) .pd-sub {
+  color: #dfc396;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+:is([data-skin="shiraz"], [data-machine="shiraz"]) .pd-icon {
+  color: #e5cca8;
+}
+
+/* Hardware Page Tabs in Subbar */
+:is([data-skin="shiraz"], [data-machine="shiraz"]) .synth-tabs {
+  display: flex !important;
+}
+:is([data-skin="shiraz"], [data-machine="shiraz"]) .synth-tab {
+  background: linear-gradient(180deg, #82583a 0%, #5e3c24 55%, #472c19 100%);
+  color: #1c0f06;
+  border: 1.5px solid #2b170b;
+  border-radius: 6px;
+  font-family: var(--font-ui);
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 225, 185, 0.32),
+    0 2px 5px rgba(0, 0, 0, 0.65);
+}
+:is([data-skin="shiraz"], [data-machine="shiraz"]) .synth-tab::before {
+  background: #3d2413;
+  border: 1px solid #211107;
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.65);
+}
+/* Space tab (4th tab) has brushed champagne-brass finish when not selected */
+:is([data-skin="shiraz"], [data-machine="shiraz"]) .synth-tab:last-child:not([aria-selected="true"]) {
+  background: var(--brass-plate);
+  color: #211305;
+  border-color: #4a3212;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 250, 225, 0.72),
+    0 2px 5px rgba(0, 0, 0, 0.65);
+}
+:is([data-skin="shiraz"], [data-machine="shiraz"]) .synth-tab:last-child:not([aria-selected="true"])::before {
+  background: #6b5226;
+  border-color: #463210;
+}
+/* Primary selected page tab glows warm gold */
+:is([data-skin="shiraz"], [data-machine="shiraz"]) .synth-tab[aria-selected="true"] {
+  background: linear-gradient(180deg, #ffe699 0%, #f5b942 52%, #d4891c 100%);
+  color: #241404;
+  font-weight: 800;
+  border-color: #fff2be;
+  box-shadow:
+    0 0 14px rgba(245, 185, 66, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+:is([data-skin="shiraz"], [data-machine="shiraz"]) .synth-tab[aria-selected="true"]::before {
+  background: #fffbe0;
+  border-color: #d48e1c;
+  box-shadow: 0 0 6px #fffbe0, 0 0 10px rgba(255, 240, 160, 0.95);
+}
+
+/* ------------------------------------------------------------
+   Shiraz Section Cards: Screwed Brushed-Brass Nameplate & 3D Buttons
+   ------------------------------------------------------------ */
+:is([data-skin="shiraz"], [data-machine="shiraz"]) .synth-sec h4 {
+  background:
+    var(--shiraz-screw) 8px 50% / 11px 11px no-repeat,
+    var(--shiraz-screw) calc(100% - 8px) 50% / 11px 11px no-repeat,
+    var(--brass-plate);
   border: 1px solid #6b4c14;
-  box-shadow: inset 0 1px 0 rgba(255,250,225,0.65), 0 1px 2px rgba(0,0,0,0.35);
-  color: #231505;
-  text-shadow: 0 1px 0 rgba(255,245,210,0.55);
+  border-radius: 5px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 250, 225, 0.72),
+    0 2px 4px rgba(0, 0, 0, 0.42);
+  color: #211305;
+  font-family: var(--font-head);
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-shadow: 0 1px 0 rgba(255, 245, 210, 0.55);
   text-align: center;
+}
+
+/* Instrument model selector & RIZ toggle buttons */
+:is([data-skin="shiraz"], [data-machine="shiraz"]) .synth-choice {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  padding: 0;
+  gap: 6px;
+}
+:is([data-skin="shiraz"], [data-machine="shiraz"]) .synth-choice-btn {
+  border-radius: 5px;
+  border: 1.5px solid #241207;
+  background: linear-gradient(180deg, #6e462d 0%, #4e2f1c 55%, #382011 100%);
+  color: #eddac0;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 225, 190, 0.28),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.55),
+    0 2px 4px rgba(0, 0, 0, 0.55);
+  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.75);
 }
 :is([data-skin="shiraz"], [data-machine="shiraz"]) .synth-choice[data-param="strModel"] .synth-choice-btn {
   font-size: 0.68rem;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.03em;
 }
-:is([data-skin="shiraz"], [data-machine="shiraz"]) .synth-midi-bar {
-  background: rgba(30,16,8,0.72);
-  border-color: #7d5b22;
+:is([data-skin="shiraz"], [data-machine="shiraz"]) .synth-choice-btn.active {
+  background: linear-gradient(180deg, #ffe596 0%, #f5b63e 52%, #d4881c 100%);
+  color: #221304;
+  border-color: #ffefb8;
+  box-shadow:
+    0 0 12px rgba(245, 182, 62, 0.65),
+    inset 0 1px 1px rgba(255, 255, 255, 0.82),
+    0 2px 4px rgba(0, 0, 0, 0.55);
+  text-shadow: 0 1px 0 rgba(255, 245, 210, 0.5);
 }
+:is([data-skin="shiraz"], [data-machine="shiraz"]) .synth-param-select {
+  background: linear-gradient(180deg, #4d2e1b 0%, #341d10 100%);
+  color: #f6e7ce;
+  border: 1.5px solid #78502b;
+  border-radius: 5px;
+  font-weight: 700;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.7);
+}
+
+/* ------------------------------------------------------------
+   Shiraz 3D Spun-Brass Knobs with Radial Tick Ring
+   ------------------------------------------------------------ */
+:is([data-skin="shiraz"], [data-machine="shiraz"]) {
+  --ring-pad: 0px;
+}
+:is([data-skin="shiraz"], [data-machine="shiraz"]) :is(.sk-scale, .sk-skirt, .sk-cap) {
+  display: block;
+}
+:is([data-skin="shiraz"], [data-machine="shiraz"]) .sk-num {
+  display: none;
+}
+:is([data-skin="shiraz"], [data-machine="shiraz"]) .sk-tick {
+  stroke: #3b220e;
+  stroke-width: 1.35;
+  opacity: 0.85;
+}
+:is([data-skin="shiraz"], [data-machine="shiraz"]) .sk-tick.is-major {
+  stroke-width: 1.8;
+  opacity: 0.95;
+}
+:is([data-skin="shiraz"], [data-machine="shiraz"]) .sk-dial {
+  background: transparent;
+  box-shadow: none;
+}
+:is([data-skin="shiraz"], [data-machine="shiraz"]) .sk-dial::before {
+  display: none;
+  inset: 0;
+}
+:is([data-skin="shiraz"], [data-machine="shiraz"]) .sk-skirt {
+  position: absolute;
+  inset: 14%;
+  border-radius: 50%;
+  background: var(--knob-skirt);
+  border: 1.5px solid #5a3a18;
+  box-shadow:
+    0 5px 9px rgba(0, 0, 0, 0.62),
+    inset 0 1px 0 rgba(255, 235, 185, 0.35);
+  z-index: 2;
+}
+:is([data-skin="shiraz"], [data-machine="shiraz"]) .sk-cap {
+  position: absolute;
+  inset: 21%;
+  border-radius: 50%;
+  background: var(--knob-cap);
+  box-shadow:
+    inset 0 1px 1px rgba(255, 250, 225, 0.9),
+    inset 0 -1px 2px rgba(65, 38, 6, 0.65),
+    0 2px 4px rgba(0, 0, 0, 0.7);
+  z-index: 3;
+}
+:is([data-skin="shiraz"], [data-machine="shiraz"]) .sk-rotor {
+  position: absolute;
+  inset: 21%;
+  z-index: 4;
+  pointer-events: none;
+}
+/* Small secondary knobs (SPEED, COURSES, DETUNE): clean spun-brass cap without outer tick marks */
+:is([data-skin="shiraz"], [data-machine="shiraz"]) .sk-row-small .sk-scale {
+  display: none;
+}
+:is([data-skin="shiraz"], [data-machine="shiraz"]) .sk-row-small .sk-skirt {
+  inset: 8%;
+}
+:is([data-skin="shiraz"], [data-machine="shiraz"]) .sk-row-small .sk-cap,
+:is([data-skin="shiraz"], [data-machine="shiraz"]) .sk-row-small .sk-rotor {
+  inset: 16%;
+}
+:is([data-skin="shiraz"], [data-machine="shiraz"]) .sk-ind {
+  position: absolute;
+  top: 5%;
+  left: 50%;
+  width: 2.2px;
+  height: 44%;
+  margin-left: -1.1px;
+  background: #1e1105;
+  border-radius: 1px;
+  box-shadow: 0 0 1px rgba(255, 240, 195, 0.45);
+}
+:is([data-skin="shiraz"], [data-machine="shiraz"]) .sk-label {
+  color: #1c1006;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-shadow: 0 1px 0 rgba(255, 235, 200, 0.35);
+}
+:is([data-skin="shiraz"], [data-machine="shiraz"]) .sk-val {
+  color: #261609;
+  font-weight: 700;
+  text-shadow: 0 1px 0 rgba(255, 235, 200, 0.3);
+}
+:is([data-skin="shiraz"], [data-machine="shiraz"]) .sk-row {
+  justify-content: space-evenly;
+  width: 100%;
+}
+:is([data-skin="shiraz"], [data-machine="shiraz"]) .sk {
+  --fit: calc((100cqw - (var(--cols) - 1) * var(--sp-1)) / var(--cols));
+  --k: min(var(--k-in, 54px), calc(var(--fit) - 2px));
+  width: var(--fit);
+  padding: 0;
+}
+
+/* Desktop & Tablet Layout for Shiraz (2-column Strike + String view matching screenshot) */
+@media (min-width: 761px) and (min-height: 561px) {
+  /* Force fitPanel() to engage is-fit-paged so STRIKE and STRING sit side-by-side in 1 full-height row */
+  .sy1-shell:not(.is-fit-paged) .synth-panel[data-machine="shiraz"] .synth-sec {
+    min-height: 58vh;
+  }
+  .sy1-shell.is-fit-paged .synth-panel[data-machine="shiraz"] .synth-sections {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    grid-auto-rows: minmax(0, 1fr);
+  }
+  .sy1-shell.is-fit-paged .synth-panel[data-machine="shiraz"][data-count="3"] .synth-sections {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+  .sy1-shell.is-fit-paged .synth-panel[data-machine="shiraz"] .synth-sec {
+    container-type: size;
+    justify-content: space-between;
+  }
+  .sy1-shell.is-fit-paged .synth-panel[data-machine="shiraz"] .synth-sec > h4 + * {
+    margin-top: auto;
+  }
+  .sy1-shell.is-fit-paged .synth-panel[data-machine="shiraz"] .synth-sec > :last-child {
+    margin-bottom: auto;
+  }
+  .sy1-shell.is-fit-paged .synth-panel[data-machine="shiraz"] .synth-sec:not(:has(> .sk-row ~ .sk-row)) .sk-row:not(.sk-row-small) {
+    --k-in: clamp(42px, min(20cqw, 26cqh), 62px);
+  }
+  .sy1-shell.is-fit-paged .synth-panel[data-machine="shiraz"] .synth-sec:has(> .sk-row ~ .sk-row) .sk-row:not(.sk-row-small) {
+    --k-in: clamp(34px, min(18cqw, 22cqh), 56px);
+  }
+  .sy1-shell.is-fit-paged .synth-panel[data-machine="shiraz"] .synth-sec .sk-row-small {
+    --k-in: clamp(26px, min(14cqw, 16cqh), 42px);
+  }
+}
+
+/* Portrait tablet (768x1000) when 3 sections are visible */
+@media (min-width: 761px) and (max-width: 860px) and (orientation: portrait) {
+  .sy1-shell.is-fit-paged .synth-panel[data-machine="shiraz"][data-count="3"] .synth-sections {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+  .sy1-shell.is-fit-paged .synth-panel[data-machine="shiraz"][data-count="3"] .synth-sec.is-page-first {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-height: 560px) and (orientation: landscape) {
+  :is([data-skin="shiraz"], [data-machine="shiraz"]) .synth-machine-select {
+    padding: 1px 18px 1px 6px;
+    font-size: 0.76rem;
+  }
+}
+
+/* ------------------------------------------------------------
+   Shiraz Brushed Brass Performance Bar (.kb-bar), Badge & Wheel Bay
+   ------------------------------------------------------------ */
+:is([data-skin="shiraz"], [data-machine="shiraz"]) .kb-bar {
+  background:
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.04) 0 1px, rgba(0, 0, 0, 0.03) 1px 3px),
+    linear-gradient(180deg, #cbb074 0%, #b39252 50%, #967638 100%);
+  border: 1.5px solid #5a3c16;
+  border-radius: 6px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 248, 220, 0.65),
+    inset 0 -1px 0 rgba(40, 22, 6, 0.6),
+    0 3px 8px rgba(0, 0, 0, 0.65);
+}
+:is([data-skin="shiraz"], [data-machine="shiraz"]) .kb-bar .kb-btn {
+  background: linear-gradient(180deg, #c9ab6e 0%, #a8884a 55%, #8c6c32 100%);
+  color: #1d1105;
+  border: 1.5px solid #4a3112;
+  border-radius: 6px;
+  font-weight: 800;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 248, 220, 0.55),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.35),
+    0 2px 4px rgba(0, 0, 0, 0.45);
+}
+:is([data-skin="shiraz"], [data-machine="shiraz"]) .kb-bar .kb-btn:active,
+:is([data-skin="shiraz"], [data-machine="shiraz"]) .kb-bar .kb-btn.active,
+:is([data-skin="shiraz"], [data-machine="shiraz"]) .kb-bar .kb-btn[aria-pressed="true"],
+:is([data-skin="shiraz"], [data-machine="shiraz"]) .kb-bar .kb-or.active {
+  background: linear-gradient(180deg, #f7c660 0%, #dc962c 55%, #b87416 100%);
+  color: #1f1103;
+  border-color: #4a2e0d;
+  box-shadow:
+    0 0 10px rgba(240, 178, 58, 0.55),
+    inset 0 1px 0 rgba(255, 250, 220, 0.78);
+}
+:is([data-skin="shiraz"], [data-machine="shiraz"]) .kb-bar .kb-or.active .kb-or-lbl {
+  display: inline;
+}
+:is([data-skin="shiraz"], [data-machine="shiraz"]) .kb-bar .kb-or.active .kb-or-scale {
+  display: none;
+}
+:is([data-skin="shiraz"], [data-machine="shiraz"]) .kb-bar .kb-or.active .kb-or-dot {
+  background: #fff8d6;
+  box-shadow: 0 0 6px #fff8d6, 0 0 10px rgba(255, 230, 130, 0.95);
+}
+:is([data-skin="shiraz"], [data-machine="shiraz"]) .kb-range {
+  color: #1d1105;
+  font-weight: 800;
+  text-shadow: 0 1px 0 rgba(255, 240, 200, 0.4);
+}
+
+/* Recessed Walnut & Brass Machine Badge */
+:is([data-skin="shiraz"], [data-machine="shiraz"]) .kb-machine-badge {
+  background: linear-gradient(180deg, #3b2211 0%, #241308 100%);
+  border: 1.5px solid #b89248;
+  border-radius: 6px;
+  padding: 4px 12px;
+  box-shadow:
+    inset 0 1px 3px rgba(0, 0, 0, 0.75),
+    0 1px 0 rgba(255, 245, 210, 0.45);
+}
+:is([data-skin="shiraz"], [data-machine="shiraz"]) .kb-machine-emblem {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 38% 35%, #fff6cc 0%, #f5b942 55%, #c48218 100%);
+  box-shadow: 0 0 8px rgba(245, 185, 66, 0.9);
+}
+:is([data-skin="shiraz"], [data-machine="shiraz"]) .kb-machine-name {
+  color: #fbf0db;
+  font-family: var(--font-head);
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+:is([data-skin="shiraz"], [data-machine="shiraz"]) .kb-machine-sep {
+  color: #d4ad60;
+}
+:is([data-skin="shiraz"], [data-machine="shiraz"]) .kb-machine-role {
+  color: #f3e2c3;
+  font-weight: 600;
+}
+
+/* Antique Bronze Wheel Bay with 4 Slotted Corner Screws */
+:is([data-skin="shiraz"], [data-machine="shiraz"]) .kb-wheels {
+  background:
+    var(--shiraz-screw) 6px 6px / 10px 10px no-repeat,
+    var(--shiraz-screw) calc(100% - 6px) 6px / 10px 10px no-repeat,
+    var(--shiraz-screw) 6px calc(100% - 6px) / 10px 10px no-repeat,
+    var(--shiraz-screw) calc(100% - 6px) calc(100% - 6px) / 10px 10px no-repeat,
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.025) 0 1px, transparent 1px 3px),
+    linear-gradient(180deg, #5e482b 0%, #46341d 55%, #342513 100%);
+  border: 1.5px solid #241508;
+  border-radius: 6px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 235, 190, 0.32),
+    0 4px 10px rgba(0, 0, 0, 0.7);
+}
+:is([data-skin="shiraz"], [data-machine="shiraz"]) .kb-wheel {
+  border: 1.5px solid #1e1207;
+  background:
+    repeating-linear-gradient(
+      180deg,
+      rgba(255, 235, 195, 0.22) 0px,
+      rgba(255, 235, 195, 0.22) 1.5px,
+      rgba(22, 14, 7, 0.88) 1.5px,
+      rgba(22, 14, 7, 0.88) 4px
+    ),
+    linear-gradient(180deg, #1e140b 0%, #5e4b36 28%, #8c7558 50%, #52402c 72%, #1a1109 100%);
+}
+:is([data-skin="shiraz"], [data-machine="shiraz"]) .kb-wheel-thumb {
+  background: linear-gradient(180deg, #d8c298 0%, #8f764c 48%, #4a3920 100%);
+  border: 1px solid #24180b;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.85), inset 0 1px 0 rgba(255, 245, 215, 0.7);
+}
+:is([data-skin="shiraz"], [data-machine="shiraz"]) .kb-wheel-label {
+  color: #1a1006;
+  font-weight: 800;
+  text-shadow: 0 1px 0 rgba(255, 230, 185, 0.25);
+}
+
 :is([data-skin="shiraz"], [data-machine="shiraz"]) .kb {
-  border-width: 2px;
-  box-shadow: 0 0 0 1px #8f6829, 0 8px 20px rgba(0,0,0,0.6);
+  border: 2px solid #3a2210;
+  box-shadow:
+    0 0 0 1px #8f6829,
+    0 8px 20px rgba(0, 0, 0, 0.65);
+}
+:is([data-skin="shiraz"], [data-machine="shiraz"]) .key:not(.black):not(.pad) .key-lbl {
+  color: #70583b;
+  font-weight: 700;
+  font-size: 0.64rem;
+}
+
+/* ------------------------------------------------------------
+   Shiraz Sound Library (.lib-pop) & Popovers:
+   Clean, dark, high-contrast & readable like the other synths
+   ------------------------------------------------------------ */
+:is([data-skin="shiraz"], [data-machine="shiraz"]) .lib-pop {
+  background: #17120e;
+  border: 1.5px solid #d4a24c;
+  color: #f6ede0;
+}
+:is([data-skin="shiraz"], [data-machine="shiraz"]) .lib-pop::before {
+  background: linear-gradient(180deg, #211a14 0%, #16110d 100%);
+}
+:is([data-skin="shiraz"], [data-machine="shiraz"]) .lib-head {
+  background: rgba(18, 13, 9, 0.65);
+  border-bottom: 1px solid #3d2e20;
+}
+:is([data-skin="shiraz"], [data-machine="shiraz"]) .lib-title b {
+  color: #fbf3e4;
+}
+:is([data-skin="shiraz"], [data-machine="shiraz"]) .lib-title span {
+  color: #d8c29d;
+}
+:is([data-skin="shiraz"], [data-machine="shiraz"]) .lib-search {
+  background: #120e0a;
+  border: 1px solid #4a3826;
+  color: #cbb694;
+}
+:is([data-skin="shiraz"], [data-machine="shiraz"]) .lib-q {
+  color: #fbf3e4;
+}
+:is([data-skin="shiraz"], [data-machine="shiraz"]) .lib-cats {
+  border-color: #3d2e20;
+}
+:is([data-skin="shiraz"], [data-machine="shiraz"]) .lib-cat {
+  color: #e6d6bc;
+}
+:is([data-skin="shiraz"], [data-machine="shiraz"]) .lib-count {
+  color: #b5a082;
+}
+:is([data-skin="shiraz"], [data-machine="shiraz"]) .lib-cat.active {
+  background: #2e2319;
+  color: #fff6e6;
+  box-shadow: inset 3px 0 0 #f0b23a;
+}
+:is([data-skin="shiraz"], [data-machine="shiraz"]) .lib-cat.active .lib-count {
+  color: #f0b23a;
+}
+:is([data-skin="shiraz"], [data-machine="shiraz"]) .lib-tile {
+  background: linear-gradient(180deg, #281f17 0%, #1f1812 100%);
+  border: 1px solid #463524;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 2px 6px rgba(0, 0, 0, 0.4);
+  color: #fbf3e4;
+}
+:is([data-skin="shiraz"], [data-machine="shiraz"]) .lib-tile.active {
+  border-color: #f0b23a;
+  box-shadow: 0 0 0 1px #f0b23a, 0 0 14px rgba(240, 178, 58, 0.35);
+}
+:is([data-skin="shiraz"], [data-machine="shiraz"]) .lib-name {
+  color: #fbf3e4;
+}
+:is([data-skin="shiraz"], [data-machine="shiraz"]) .lib-sub {
+  color: #e5b95c;
+}
+:is([data-skin="shiraz"], [data-machine="shiraz"]) .lib-fav {
+  color: #cbb694;
+}
+:is([data-skin="shiraz"], [data-machine="shiraz"]) .lib-fav.on {
+  color: #f0b23a;
+}
+
+/* Keep Oriental & ARP popovers readable on Shiraz as well */
+:is([data-skin="shiraz"], [data-machine="shiraz"]) :is(.or-inner, .arp-pop-inner) {
+  background: linear-gradient(180deg, #261c14 0%, #1b140e 100%);
+  color: #f8eed8;
+}
+:is([data-skin="shiraz"], [data-machine="shiraz"]) :is(.or-head h4, .arp-pop-head h4, .or-label, .or-cent-note) {
+  color: #f5ca69;
+}
+:is([data-skin="shiraz"], [data-machine="shiraz"]) .or-note {
+  background: #2e2218;
+  border-color: #523d29;
+  color: #f8eed8;
 }
 
 
@@ -3252,36 +5315,32 @@
 
 /* 1. SY-1 — Dark studio anodised aluminium + warm amber LED bar */
 :is([data-skin="sy1"], [data-machine="sy1"]) .kb-machine-badge {
-  background: linear-gradient(180deg, #1b1922 0%, #121017 100%);
-  border-color: rgba(242, 179, 61, 0.35);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  background: linear-gradient(180deg, #1b1712 0%, #120f0b 100%);
+  border: 1.5px solid rgba(228, 152, 42, 0.55);
+  border-radius: 6px;
+  padding: 4px 12px;
+  box-shadow:
+    inset 0 1px 3px rgba(0, 0, 0, 0.8),
+    0 1px 0 rgba(255, 255, 255, 0.06);
 }
 :is([data-skin="sy1"], [data-machine="sy1"]) .kb-machine-emblem {
-  width: 4px;
+  width: 3.5px;
   height: 14px;
   border-radius: 2px;
-  background: #f2b33d;
-  box-shadow: 0 0 8px rgba(242, 179, 61, 0.85);
+  background: #ffb238;
+  box-shadow: 0 0 8px rgba(255, 174, 43, 0.92);
 }
-
-/* 2. YAZD — 70s walnut & cream analog mono with dual gold pinstripe */
-:is([data-skin="yazd"], [data-machine="yazd"]) .kb-machine-badge {
-  background: linear-gradient(180deg, #2b1d14 0%, #1c120c 100%);
-  border: 1px solid #c9963e;
-  box-shadow: inset 0 0 0 1px rgba(201, 150, 62, 0.25);
+:is([data-skin="sy1"], [data-machine="sy1"]) .kb-machine-name {
+  color: #f5ab3c;
+  font-weight: 800;
 }
-:is([data-skin="yazd"], [data-machine="yazd"]) .kb-machine-emblem {
-  width: 12px;
-  height: 8px;
-  border-radius: 1px;
-  background: linear-gradient(180deg, #e5b55c 0 28%, transparent 28% 72%, #e5b55c 72% 100%);
-  box-shadow: none;
+:is([data-skin="sy1"], [data-machine="sy1"]) .kb-machine-sep {
+  color: #c98e32;
 }
-:is([data-skin="yazd"], [data-machine="yazd"]) .kb-machine-name {
-  color: #f3d28c;
-  letter-spacing: 0.12em;
+:is([data-skin="sy1"], [data-machine="sy1"]) .kb-machine-role {
+  color: #e8b35e;
+  font-weight: 700;
 }
-
 
 /* 4. BAKU — 80s synthwave neon magenta & cyan chrome */
 :is([data-skin="baku"], [data-machine="baku"]) .kb-machine-badge {
@@ -3324,51 +5383,6 @@
 :is([data-skin="merv"], [data-machine="merv"]) .kb-machine-name {
   letter-spacing: 0.16em;
   text-transform: uppercase;
-}
-
-/* 6. ISFAHAN — Royal cobalt dome & gilded manuscript frame */
-:is([data-skin="isfahan"], [data-machine="isfahan"]) .kb-machine-badge {
-  background: linear-gradient(180deg, #10244a 0%, #0a1731 100%);
-  border: 1px solid #e2b857;
-  border-radius: 999px;
-  box-shadow: inset 0 0 0 1px rgba(226, 184, 87, 0.25);
-}
-:is([data-skin="isfahan"], [data-machine="isfahan"]) .kb-machine-emblem {
-  width: 10px;
-  height: 10px;
-  border-radius: 50% 50% 2px 2px;
-  background: radial-gradient(circle at 50% 35%, #ffe699, #c9972c);
-  box-shadow: 0 0 6px rgba(226, 184, 87, 0.6);
-}
-:is([data-skin="isfahan"], [data-machine="isfahan"]) .kb-machine-name {
-  color: #f7d983;
-}
-
-/* 7. SHIRAZ — Engraved antique brass plaque with rivet emblem */
-:is([data-skin="shiraz"], [data-machine="shiraz"]) .kb-machine-badge {
-  background:
-    linear-gradient(180deg, #d8b265 0%, #b88a36 52%, #9d7124 100%);
-  border: 1px solid #5a3b10;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 244, 210, 0.65),
-    0 1px 3px rgba(0, 0, 0, 0.45);
-}
-:is([data-skin="shiraz"], [data-machine="shiraz"]) .kb-machine-emblem {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: radial-gradient(circle at 35% 35%, #fff0c2, #6e4914);
-  border: 1px solid #4a300a;
-  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.5);
-}
-:is([data-skin="shiraz"], [data-machine="shiraz"]) .kb-machine-name {
-  color: #261604;
-  text-shadow: 0 1px 0 rgba(255, 240, 195, 0.55);
-  letter-spacing: 0.12em;
-}
-:is([data-skin="shiraz"], [data-machine="shiraz"]) .kb-machine-sep,
-:is([data-skin="shiraz"], [data-machine="shiraz"]) .kb-machine-role {
-  color: #3d2408;
 }
 
 /* 8. KASHAN — 80s FM green backlit dot-matrix LCD window */
