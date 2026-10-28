@@ -5947,136 +5947,834 @@
 
 
 /* ------------------------------------------------------------
-   NISHAPUR — dark glassmorphism vector morph synth
-   Frosted translucent panels over a deep navy-violet nebula,
-   cyan -> violet luminous knob rings, soft coloured glows,
-   and crisp luminous vector HUD telemetry.
+   NISHAPUR — Dark Obsidian & Persian Turquoise Vector Morph Synth
+   Matte obsidian-slate aluminum chassis with bevelled Nishapur
+   turquoise gemstone side inlays & corner screws, wide cyan wave
+   oscilloscope, glowing aqua Vector tab & twilight-indigo page tabs,
+   Persian geometric star mandala behind the XY vector morph pad,
+   cyan-to-violet active orbit controls, brushed metal rotary knobs
+   with cyan & violet neon value arcs, neon-edged PB/MOD wheels,
+   cyan-bevelled black keys, and a high-contrast readable sound library.
    ------------------------------------------------------------ */
 [data-skin="nishapur"],
 [data-machine="nishapur"] {
   --kb-btn-ink: #eaf6ff;
-  --midi-btn-ink: #eaf6ff;
+  --midi-btn-ink: #dce6f8;
   --font-ui: "Avenir Next", "Inter", "Segoe UI", Roboto, sans-serif;
   --font-head: "Avenir Next", "Inter", "Segoe UI", sans-serif;
 
-  --page-bg: #070614;
+  /* Dark recessed hex/Phillips chassis screw SVG */
+  --nishapur-screw: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cdefs%3E%3CradialGradient id='ns' cx='35%25' cy='30%25' r='70%25'%3E%3Cstop offset='0%25' stop-color='%23384357'/%3E%3Cstop offset='60%25' stop-color='%231c222e'/%3E%3Cstop offset='100%25' stop-color='%230c0f16'/%3E%3C/radialGradient%3E%3C/defs%3E%3Ccircle cx='8' cy='8' r='6.8' fill='%2310141d' stroke='%232e3848' stroke-width='0.8'/%3E%3Ccircle cx='8' cy='8' r='5.1' fill='url(%23ns)' stroke='%23080a0f' stroke-width='0.9'/%3E%3Cpath d='M5.3 8h5.4M8 5.3v5.4' stroke='%23090c12' stroke-width='1.5' stroke-linecap='round'/%3E%3Cpath d='M5.6 8.3h4.8M8.3 5.6v4.8' stroke='%23586a88' stroke-opacity='0.35' stroke-width='0.6' stroke-linecap='round'/%3E%3C/svg%3E");
+
+  /* Left & right obsidian side rail with bevelled Persian Nishapur turquoise stone inlay */
+  --nishapur-rail-left: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='640' viewBox='0 0 32 640' preserveAspectRatio='none'%3E%3Cdefs%3E%3ClinearGradient id='tq' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%235ef6f8'/%3E%3Cstop offset='28%25' stop-color='%2329cbd4'/%3E%3Cstop offset='62%25' stop-color='%231694a4'/%3E%3Cstop offset='100%25' stop-color='%230d5868'/%3E%3C/linearGradient%3E%3ClinearGradient id='bevTop' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%2388ffff'/%3E%3Cstop offset='100%25' stop-color='%231ba6b4'/%3E%3C/linearGradient%3E%3ClinearGradient id='bevBot' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%23137686'/%3E%3Cstop offset='100%25' stop-color='%23072c36'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpolygon points='1,168 30,192 30,418 1,442' fill='url(%23tq)' stroke='%23081c24' stroke-width='1.2'/%3E%3Cpolygon points='1,168 30,192 23,198 1,180' fill='url(%23bevTop)' opacity='0.88'/%3E%3Cpolygon points='1,442 30,418 23,412 1,430' fill='url(%23bevBot)' opacity='0.9'/%3E%3Cpolygon points='23,198 30,192 30,418 23,412' fill='%234ef2f8' opacity='0.35'/%3E%3Cg fill='none' stroke='%23102229' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2,215 L14,228 L28,222 M14,228 L19,254 L6,272 L24,292 L29,286' stroke-width='2.2' opacity='0.78'/%3E%3Cpath d='M19,254 L29,260 M6,272 L2,282' stroke-width='1.4' opacity='0.65'/%3E%3Cpath d='M3,328 L16,340 L29,332 M16,340 L11,368 L26,385 L14,408' stroke-width='2.4' opacity='0.82'/%3E%3Cpath d='M11,368 L2,376 M26,385 L30,394' stroke-width='1.3' opacity='0.65'/%3E%3C/g%3E%3Cline x1='29.2' y1='192' x2='29.2' y2='418' stroke='%2388ffff' stroke-width='1.2' opacity='0.8'/%3E%3C/svg%3E");
+
+  --nishapur-rail-right: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='640' viewBox='0 0 32 640' preserveAspectRatio='none'%3E%3Cdefs%3E%3ClinearGradient id='tq2' x1='100%25' y1='0%25' x2='0%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%235ef6f8'/%3E%3Cstop offset='28%25' stop-color='%2329cbd4'/%3E%3Cstop offset='62%25' stop-color='%231694a4'/%3E%3Cstop offset='100%25' stop-color='%230d5868'/%3E%3C/linearGradient%3E%3ClinearGradient id='bevTop2' x1='100%25' y1='0%25' x2='0%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%2388ffff'/%3E%3Cstop offset='100%25' stop-color='%231ba6b4'/%3E%3C/linearGradient%3E%3ClinearGradient id='bevBot2' x1='100%25' y1='0%25' x2='0%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%23137686'/%3E%3Cstop offset='100%25' stop-color='%23072c36'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpolygon points='31,168 2,192 2,418 31,442' fill='url(%23tq2)' stroke='%23081c24' stroke-width='1.2'/%3E%3Cpolygon points='31,168 2,192 9,198 31,180' fill='url(%23bevTop2)' opacity='0.88'/%3E%3Cpolygon points='31,442 2,418 9,412 31,430' fill='url(%23bevBot2)' opacity='0.9'/%3E%3Cpolygon points='9,198 2,192 2,418 9,412' fill='%234ef2f8' opacity='0.35'/%3E%3Cg fill='none' stroke='%23102229' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M30,210 L17,225 L3,218 M17,225 L12,252 L25,270 L8,290 L3,284' stroke-width='2.2' opacity='0.78'/%3E%3Cpath d='M12,252 L3,258 M25,270 L30,280' stroke-width='1.4' opacity='0.65'/%3E%3Cpath d='M29,324 L15,338 L3,330 M15,338 L21,366 L6,384 L18,406' stroke-width='2.4' opacity='0.82'/%3E%3Cpath d='M21,366 L30,374 M6,384 L2,392' stroke-width='1.3' opacity='0.65'/%3E%3C/g%3E%3Cline x1='2.8' y1='192' x2='2.8' y2='418' stroke='%2388ffff' stroke-width='1.2' opacity='0.8'/%3E%3C/svg%3E");
+
+  /* Intricate Persian 16-point geometric star mandala radiating behind the Vector XY pad */
+  --nishapur-mandala: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 260'%3E%3Cg fill='none' stroke='%2368d8ff' stroke-width='0.75' opacity='0.34'%3E%3Cpolygon points='200,4 226,84 304,34 266,108 366,96 286,144 388,166 286,184 356,238 262,208 286,256 218,224 200,256 182,224 114,256 138,208 44,238 114,184 12,166 114,144 34,96 134,108 96,34 174,84'/%3E%3Cpolygon points='200,18 238,94 328,58 276,122 374,130 276,138 328,202 238,166 200,242 162,166 72,202 124,138 26,130 124,122 72,58 162,94' stroke='%239988ff' opacity='0.85'/%3E%3Cpolygon points='200,32 252,102 346,86 282,130 346,174 252,158 200,228 148,158 54,174 118,130 54,86 148,102'/%3E%3Crect x='110' y='40' width='180' height='180' transform='rotate(22.5 200 130)' stroke-opacity='0.5'/%3E%3Crect x='110' y='40' width='180' height='180' transform='rotate(45 200 130)' stroke-opacity='0.6'/%3E%3Crect x='110' y='40' width='180' height='180' transform='rotate(67.5 200 130)' stroke-opacity='0.5'/%3E%3Ccircle cx='200' cy='130' r='118' stroke-opacity='0.4'/%3E%3Cline x1='8' y1='130' x2='392' y2='130' stroke-opacity='0.45'/%3E%3Cline x1='30' y1='60' x2='370' y2='200' stroke-opacity='0.35'/%3E%3Cline x1='30' y1='200' x2='370' y2='60' stroke-opacity='0.35'/%3E%3C/g%3E%3C/svg%3E");
+
+  --page-bg: #0c0f17;
   --ink: #f0f6ff;
-  --ink-dim: #a9b8dc;
-  --ink-faint: #7888b4;
+  --ink-dim: #a4b6d0;
+  --ink-faint: #7386a4;
 
-  --accent: #38e8ff;
-  --accent-2: #b46cff;
-  --accent-ink: #06101e;
-  --accent-glow: rgba(56, 232, 255, 0.72);
-  --accent-glow-soft: rgba(56, 232, 255, 0.28);
+  --accent: #38f2ff;
+  --accent-2: #9b64ff;
+  --accent-ink: #051c24;
+  --accent-glow: rgba(56, 242, 255, 0.78);
+  --accent-glow-soft: rgba(56, 242, 255, 0.3);
 
+  /* Dark Matte Obsidian-Slate Chassis */
   --shell-bg:
-    radial-gradient(circle at 18% 16%, rgba(56, 232, 255, 0.16), transparent 44%),
-    radial-gradient(circle at 82% 24%, rgba(180, 108, 255, 0.2), transparent 48%),
-    radial-gradient(circle at 52% 85%, rgba(92, 118, 255, 0.15), transparent 52%),
-    linear-gradient(165deg, #0b0920 0%, #070614 55%, #110c29 100%);
+    radial-gradient(circle at 50% 0%, rgba(72, 224, 255, 0.08) 0%, transparent 55%),
+    linear-gradient(180deg, #1d2330 0%, #151923 55%, #0f131b 100%);
+
+  /* Dark Slate-Navy Faceplate with Glowing Cyan Hairline Frame */
   --panel-bg:
-    linear-gradient(145deg, rgba(28, 34, 74, 0.62) 0%, rgba(15, 16, 42, 0.56) 55%, rgba(28, 19, 58, 0.62) 100%);
-  --panel-border: rgba(146, 198, 255, 0.28);
-  --panel-radius: 16px;
+    radial-gradient(circle at 24% 48%, rgba(56, 232, 255, 0.08) 0%, transparent 48%),
+    radial-gradient(circle at 78% 42%, rgba(155, 100, 255, 0.08) 0%, transparent 48%),
+    linear-gradient(180deg, #212838 0%, #191f2d 55%, #151a26 100%);
+  --panel-border: rgba(74, 224, 245, 0.45);
+  --panel-radius: 12px;
   --panel-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.18),
-    0 16px 38px rgba(3, 2, 12, 0.65),
-    0 0 28px rgba(56, 232, 255, 0.08);
+    inset 0 0 14px rgba(56, 232, 255, 0.14),
+    inset 0 1px 0 rgba(160, 240, 255, 0.28),
+    0 0 0 1px rgba(16, 24, 36, 0.95),
+    0 14px 32px rgba(0, 0, 0, 0.7);
 
+  /* Frosted Dark Slate-Navy Section Cards */
   --sec-bg:
-    linear-gradient(160deg, rgba(34, 42, 88, 0.52) 0%, rgba(16, 18, 46, 0.48) 100%);
-  --sec-border: rgba(156, 206, 255, 0.24);
-  --sec-radius: 12px;
+    linear-gradient(180deg, rgba(40, 49, 68, 0.78) 0%, rgba(26, 32, 46, 0.86) 100%);
+  --sec-border: rgba(96, 136, 172, 0.38);
+  --sec-radius: 10px;
   --sec-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.14),
-    0 4px 16px rgba(4, 3, 16, 0.42);
-  --sec-head: #bcefff;
+    inset 0 1px 0 rgba(200, 235, 255, 0.12),
+    0 6px 18px rgba(4, 6, 14, 0.48);
+  --sec-head: #a8bed8;
 
-  --btn-bg: linear-gradient(180deg, rgba(46, 56, 110, 0.72) 0%, rgba(24, 28, 64, 0.78) 100%);
-  --btn-ink: #eaf6ff;
-  --btn-border: rgba(140, 192, 255, 0.34);
-  --ctl-bg: rgba(15, 18, 44, 0.72);
-  --ctl-ink: #c6d8f8;
-  --choice-active-bg: linear-gradient(135deg, rgba(56, 232, 255, 0.34) 0%, rgba(180, 108, 255, 0.38) 100%);
+  /* Deep Indigo-Navy Control Buttons */
+  --btn-bg: linear-gradient(180deg, #283044 0%, #1b2130 100%);
+  --btn-ink: #eaf4ff;
+  --btn-border: #3d4b64;
+  --ctl-bg: linear-gradient(180deg, #1d2234 0%, #141826 100%);
+  --ctl-ink: #dce4f8;
+  --choice-active-bg: linear-gradient(90deg, #29dcf0 0%, #5298f6 50%, #8d5cf6 100%);
   --choice-active-ink: #ffffff;
 
+  /* Wide Dark Obsidian-Navy Oscilloscope with Cyan Horizontal Bloom */
   --scope-bg:
-    radial-gradient(circle at 50% 50%, rgba(56, 232, 255, 0.12) 0%, rgba(180, 108, 255, 0.08) 48%, rgba(8, 9, 26, 0.94) 100%);
-  --scope-border: rgba(120, 214, 255, 0.36);
-  --scope-line: #49eeff;
-  --scope-grid: rgba(132, 198, 255, 0.16);
+    radial-gradient(ellipse 36% 62% at 22% 48%, rgba(56, 238, 255, 0.28) 0%, rgba(56, 210, 255, 0.08) 52%, transparent 78%),
+    radial-gradient(ellipse 80% 42% at 55% 52%, rgba(56, 215, 255, 0.16) 0%, transparent 72%),
+    linear-gradient(180deg, #0b111b 0%, #101a28 50%, #0b121c 100%);
+  --scope-border: #354960;
+  --scope-line: #5bf4ff;
+  --scope-grid: rgba(96, 195, 240, 0.12);
 
+  /* Brushed Gunmetal-Silver Rotary Knobs with Neon Cyan / Violet Value Arcs */
+  --knob-cap:
+    radial-gradient(circle at 32% 28%, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0) 36%),
+    conic-gradient(
+      from 30deg,
+      #a8b8cc 0deg,
+      #4a5668 55deg,
+      #cedbf0 115deg,
+      #343e4e 180deg,
+      #9cb0c8 240deg,
+      #3c4759 305deg,
+      #a8b8cc 360deg
+    );
+  --knob-skirt:
+    radial-gradient(circle at 50% 22%, rgba(160, 230, 255, 0.22) 0%, transparent 55%),
+    linear-gradient(180deg, #2b3546 0%, #151b26 100%);
   --knob-face:
     radial-gradient(circle at 34% 26%, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0) 36%),
-    radial-gradient(circle, #212752 0%, #121533 66%, #0b0d22 100%);
-  --knob-gap: rgba(10, 12, 30, 0.92);
-  --knob-edge: rgba(140, 196, 255, 0.36);
-  --knob-arc: #38e8ff;
-  --knob-track: rgba(146, 184, 255, 0.16);
-  --knob-arc-filter: drop-shadow(0 0 4px rgba(56, 232, 255, 0.65));
-  --knob-ind: #f2fbff;
-  --knob-ind-glow: rgba(56, 232, 255, 0.85);
-  --label-ink: #d8e8ff;
-  --value-ink: #8ceeff;
+    radial-gradient(circle, #283246 0%, #161c2a 66%, #0d111a 100%);
+  --knob-gap: #131824;
+  --knob-edge: rgba(112, 165, 210, 0.42);
+  --knob-arc: #38f2ff;
+  --knob-track: rgba(120, 155, 200, 0.15);
+  --knob-arc-filter: drop-shadow(0 0 5px rgba(56, 242, 255, 0.88));
+  --knob-ind: #ebfcff;
+  --knob-ind-glow: rgba(56, 242, 255, 0.9);
+  --label-ink: #b8cae0;
+  --value-ink: #dce8f8;
 
-  --key-white: linear-gradient(180deg, #eef5ff 0%, #d8e5fb 86%, #bfd2f2 100%);
-  --key-white-ink: #1e294a;
-  --key-black: linear-gradient(180deg, #252b58 0%, #141736 70%, #0c0e24 100%);
-  --key-black-ink: #b9d9ff;
-  --key-line: rgba(120, 175, 245, 0.45);
-  --key-pressed: linear-gradient(180deg, #74f2ff 0%, #a56eff 100%);
-  --key-pressed-ink: #07091c;
+  /* Pearl-Alabaster White Keys & Cyan-Edged Glossy Obsidian Black Keys */
+  --key-white: linear-gradient(180deg, #dae4f0 0%, #cad6e4 78%, #b8c6d8 100%);
+  --key-white-ink: #546476;
+  --key-black: linear-gradient(180deg, #1e2632 0%, #10151e 68%, #090c12 100%);
+  --key-black-ink: #9beeff;
+  --key-line: #121822;
+  --key-pressed: linear-gradient(180deg, #7cf6ff 0%, #44d2f2 55%, #8c64ff 100%);
+  --key-pressed-ink: #061822;
 
-  --kb-white-top: #f4f8fe;
-  --kb-white-bottom: #dbe7f7;
-  --kb-black-top: #2b3562;
-  --kb-black-bottom: #11142e;
-  --kb-accent: #38e8ff;
+  --kb-white-top: #dce6f2;
+  --kb-white-bottom: #bccad9;
+  --kb-black-top: #222b38;
+  --kb-black-bottom: #0b0f16;
+  --kb-accent: #38f2ff;
   --kb-pattern: none;
-  --kb-frame: #10122e;
-  --kb-wheel: #1b214c;
+  --kb-frame: #121620;
+  --kb-wheel: #191f2c;
 
-  --led-off: #1a1f42;
-  --led-off-edge: rgba(138, 190, 255, 0.45);
+  --led-off: #1c2234;
+  --led-off-edge: rgba(116, 175, 225, 0.45);
 }
+
+/* ------------------------------------------------------------
+   Nishapur Chassis: Dark Obsidian Enclosure & Turquoise Stone Side Cheeks
+   ------------------------------------------------------------ */
+:is([data-skin="nishapur"], [data-machine="nishapur"]) .sy1-shell {
+  position: relative;
+  padding-left: clamp(24px, 2.8vw, 36px);
+  padding-right: clamp(24px, 2.8vw, 36px);
+  border: 2px solid #0d1017;
+  border-radius: 12px;
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.14),
+    inset 0 -3px 6px rgba(0, 0, 0, 0.8),
+    0 22px 48px rgba(0, 0, 0, 0.85);
+}
+:is([data-skin="nishapur"], [data-machine="nishapur"]) .sy1-shell::before,
+:is([data-skin="nishapur"], [data-machine="nishapur"]) .sy1-shell::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: clamp(20px, 2.3vw, 30px);
+  z-index: 6;
+  pointer-events: none;
+}
+:is([data-skin="nishapur"], [data-machine="nishapur"]) .sy1-shell::before {
+  left: 0;
+  border-radius: 10px 0 0 10px;
+  border-right: 1px solid #0b0e15;
+  background:
+    var(--nishapur-screw) center 18px / 14px 14px no-repeat,
+    var(--nishapur-rail-left) center center / 100% 100% no-repeat,
+    linear-gradient(90deg, #212736 0%, #181d28 65%, #11151e 100%);
+  box-shadow:
+    inset 1px 1px 0 rgba(255, 255, 255, 0.14),
+    3px 0 10px rgba(0, 0, 0, 0.65);
+}
+:is([data-skin="nishapur"], [data-machine="nishapur"]) .sy1-shell::after {
+  right: 0;
+  border-radius: 0 10px 10px 0;
+  border-left: 1px solid #0b0e15;
+  background:
+    var(--nishapur-screw) center 18px / 14px 14px no-repeat,
+    var(--nishapur-rail-right) center center / 100% 100% no-repeat,
+    linear-gradient(270deg, #212736 0%, #181d28 65%, #11151e 100%);
+  box-shadow:
+    inset -1px 1px 0 rgba(255, 255, 255, 0.14),
+    -3px 0 10px rgba(0, 0, 0, 0.65);
+}
+@media (max-width: 600px) {
+  :is([data-skin="nishapur"], [data-machine="nishapur"]) .sy1-shell {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+  :is([data-skin="nishapur"], [data-machine="nishapur"]) .sy1-shell::before,
+  :is([data-skin="nishapur"], [data-machine="nishapur"]) .sy1-shell::after {
+    width: 6px;
+    background: linear-gradient(180deg, #1b2230 0%, #29cbd4 32%, #1694a4 62%, #141924 100%);
+  }
+}
+
+:is([data-skin="nishapur"], [data-machine="nishapur"]) .synth-hint {
+  display: none;
+}
+
+/* ------------------------------------------------------------
+   Nishapur Top Bar: Frosted Teal Machine Select, Wide Cyan Wave
+   Oscilloscope & Twilight-Indigo Connections Button
+   ------------------------------------------------------------ */
+:is([data-skin="nishapur"], [data-machine="nishapur"]) .synth-brand {
+  flex: 0 0 112px;
+  width: 112px;
+}
+:is([data-skin="nishapur"], [data-machine="nishapur"]) .synth-brand-maker {
+  display: none;
+}
+:is([data-skin="nishapur"], [data-machine="nishapur"]) .synth-machine-select {
+  width: 100%;
+  background:
+    linear-gradient(45deg, transparent 50%, #98f5ff 50%) right 11px center / 5px 5px no-repeat,
+    linear-gradient(135deg, #98f5ff 50%, transparent 50%) right 6px center / 5px 5px no-repeat,
+    linear-gradient(180deg, #2d4a5c 0%, #1e3342 100%);
+  color: #98f5ff;
+  border: 1.5px solid #48b8cc;
+  border-radius: 7px;
+  padding: 6px 24px 6px 12px;
+  font-family: var(--font-head);
+  font-weight: 800;
+  font-size: 0.92rem;
+  letter-spacing: 0.02em;
+  text-shadow: 0 0 8px rgba(56, 242, 255, 0.45);
+  box-shadow:
+    inset 0 1px 0 rgba(180, 248, 255, 0.28),
+    0 0 10px rgba(56, 232, 255, 0.16),
+    0 2px 5px rgba(0, 0, 0, 0.5);
+}
+
+:is([data-skin="nishapur"], [data-machine="nishapur"]) .synth-scope {
+  border-radius: 8px;
+  border: 1.5px solid rgba(76, 130, 170, 0.48);
+  box-shadow:
+    inset 0 3px 10px rgba(0, 0, 0, 0.85),
+    inset 0 0 18px rgba(56, 232, 255, 0.18),
+    0 1px 0 rgba(160, 230, 255, 0.14);
+}
+
+:is([data-skin="nishapur"], [data-machine="nishapur"]) .synth-conn-btn {
+  background: linear-gradient(180deg, #292c4a 0%, #1b1e34 100%);
+  color: #c6d6ff;
+  border: 1.5px solid #4e5586;
+  border-radius: 7px;
+  box-shadow:
+    inset 0 1px 0 rgba(200, 210, 255, 0.22),
+    0 2px 5px rgba(0, 0, 0, 0.55);
+}
+
+/* ------------------------------------------------------------
+   Nishapur Subbar: Preset Nav, Tempo Group & Glowing Aqua / Indigo Page Tabs
+   ------------------------------------------------------------ */
+:is([data-skin="nishapur"], [data-machine="nishapur"]) .preset-step-btn,
+:is([data-skin="nishapur"], [data-machine="nishapur"]) .synth-tempo .synth-midi-btn {
+  background: linear-gradient(180deg, #252c3d 0%, #181d29 100%);
+  color: #dce8f8;
+  border: 1.5px solid #3c4960;
+  border-radius: 7px;
+  box-shadow:
+    inset 0 1px 0 rgba(200, 230, 255, 0.16),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.5),
+    0 2px 4px rgba(0, 0, 0, 0.5);
+}
+:is([data-skin="nishapur"], [data-machine="nishapur"]) .synth-tempo-val {
+  color: #eef6ff;
+  font-weight: 800;
+}
+:is([data-skin="nishapur"], [data-machine="nishapur"]) .preset-display {
+  background: linear-gradient(180deg, #262e3f 0%, #1a202d 100%);
+  color: #f0f6ff;
+  border: 1.5px solid #3f4d64;
+  border-radius: 7px;
+  box-shadow:
+    inset 0 2px 5px rgba(0, 0, 0, 0.65),
+    0 1px 0 rgba(180, 225, 255, 0.12);
+}
+:is([data-skin="nishapur"], [data-machine="nishapur"]) .pd-name {
+  color: #f2f8ff;
+  font-weight: 800;
+}
+:is([data-skin="nishapur"], [data-machine="nishapur"]) .pd-sub {
+  color: #a8bcd4;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+:is([data-skin="nishapur"], [data-machine="nishapur"]) .pd-icon {
+  color: #b8cde6;
+  opacity: 0.9;
+}
+
+/* Hardware Page Tabs in Subbar (Vector, Sources, Shape, Space) */
+:is([data-skin="nishapur"], [data-machine="nishapur"]) .synth-tabs {
+  display: flex !important;
+}
+:is([data-skin="nishapur"], [data-machine="nishapur"]) .synth-tab {
+  background: linear-gradient(180deg, #292c4c 0%, #1d1f38 100%);
+  color: #dce2fc;
+  border: 1.5px solid #484c7c;
+  border-radius: 7px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  box-shadow:
+    inset 0 1px 0 rgba(210, 215, 255, 0.2),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.5),
+    0 2px 5px rgba(0, 0, 0, 0.55);
+}
+:is([data-skin="nishapur"], [data-machine="nishapur"]) .synth-tab::before {
+  width: 6px;
+  height: 6px;
+  background: #222540;
+  border: 1px solid #565b90;
+  box-shadow: none;
+}
+:is([data-skin="nishapur"], [data-machine="nishapur"]) .synth-tab.active,
+:is([data-skin="nishapur"], [data-machine="nishapur"]) .synth-tab[aria-selected="true"] {
+  background: linear-gradient(180deg, #74ffff 0%, #32f0fa 52%, #16ccd8 100%);
+  color: #062028;
+  border: 1.5px solid #b8ffff;
+  box-shadow:
+    0 0 18px rgba(50, 240, 250, 0.72),
+    inset 0 1px 0 #ffffff,
+    inset 0 -2px 0 rgba(8, 82, 92, 0.45);
+}
+:is([data-skin="nishapur"], [data-machine="nishapur"]) .synth-tab.active::before,
+:is([data-skin="nishapur"], [data-machine="nishapur"]) .synth-tab[aria-selected="true"]::before {
+  background: #0d6670;
+  border-color: #063840;
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.45), 0 0 4px rgba(255, 255, 255, 0.8);
+}
+
+/* ------------------------------------------------------------
+   Nishapur Section Cards, Persian Geometric Star Mandala & Vector Pad
+   ------------------------------------------------------------ */
 :is([data-skin="nishapur"], [data-machine="nishapur"]) .synth-panel,
 :is([data-skin="nishapur"], [data-machine="nishapur"]) .synth-sec {
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
 }
-:is([data-skin="nishapur"], [data-machine="nishapur"]) .synth-sec:nth-child(even) {
-  --knob-arc: #b46cff;
-  --knob-arc-filter: drop-shadow(0 0 4px rgba(180, 108, 255, 0.65));
+:is([data-skin="nishapur"], [data-machine="nishapur"]) .synth-sec {
+  border: 1px solid rgba(98, 138, 175, 0.36);
 }
 :is([data-skin="nishapur"], [data-machine="nishapur"]) .synth-sec h4 {
-  font-weight: 700;
-  letter-spacing: 0.16em;
-  text-shadow: 0 0 10px rgba(56, 232, 255, 0.35);
+  color: #a8bed8;
+  text-align: left;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  border-bottom: none;
+  box-shadow: none;
+  text-shadow: none;
 }
-:is([data-skin="nishapur"], [data-machine="nishapur"]) .sk-label {
-  font-weight: 700;
-}
-:is([data-skin="nishapur"], [data-machine="nishapur"]) .synth-choice-btn.active,
-:is([data-skin="nishapur"], [data-machine="nishapur"]) .synth-tab.active,
-:is([data-skin="nishapur"], [data-machine="nishapur"]) .kb-btn.active {
-  border-color: #5bf0ff;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.32), 0 0 12px rgba(56, 232, 255, 0.36);
+
+/* Persian Geometric Star Mandala behind the Vector XY Pad */
+:is([data-skin="nishapur"], [data-machine="nishapur"]) .vec-wrap::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--nishapur-mandala) center center / 100% 100% no-repeat;
+  pointer-events: none;
+  z-index: 0;
 }
 :is([data-skin="nishapur"], [data-machine="nishapur"]) .vec-svg {
+  position: relative;
+  z-index: 1;
+  border-radius: 14px;
   background:
-    radial-gradient(circle at 18% 18%, rgba(56, 232, 255, 0.16), transparent 45%),
-    radial-gradient(circle at 82% 18%, rgba(180, 108, 255, 0.18), transparent 45%),
-    radial-gradient(circle at 18% 82%, rgba(92, 230, 190, 0.14), transparent 45%),
-    radial-gradient(circle at 82% 82%, rgba(255, 118, 210, 0.15), transparent 45%),
-    rgba(8, 10, 28, 0.88);
-  border-color: rgba(124, 214, 255, 0.42);
+    radial-gradient(circle at 18% 18%, rgba(56, 232, 255, 0.2), transparent 46%),
+    radial-gradient(circle at 82% 18%, rgba(168, 100, 255, 0.24), transparent 46%),
+    radial-gradient(circle at 18% 82%, rgba(62, 224, 185, 0.18), transparent 46%),
+    radial-gradient(circle at 82% 82%, rgba(215, 92, 235, 0.2), transparent 46%),
+    linear-gradient(160deg, rgba(22, 32, 48, 0.92) 0%, rgba(14, 19, 32, 0.95) 100%);
+  border: 1.5px solid rgba(110, 224, 255, 0.62);
   box-shadow:
-    inset 0 0 22px rgba(56, 232, 255, 0.12),
-    0 0 16px rgba(56, 232, 255, 0.12);
+    0 0 22px rgba(56, 232, 255, 0.24),
+    0 0 34px rgba(155, 100, 255, 0.2),
+    inset 0 0 22px rgba(56, 232, 255, 0.14);
+}
+:is([data-skin="nishapur"], [data-machine="nishapur"]) .vec-grid circle:first-of-type {
+  stroke: rgba(168, 210, 245, 0.35);
+  stroke-dasharray: 3.5 3;
+}
+:is([data-skin="nishapur"], [data-machine="nishapur"]) .vec-grid circle:last-of-type {
+  stroke: rgba(140, 185, 230, 0.24);
+}
+:is([data-skin="nishapur"], [data-machine="nishapur"]) .vec-grid line {
+  stroke: rgba(140, 185, 230, 0.22);
+}
+:is([data-skin="nishapur"], [data-machine="nishapur"]) .vec-orbit-path {
+  stroke: rgba(205, 225, 255, 0.65);
+  stroke-dasharray: 4 3;
+}
+:is([data-skin="nishapur"], [data-machine="nishapur"]) .vec-trail {
+  stroke: #66f6ff;
+  stroke-width: 2.4;
+  opacity: 0.88;
+  filter: drop-shadow(0 0 5px rgba(56, 242, 255, 0.9));
+}
+:is([data-skin="nishapur"], [data-machine="nishapur"]) .vec-cursor-halo {
+  fill: rgba(56, 242, 255, 0.26);
 }
 :is([data-skin="nishapur"], [data-machine="nishapur"]) .vec-cursor-ring {
-  filter: drop-shadow(0 0 5px rgba(56, 232, 255, 0.9));
+  stroke: #72f8ff;
+  stroke-width: 2.2;
+  fill: rgba(16, 48, 64, 0.7);
+  filter: drop-shadow(0 0 6px rgba(56, 242, 255, 0.95));
+}
+:is([data-skin="nishapur"], [data-machine="nishapur"]) .vec-cursor-dot {
+  fill: #c6fcff;
+}
+:is([data-skin="nishapur"], [data-machine="nishapur"]) .vec-axis-pill {
+  background: rgba(18, 25, 38, 0.9);
+  border: 1px solid rgba(92, 175, 215, 0.45);
+  color: #a8c2dc;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.45);
+}
+:is([data-skin="nishapur"], [data-machine="nishapur"]) .vec-axis-pill b {
+  color: #e8f6ff;
+}
+
+/* ------------------------------------------------------------
+   Nishapur Orbit Choice & Toggle Buttons + Brushed Metal Knobs
+   ------------------------------------------------------------ */
+:is([data-skin="nishapur"], [data-machine="nishapur"]) .synth-choice {
+  gap: 8px;
+}
+:is([data-skin="nishapur"], [data-machine="nishapur"]) .synth-choice-btn {
+  border-radius: 7px;
+  border: 1.5px solid #323b59;
+  background: linear-gradient(180deg, #1e2336 0%, #141826 100%);
+  color: #dce4f8;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  box-shadow:
+    inset 0 1px 0 rgba(190, 210, 255, 0.14),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.55),
+    0 3px 6px rgba(0, 0, 0, 0.5);
+}
+:is([data-skin="nishapur"], [data-machine="nishapur"]) .synth-choice-btn.active {
+  background: linear-gradient(90deg, #29dcf0 0%, #5298f6 50%, #8d5cf6 100%);
+  color: #ffffff;
+  border: 1.5px solid #94f4ff;
+  box-shadow:
+    0 0 16px rgba(56, 232, 255, 0.52),
+    0 0 24px rgba(141, 92, 246, 0.36),
+    inset 0 1px 0 rgba(255, 255, 255, 0.55);
+}
+
+/* Brushed Metal Knobs with Glowing Cyan (Odd) & Violet (Even) Neon Arcs */
+:is([data-skin="nishapur"], [data-machine="nishapur"]) :is(.sk-skirt, .sk-cap) {
+  display: block;
+}
+:is([data-skin="nishapur"], [data-machine="nishapur"]) .sk-scale {
+  display: none;
+}
+:is([data-skin="nishapur"], [data-machine="nishapur"]) .sk:nth-child(odd) {
+  --knob-arc: #38f2ff;
+  --knob-arc-filter: drop-shadow(0 0 5px rgba(56, 242, 255, 0.9));
+}
+:is([data-skin="nishapur"], [data-machine="nishapur"]) .sk:nth-child(even) {
+  --knob-arc: #a864ff;
+  --knob-arc-filter: drop-shadow(0 0 5px rgba(168, 100, 255, 0.9));
+}
+:is([data-skin="nishapur"], [data-machine="nishapur"]) .sk-skirt {
+  inset: 4%;
+  border: 1px solid rgba(120, 175, 225, 0.35);
+  box-shadow:
+    0 5px 10px rgba(0, 0, 0, 0.72),
+    inset 0 1px 1px rgba(255, 255, 255, 0.18);
+  z-index: 2;
+}
+:is([data-skin="nishapur"], [data-machine="nishapur"]) .sk-cap {
+  inset: 14%;
+  border: 1px solid #121722;
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.75),
+    inset 0 -1px 2px rgba(0, 0, 0, 0.65),
+    0 2px 5px rgba(0, 0, 0, 0.75);
+  z-index: 3;
+}
+:is([data-skin="nishapur"], [data-machine="nishapur"]) .sk-rotor {
+  inset: 14%;
+  z-index: 4;
+}
+:is([data-skin="nishapur"], [data-machine="nishapur"]) .sk-ind {
+  top: 5%;
+  left: 50%;
+  width: 2.2px;
+  height: 42%;
+  margin-left: -1.1px;
+  background: #ebfcff;
+  box-shadow: 0 0 4px rgba(56, 242, 255, 0.85);
+}
+:is([data-skin="nishapur"], [data-machine="nishapur"]) .sk-label {
+  color: #b8cae0;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+}
+:is([data-skin="nishapur"], [data-machine="nishapur"]) .sk-val {
+  color: #dce8f8;
+  font-weight: 700;
+}
+:is([data-skin="nishapur"], [data-machine="nishapur"]) .sk-row {
+  justify-content: space-evenly;
+  width: 100%;
+}
+
+/* Desktop & Tablet 2-Column Paged Layout for Nishapur (matching screenshot) */
+@media (min-width: 761px) and (min-height: 561px) {
+  /* Force fitPanel() to engage is-fit-paged so VECTOR and ORBIT sit side-by-side in 1 full-height row */
+  .sy1-shell:not(.is-fit-paged) .synth-panel[data-machine="nishapur"] .synth-sec {
+    min-height: 58vh;
+  }
+  .sy1-shell.is-fit-paged .synth-panel[data-machine="nishapur"] .synth-sections {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    grid-auto-rows: minmax(0, 1fr);
+  }
+  .sy1-shell.is-fit-paged .synth-panel[data-machine="nishapur"][data-count="3"] .synth-sections {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+  .sy1-shell.is-fit-paged .synth-panel[data-machine="nishapur"][data-count="4"] .synth-sections {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  }
+  .sy1-shell.is-fit-paged .synth-panel[data-machine="nishapur"] .synth-sec:not(.synth-sec-custom) {
+    container-type: size;
+    justify-content: space-between;
+  }
+  .sy1-shell.is-fit-paged .synth-panel[data-machine="nishapur"] .synth-sec:not(.synth-sec-custom):has(> .sk-row ~ .sk-row) {
+    --sec-row-gap: 6px;
+  }
+  .sy1-shell.is-fit-paged .synth-panel[data-machine="nishapur"] .synth-sec:not(.synth-sec-custom) > h4 + * {
+    margin-top: auto;
+  }
+  .sy1-shell.is-fit-paged .synth-panel[data-machine="nishapur"] .synth-sec:not(.synth-sec-custom) > :last-child {
+    margin-bottom: auto;
+  }
+  .sy1-shell.is-fit-paged .synth-panel[data-machine="nishapur"] .synth-sec:not(.synth-sec-custom):not(:has(> .sk-row ~ .sk-row)) .sk-row:not(.sk-row-small) {
+    --k-in: clamp(38px, min(18cqw, 22cqh), 52px);
+  }
+  .sy1-shell.is-fit-paged .synth-panel[data-machine="nishapur"] .synth-sec:not(.synth-sec-custom):has(> .sk-row ~ .sk-row) .sk-row:not(.sk-row-small) {
+    --k-in: clamp(34px, min(16cqw, 19cqh), 46px);
+  }
+}
+
+@media (max-height: 560px) and (orientation: landscape) {
+  :is([data-skin="nishapur"], [data-machine="nishapur"]) .sy1-shell {
+    border-width: 1px;
+  }
+  :is([data-skin="nishapur"], [data-machine="nishapur"]) .synth-brand {
+    flex: 0 0 auto;
+    width: auto;
+  }
+  :is([data-skin="nishapur"], [data-machine="nishapur"]) .synth-machine-select {
+    padding: 1px 18px 1px 6px;
+    font-size: 0.76rem;
+  }
+}
+
+/* ------------------------------------------------------------
+   Nishapur Performance Bar (.kb-bar), Frosted Slate-Teal Buttons,
+   Capsule Badge, Dual Neon-Lit Wheel Bay & Cyan-Edged Black Keys
+   ------------------------------------------------------------ */
+:is([data-skin="nishapur"], [data-machine="nishapur"]) .kb-bar {
+  background: linear-gradient(180deg, #171c28 0%, #11151f 100%);
+  border: 1.5px solid rgba(74, 210, 235, 0.32);
+  border-radius: 9px;
+  box-shadow:
+    inset 0 1px 0 rgba(160, 235, 255, 0.14),
+    0 3px 10px rgba(0, 0, 0, 0.55);
+}
+:is([data-skin="nishapur"], [data-machine="nishapur"]) .kb-bar .kb-btn {
+  background: linear-gradient(180deg, #3b4a5e 0%, #293444 55%, #202936 100%);
+  color: #eaf4fc;
+  border: 1.5px solid rgba(86, 206, 228, 0.48);
+  border-radius: 7px;
+  font-weight: 800;
+  box-shadow:
+    inset 0 1px 0 rgba(190, 245, 255, 0.25),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.45),
+    0 2px 5px rgba(0, 0, 0, 0.5);
+}
+:is([data-skin="nishapur"], [data-machine="nishapur"]) .kb-bar .kb-btn:active,
+:is([data-skin="nishapur"], [data-machine="nishapur"]) .kb-bar .kb-btn.active,
+:is([data-skin="nishapur"], [data-machine="nishapur"]) .kb-bar .kb-btn[aria-pressed="true"],
+:is([data-skin="nishapur"], [data-machine="nishapur"]) .kb-bar .kb-or.active {
+  background: linear-gradient(180deg, #74ffff 0%, #32f0fa 52%, #16ccd8 100%);
+  color: #062028;
+  border-color: #b8ffff;
+  box-shadow:
+    0 0 14px rgba(56, 242, 255, 0.65),
+    inset 0 1px 0 #ffffff;
+}
+:is([data-skin="nishapur"], [data-machine="nishapur"]) .kb-bar .kb-or .kb-or-dot {
+  background: transparent;
+  border: 1.5px solid #78ecff;
+  box-shadow: 0 0 4px rgba(56, 242, 255, 0.55);
+}
+:is([data-skin="nishapur"], [data-machine="nishapur"]) .kb-bar .kb-or.active .kb-or-dot {
+  background: #062028;
+  border-color: #062028;
+}
+:is([data-skin="nishapur"], [data-machine="nishapur"]) .kb-range {
+  background: linear-gradient(180deg, #354355 0%, #232d3b 100%);
+  color: #e4f0fc;
+  border: 1.5px solid rgba(86, 206, 228, 0.42);
+  border-radius: 7px;
+  padding: 5px 10px;
+  font-weight: 800;
+  box-shadow:
+    inset 0 1px 0 rgba(190, 245, 255, 0.2),
+    0 2px 4px rgba(0, 0, 0, 0.45);
+}
+
+/* Capsule Machine Badge ("o Nishapur · Vector morph synth") */
+:is([data-skin="nishapur"], [data-machine="nishapur"]) .kb-machine-badge {
+  background: linear-gradient(90deg, #102538 0%, #191c36 52%, #241d3c 100%);
+  border: 1.5px solid #44e8ff;
+  border-radius: 999px;
+  padding: 4px 14px;
+  box-shadow:
+    0 0 14px rgba(56, 232, 255, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.22);
+}
+:is([data-skin="nishapur"], [data-machine="nishapur"]) .kb-machine-emblem {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: transparent;
+  border: 2px solid #5ef4ff;
+  box-shadow: 0 0 6px #38e8ff, inset 0 0 4px #b46cff;
+}
+:is([data-skin="nishapur"], [data-machine="nishapur"]) .kb-machine-name {
+  color: #64f4ff;
+  font-weight: 800;
+  text-shadow: 0 0 8px rgba(56, 232, 255, 0.55);
+}
+:is([data-skin="nishapur"], [data-machine="nishapur"]) .kb-machine-sep {
+  color: #88a4c4;
+}
+:is([data-skin="nishapur"], [data-machine="nishapur"]) .kb-machine-role {
+  color: #e4eefc;
+  font-weight: 600;
+}
+
+/* 4-Screw Obsidian Wheel Housing with Cyan & Violet-Magenta Neon Edge-Lit Rollers */
+:is([data-skin="nishapur"], [data-machine="nishapur"]) .kb-wheels {
+  background:
+    var(--nishapur-screw) 6px 6px / 11px 11px no-repeat,
+    var(--nishapur-screw) calc(100% - 6px) 6px / 11px 11px no-repeat,
+    var(--nishapur-screw) 6px calc(100% - 6px) / 11px 11px no-repeat,
+    var(--nishapur-screw) calc(100% - 6px) calc(100% - 6px) / 11px 11px no-repeat,
+    linear-gradient(180deg, #1c222f 0%, #131822 55%, #0e121a 100%);
+  border: 1.5px solid #283244;
+  border-radius: 8px;
+  box-shadow:
+    inset 0 1px 0 rgba(180, 225, 255, 0.14),
+    0 4px 12px rgba(0, 0, 0, 0.65);
+}
+/* PB Wheel: Brushed Chrome with Smooth Center Saddle & Electric Cyan Edge Glow */
+:is([data-skin="nishapur"], [data-machine="nishapur"]) .kb-wheel:first-of-type {
+  border: 1.5px solid #3cf2ff;
+  border-radius: 7px;
+  background:
+    linear-gradient(
+      180deg,
+      transparent 0%,
+      transparent 34%,
+      #1b232e 35%,
+      #58667a 42%,
+      #a8b8cc 50%,
+      #495668 58%,
+      #18202a 65%,
+      transparent 66%,
+      transparent 100%
+    ),
+    repeating-linear-gradient(
+      180deg,
+      rgba(240, 248, 255, 0.6) 0px,
+      rgba(240, 248, 255, 0.6) 1.5px,
+      rgba(28, 36, 48, 0.9) 1.5px,
+      rgba(28, 36, 48, 0.9) 3.5px
+    ),
+    linear-gradient(180deg, #3c4858 0%, #9cb0c6 26%, #d8e6f4 50%, #8fa2b8 74%, #323c4b 100%);
+  box-shadow:
+    0 0 12px rgba(56, 242, 255, 0.55),
+    inset 0 6px 10px rgba(0, 0, 0, 0.8),
+    inset 0 -6px 10px rgba(0, 0, 0, 0.8);
+}
+/* MOD Wheel: Finely Ribbed Violet-Silver Roller with Cyan + Magenta-Violet Neon Edge Glow */
+:is([data-skin="nishapur"], [data-machine="nishapur"]) .kb-wheel:last-of-type {
+  border: 1.5px solid #b864ff;
+  border-left-color: #3cf2ff;
+  border-radius: 7px;
+  background:
+    repeating-linear-gradient(
+      180deg,
+      rgba(235, 225, 255, 0.52) 0px,
+      rgba(235, 225, 255, 0.52) 1.5px,
+      rgba(32, 26, 52, 0.92) 1.5px,
+      rgba(32, 26, 52, 0.92) 3.5px
+    ),
+    linear-gradient(180deg, #3c3456 0%, #8e82b8 28%, #cbc2ec 50%, #7d72a8 72%, #2e2844 100%);
+  box-shadow:
+    -3px 0 10px rgba(56, 242, 255, 0.45),
+    3px 0 12px rgba(184, 100, 255, 0.6),
+    inset 0 6px 10px rgba(0, 0, 0, 0.82),
+    inset 0 -6px 10px rgba(0, 0, 0, 0.82);
+}
+:is([data-skin="nishapur"], [data-machine="nishapur"]) .kb-wheel-thumb {
+  background: linear-gradient(180deg, #e8f6ff 0%, #8ca8c4 48%, #384658 100%);
+  border: 1px solid #0e141e;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.85), inset 0 1px 0 #ffffff;
+}
+:is([data-skin="nishapur"], [data-machine="nishapur"]) .kb-wheel-label {
+  color: #a8bed8;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+}
+
+/* Keyboard with Cyan-Bevelled Obsidian Black Keys */
+:is([data-skin="nishapur"], [data-machine="nishapur"]) .kb {
+  border: 2px solid #0e131c;
+  box-shadow:
+    0 0 0 1px rgba(72, 215, 242, 0.25),
+    0 8px 20px rgba(0, 0, 0, 0.65);
+}
+:is([data-skin="nishapur"], [data-machine="nishapur"]) .key.black {
+  border: 1px solid rgba(72, 232, 252, 0.58);
+  box-shadow:
+    0 5px 10px rgba(0, 0, 0, 0.78),
+    0 0 8px rgba(56, 232, 255, 0.24),
+    inset 0 -2px 0 #42ecff,
+    inset 1px 0 0 rgba(72, 232, 252, 0.45),
+    inset -1px 0 0 rgba(72, 232, 252, 0.45);
+}
+:is([data-skin="nishapur"], [data-machine="nishapur"]) .key:not(.black):not(.pad) .key-lbl {
+  color: #546476;
+  font-weight: 800;
+  font-size: 0.64rem;
+}
+
+/* ------------------------------------------------------------
+   Nishapur Sound Library (.lib-pop) & Popovers:
+   High-contrast dark obsidian-indigo palette, readable like the other synths
+   ------------------------------------------------------------ */
+:is([data-skin="nishapur"], [data-machine="nishapur"]) .lib-pop {
+  background: #101520;
+  border: 1.5px solid #38f2ff;
+  color: #f0f6ff;
+}
+:is([data-skin="nishapur"], [data-machine="nishapur"]) .lib-pop::before {
+  background: linear-gradient(180deg, #1a2234 0%, #101520 100%);
+}
+:is([data-skin="nishapur"], [data-machine="nishapur"]) .lib-head {
+  background: rgba(12, 16, 26, 0.78);
+  border-bottom: 1px solid #2d3a52;
+}
+:is([data-skin="nishapur"], [data-machine="nishapur"]) .lib-title b {
+  color: #f4f9ff;
+}
+:is([data-skin="nishapur"], [data-machine="nishapur"]) .lib-title span {
+  color: #9cb4d4;
+}
+:is([data-skin="nishapur"], [data-machine="nishapur"]) .lib-search {
+  background: #0c101a;
+  border: 1px solid #384866;
+  color: #a8c0de;
+}
+:is([data-skin="nishapur"], [data-machine="nishapur"]) .lib-q {
+  color: #f4f9ff;
+}
+:is([data-skin="nishapur"], [data-machine="nishapur"]) .lib-done {
+  background: linear-gradient(180deg, #74ffff 0%, #22d8e8 100%);
+  color: #062028;
+}
+:is([data-skin="nishapur"], [data-machine="nishapur"]) .lib-cats {
+  border-color: #2d3a52;
+}
+:is([data-skin="nishapur"], [data-machine="nishapur"]) .lib-cat {
+  color: #d6e4f8;
+}
+:is([data-skin="nishapur"], [data-machine="nishapur"]) .lib-count {
+  color: #889ec0;
+}
+:is([data-skin="nishapur"], [data-machine="nishapur"]) .lib-cat.active {
+  background: #212c42;
+  color: #ffffff;
+  box-shadow: inset 3px 0 0 #38f2ff;
+}
+:is([data-skin="nishapur"], [data-machine="nishapur"]) .lib-cat.active .lib-count {
+  color: #64f4ff;
+}
+:is([data-skin="nishapur"], [data-machine="nishapur"]) .lib-tile {
+  background: linear-gradient(180deg, #1e273b 0%, #151c2c 100%);
+  border: 1px solid #32415c;
+  box-shadow: inset 0 1px 0 rgba(200, 235, 255, 0.08), 0 2px 6px rgba(0, 0, 0, 0.45);
+  color: #f0f6ff;
+}
+:is([data-skin="nishapur"], [data-machine="nishapur"]) .lib-tile.active {
+  border-color: #38f2ff;
+  box-shadow: 0 0 0 1px #38f2ff, 0 0 14px rgba(56, 242, 255, 0.35);
+}
+:is([data-skin="nishapur"], [data-machine="nishapur"]) .lib-name {
+  color: #f4f9ff;
+}
+:is([data-skin="nishapur"], [data-machine="nishapur"]) .lib-sub {
+  color: #72ecff;
+}
+:is([data-skin="nishapur"], [data-machine="nishapur"]) .lib-fav {
+  color: #9cb4d4;
+}
+:is([data-skin="nishapur"], [data-machine="nishapur"]) .lib-fav.on {
+  color: #38f2ff;
+}
+
+/* Keep Oriental, ARP & Connections popovers high-contrast and readable on Nishapur */
+:is([data-skin="nishapur"], [data-machine="nishapur"]) :is(.or-inner, .arp-pop-inner, .conn-pop) {
+  background: linear-gradient(180deg, #1d2538 0%, #131826 100%);
+  color: #f0f6ff;
+  border-color: #48b8cc;
+}
+:is([data-skin="nishapur"], [data-machine="nishapur"]) :is(.or-head h4, .arp-pop-head h4, .or-label, .or-cent-note, .synth-midi-msg) {
+  color: #74f4ff;
+}
+:is([data-skin="nishapur"], [data-machine="nishapur"]) .or-note {
+  background: #212a3e;
+  border-color: #3b4b68;
+  color: #f0f6ff;
 }
 
 /* ============================================================
@@ -6208,26 +6906,6 @@
 :is([data-skin="konya"], [data-machine="konya"]) .kb-machine-role {
   color: #1f4fa0;
   font-weight: 800;
-}
-
-/* 10. NISHAPUR — Frosted glassmorphism capsule & glowing cyan-violet vector ring */
-:is([data-skin="nishapur"], [data-machine="nishapur"]) .kb-machine-badge {
-  background: linear-gradient(135deg, rgba(32, 40, 86, 0.72) 0%, rgba(24, 18, 56, 0.78) 100%);
-  border: 1px solid rgba(91, 240, 255, 0.45);
-  border-radius: 999px;
-  box-shadow: 0 0 12px rgba(56, 232, 255, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.2);
-}
-:is([data-skin="nishapur"], [data-machine="nishapur"]) .kb-machine-emblem {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: transparent;
-  border: 2px solid #38e8ff;
-  box-shadow: 0 0 6px #38e8ff, inset 0 0 4px #b46cff;
-}
-:is([data-skin="nishapur"], [data-machine="nishapur"]) .kb-machine-name {
-  color: #74f2ff;
-  text-shadow: 0 0 8px rgba(56, 232, 255, 0.5);
 }
 
 /* 12. KERMAN — Swiss minimal matte off-white + bold orange dot + monospace */
