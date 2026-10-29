@@ -228,7 +228,7 @@ function renderEuclidRings(): string {
     }
     svg += `<g class="eu-ring eu-ring-${r}${on ? "" : " is-off"}"><circle class="eu-track" cx="80" cy="80" r="${rad}" />${dots}</g>`;
   }
-  return `<div class="eu-wrap"><svg class="eu-svg" viewBox="0 0 160 160" aria-label="Euclidean rings">${svg}<circle class="eu-hub" cx="80" cy="80" r="9" /></svg>
+  return `<div class="eu-wrap"><svg class="eu-svg" viewBox="0 0 160 160" aria-label="Euclidean rings">${svg}<circle class="eu-hub-rim" cx="80" cy="80" r="14" /><circle class="eu-hub" cx="80" cy="80" r="9" /></svg>
     <p class="eu-hint">Hold a chord: ring 1 plays its lowest note, ring 2 the next, ring 3 the next. HOLD keeps it going.</p></div>`;
 }
 

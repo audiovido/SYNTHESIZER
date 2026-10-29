@@ -2143,119 +2143,856 @@
 
 
 /* ------------------------------------------------------------
-   MERV — cyberpunk HUD
-   Cut-corner line panels, electric yellow and cyan, segmented
-   arc meters, scanline scope, wireframe keyboard.
+   MERV — Industrial Gunmetal & Neon Yellow/Cyan Bass Synthesizer
+   Matte gunmetal chassis with raised curved end cheeks & 6 Torx screws,
+   electric neon yellow bordered Merv selector and preset display,
+   CRT cyan spectrogram oscilloscope with glowing mint-green waveform,
+   solid neon yellow active tab (● Osc) and cyan inactive tabs,
+   desktop 2-column layout (OSC 1 with neon yellow glowing border,
+   OSC 2 with electric cyan glowing border) with electric cyan active
+   waveform buttons, fluted gunmetal knobs with segmented glowing yellow
+   radial tick arcs, dark anthracite matte keys with yellow side-edge highlights,
+   and dual neon-rimmed wheels: Pitch Bend (neon yellow) and MOD (electric cyan).
    ------------------------------------------------------------ */
 [data-skin="merv"],
 [data-machine="merv"] {
-  --cut: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
-  --cut-sm: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px);
+  --merv-screw: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 14 14'%3E%3Cdefs%3E%3CradialGradient id='ms' cx='35%25' cy='32%25' r='65%25'%3E%3Cstop offset='0%25' stop-color='%23555d6c'/%3E%3Cstop offset='55%25' stop-color='%2322262e'/%3E%3Cstop offset='100%25' stop-color='%230a0d10'/%3E%3C/radialGradient%3E%3C/defs%3E%3Ccircle cx='7' cy='7' r='5.5' fill='url(%23ms)' stroke='%2306080a' stroke-width='1.2'/%3E%3Cpath d='M4.5,7 L9.5,7 M7,4.5 L7,9.5' stroke='%230b0d11' stroke-width='1.4' stroke-linecap='round'/%3E%3Cpath d='M4.8,7.5 L9.2,7.5 M7.5,4.8 L7.5,9.2' stroke='%23748094' stroke-opacity='0.45' stroke-width='0.6' stroke-linecap='round'/%3E%3C/svg%3E");
 
-  --font-ui: "Eurostile", "Bank Gothic", "DIN Condensed", "Bahnschrift", "Arial Narrow", sans-serif;
+  --merv-scope: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='80' viewBox='0 0 600 80' preserveAspectRatio='none'%3E%3Cdefs%3E%3ClinearGradient id='sg' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0%25' stop-color='%23020c10'/%3E%3Cstop offset='50%25' stop-color='%23072832'/%3E%3Cstop offset='100%25' stop-color='%23020c10'/%3E%3C/linearGradient%3E%3ClinearGradient id='wg' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0%25' stop-color='%233df0bd' stop-opacity='0.45'/%3E%3Cstop offset='50%25' stop-color='%2300e5ff' stop-opacity='0.22'/%3E%3Cstop offset='100%25' stop-color='%2300e5ff' stop-opacity='0.0'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='600' height='80' fill='url(%23sg)'/%3E%3Cg stroke='%230f3d4c' stroke-width='0.7' opacity='0.65'%3E%3Cline x1='0' y1='16' x2='600' y2='16'/%3E%3Cline x1='0' y1='28' x2='600' y2='28'/%3E%3Cline x1='0' y1='40' x2='600' y2='40' stroke='%231b6b7d' stroke-width='1'/%3E%3Cline x1='0' y1='52' x2='600' y2='52'/%3E%3Cline x1='0' y1='64' x2='600' y2='64'/%3E%3Cline x1='120' y1='0' x2='120' y2='80'/%3E%3Cline x1='240' y1='0' x2='240' y2='80'/%3E%3Cline x1='360' y1='0' x2='360' y2='80'/%3E%3Cline x1='480' y1='0' x2='480' y2='80'/%3E%3C/g%3E%3Cpath d='M0,40 Q45,42 90,38 T180,22 T270,56 T360,26 T450,48 T540,34 L600,38 L600,68 L0,68 Z' fill='url(%23wg)'/%3E%3Cpath d='M0,40 Q45,42 90,38 T180,22 T270,56 T360,26 T450,48 T540,34 L600,38' fill='none' stroke='%235ffad0' stroke-width='2' opacity='0.88'/%3E%3Cpath d='M0,40 Q45,45 90,41 T180,29 T270,49 T360,33 T450,44 T540,38 L600,40' fill='none' stroke='%2300e5ff' stroke-width='1.1' stroke-dasharray='2 2' opacity='0.75'/%3E%3C/svg%3E");
+
+  --merv-card-yellow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 480 310' preserveAspectRatio='none'%3E%3Cdefs%3E%3ClinearGradient id='bgY' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0%25' stop-color='%2320252e'/%3E%3Cstop offset='100%25' stop-color='%23161a20'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpolygon points='16,2 464,2 478,16 478,294 464,308 16,308 2,294 2,16' fill='url(%23bgY)' stroke='%23ffe600' stroke-width='3' vector-effect='non-scaling-stroke'/%3E%3C/svg%3E");
+
+  --merv-card-cyan: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 480 310' preserveAspectRatio='none'%3E%3Cdefs%3E%3ClinearGradient id='bgC' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0%25' stop-color='%2320252e'/%3E%3Cstop offset='100%25' stop-color='%23161a20'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpolygon points='16,2 464,2 478,16 478,294 464,308 16,308 2,294 2,16' fill='url(%23bgC)' stroke='%2300e5ff' stroke-width='3' vector-effect='non-scaling-stroke'/%3E%3C/svg%3E");
+
+  --font-ui: "DIN Condensed", "Bahnschrift", "Arial Narrow", "Roboto Condensed", "Helvetica Neue", sans-serif;
   --font-head: var(--font-ui);
 
-  --page-bg: #04060a;
-  --ink: #e0fcff;
-  --ink-dim: #68e3f4;
-  --ink-faint: #58b4c4;
+  --page-bg: #06080b;
+  --ink: #ffffff;
+  --ink-dim: #00e5ff;
+  --ink-faint: #ffe600;
 
-  --accent: #f7e53a;
-  --accent-2: #d1bf12;
-  --accent-ink: #050608;
-  --accent-glow: rgba(247,229,58,0.75);
-  --accent-glow-soft: rgba(247,229,58,0.3);
+  --accent: #ffe600;
+  --accent-2: #00e5ff;
+  --accent-ink: #101214;
+  --accent-glow: rgba(255, 230, 0, 0.85);
+  --accent-glow-soft: rgba(255, 230, 0, 0.4);
 
-  --shell-bg:
-    linear-gradient(rgba(57,232,255,0.045) 1px, transparent 1px) 0 0 / 22px 22px,
-    linear-gradient(90deg, rgba(57,232,255,0.045) 1px, transparent 1px) 0 0 / 22px 22px,
-    #05080c;
+  --shell-bg: #0a0d11;
 
-  --panel-bg: linear-gradient(180deg, rgba(8,18,26,0.94) 0%, rgba(4,10,15,0.94) 100%);
-  --panel-border: rgba(57,232,255,0.55);
-  --panel-radius: 0;
-  --panel-shadow: 0 0 22px rgba(57,232,255,0.12), inset 0 1px 0 rgba(57,232,255,0.2);
+  /* Matte Gunmetal Aluminum Faceplate */
+  --panel-bg:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.01) 25%, transparent 35%),
+    linear-gradient(180deg, #22262e 0%, #171a20 100%);
+  --panel-border: #2c323c;
+  --panel-radius: 10px;
+  --panel-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 16px 36px rgba(0, 0, 0, 0.85);
 
-  --sec-bg: linear-gradient(180deg, rgba(10,24,32,0.88) 0%, rgba(5,12,17,0.88) 100%);
-  --sec-border: rgba(247,229,58,0.7);
-  --sec-radius: 0;
-  --sec-shadow: inset 0 0 18px rgba(247,229,58,0.06), 0 2px 6px rgba(0,0,0,0.45);
-  --sec-head: #39e8ff;
+  --sec-bg: linear-gradient(180deg, #1e222a 0%, #161920 100%);
+  --sec-border: transparent;
+  --sec-radius: 10px;
+  --sec-shadow: none;
+  --sec-head: #4de8f4;
 
-  --btn-bg: rgba(5,12,17,0.92);
-  --btn-ink: #f7e53a;
-  --btn-border: rgba(247,229,58,0.8);
-  --ctl-bg: rgba(5,14,20,0.92);
-  --ctl-ink: #57ecff;
-  --choice-active-bg: rgba(57,232,255,0.22);
-  --choice-active-ink: #d4faff;
+  --btn-bg: #14181f;
+  --btn-ink: #00e5ff;
+  --btn-border: #00c8e0;
+  --ctl-bg: #14181f;
+  --ctl-ink: #e0f8fc;
+  --choice-active-bg: rgba(0, 229, 255, 0.2);
+  --choice-active-ink: #00f0ff;
 
-  --scope-bg:
-    repeating-linear-gradient(0deg, rgba(0,0,0,0.35) 0 1px, transparent 1px 3px),
-    radial-gradient(ellipse at 50% 50%, #06303a 0%, #020c10 80%);
-  --scope-border: rgba(57,232,255,0.7);
-  --scope-line: #5ff3c8;
-  --scope-grid: rgba(57,232,255,0.2);
+  /* Dark Teal Spectrogram CRT Scope */
+  --scope-bg: #031218;
+  --scope-border: #1a2228;
+  --scope-line: #5ffad0;
+  --scope-grid: transparent;
 
-  --knob-face: radial-gradient(circle, #0c1820 0 55%, #071016 56% 100%);
-  --knob-gap: #04080b;
-  --knob-edge: rgba(57,232,255,0.42);
-  --knob-arc: #f7e53a;
-  --knob-track: rgba(57,232,255,0.16);
-  --knob-arc-filter: drop-shadow(0 0 3px rgba(247,229,58,0.8));
-  --knob-ind: #f7e53a;
-  --knob-ind-glow: rgba(247,229,58,0.9);
-  --label-ink: #f7e53a;
-  --value-ink: #8ff3ff;
+  /* Fluted Dark Gunmetal Knob with Segmented Neon Yellow Tick Arc */
+  --knob-cap:
+    radial-gradient(circle at 35% 28%, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0) 45%),
+    radial-gradient(circle, #252c38 0%, #171b22 65%, #0e1014 100%);
+  --knob-skirt:
+    radial-gradient(circle at 40% 30%, rgba(255, 255, 255, 0.14) 0%, transparent 55%),
+    repeating-conic-gradient(from 0deg, #101418 0deg 5deg, #242c36 5deg 10deg);
+  --knob-face:
+    radial-gradient(circle at 35% 28%, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0) 45%),
+    radial-gradient(circle, #252c38 0%, #171b22 65%, #0e1014 100%);
+  --knob-gap: #0b0e12;
+  --knob-edge: #00e5ff;
+  --knob-arc: #ffe600;
+  --knob-track: rgba(0, 229, 255, 0.18);
+  --knob-arc-filter: drop-shadow(0 0 5px rgba(255, 230, 0, 0.95));
+  --knob-ind: #ffe600;
+  --knob-ind-glow: rgba(255, 230, 0, 0.95);
+  --label-ink: #ffe600;
+  --value-ink: #d4fcff;
 
-  --key-white: linear-gradient(180deg, #06121a 0%, #0a1c26 100%);
-  --key-white-ink: #57ecff;
-  --key-black: linear-gradient(180deg, #0b0d06 0%, #1a1c0a 100%);
-  --key-black-ink: #f7e53a;
-  --key-line: rgba(57,232,255,0.6);
-  --key-pressed: linear-gradient(180deg, #fff59a 0%, #f7e53a 100%);
-  --key-pressed-ink: #050608;
+  --key-white: linear-gradient(180deg, #52565f 0%, #444850 70%, #343840 100%);
+  --key-white-ink: #b8c2cc;
+  --key-black: linear-gradient(180deg, #181a1e 0%, #0d0f12 100%);
+  --key-black-ink: #ffe600;
+  --key-line: #16181d;
+  --key-pressed: linear-gradient(180deg, #fff066 0%, #cca800 100%);
+  --key-pressed-ink: #0a0c0e;
 
-  --kb-white-top: #ecefe8;
-  --kb-white-bottom: #d3d8cd;
-  --kb-black-top: #2c322b;
-  --kb-black-bottom: #101410;
-  --kb-accent: #f7e53a;
+  --kb-white-top: #52565f;
+  --kb-white-bottom: #343840;
+  --kb-black-top: #181a1e;
+  --kb-black-bottom: #0d0f12;
+  --kb-accent: #ffe600;
   --kb-pattern: none;
-  --kb-frame: #111512;
-  --kb-wheel: #1c221d;
+  --kb-frame: #121519;
+  --kb-wheel: #1a1e23;
 
-  --led-off: #0b1c22;
-  --led-off-edge: rgba(57,232,255,0.5);
+  --led-off: #101c22;
+  --led-off-edge: #00c8e0;
 }
-:is([data-skin="merv"], [data-machine="merv"]) .synth-panel { clip-path: var(--cut); }
-:is([data-skin="merv"], [data-machine="merv"]) .synth-sec { clip-path: var(--cut-sm); }
-:is([data-skin="merv"], [data-machine="merv"]) .synth-sec h4,
-:is([data-skin="merv"], [data-machine="merv"]) .synth-brand {
-  text-shadow: 0 0 8px rgba(57,232,255,0.7);
+
+/* ------------------------------------------------------------
+   Merv Chassis: Matte Gunmetal Anodized Enclosure, Cheeks & Screws
+   ------------------------------------------------------------ */
+:is([data-skin="merv"], [data-machine="merv"]) .sy1-shell {
+  position: relative;
+  padding-left: clamp(22px, 2.6vw, 32px);
+  padding-right: clamp(22px, 2.6vw, 32px);
+  border: 2px solid #232730;
+  border-radius: 12px;
+  background:
+    var(--merv-screw) 14px 14px / 13px 13px no-repeat,
+    var(--merv-screw) 50% 14px / 13px 13px no-repeat,
+    var(--merv-screw) calc(100% - 14px) 14px / 13px 13px no-repeat,
+    var(--merv-screw) 14px calc(100% - 14px) / 13px 13px no-repeat,
+    var(--merv-screw) calc(100% - 14px) calc(100% - 14px) / 13px 13px no-repeat,
+    linear-gradient(180deg, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0.015) 30%, transparent 40%),
+    radial-gradient(ellipse at 50% 0%, #262b36 0%, #161920 65%, #0c0e12 100%);
+  box-shadow:
+    0 0 0 1px #0e1014,
+    0 22px 48px rgba(0, 0, 0, 0.88);
 }
-:is([data-skin="merv"], [data-machine="merv"]) .sk-label {
-  text-shadow: 0 0 6px rgba(247,229,58,0.45);
+
+:is([data-skin="merv"], [data-machine="merv"]) .sy1-shell::before,
+:is([data-skin="merv"], [data-machine="merv"]) .sy1-shell::after {
+  content: "";
+  position: absolute;
+  top: 6px;
+  bottom: 6px;
+  width: clamp(14px, 1.8vw, 22px);
+  z-index: 5;
+  pointer-events: none;
+  border-radius: 6px;
+  background: linear-gradient(90deg, #1c2026 0%, #2f3540 50%, #14171c 100%);
+  box-shadow:
+    inset 1px 0 0 rgba(255, 255, 255, 0.16),
+    inset -1px 0 0 rgba(0, 0, 0, 0.8),
+    0 4px 12px rgba(0, 0, 0, 0.7);
+  border: 1px solid #14171d;
+}
+:is([data-skin="merv"], [data-machine="merv"]) .sy1-shell::before {
+  left: 3px;
+}
+:is([data-skin="merv"], [data-machine="merv"]) .sy1-shell::after {
+  right: 3px;
+}
+
+@media (max-width: 600px) {
+  :is([data-skin="merv"], [data-machine="merv"]) .sy1-shell {
+    padding-left: 6px;
+    padding-right: 6px;
+  }
+  :is([data-skin="merv"], [data-machine="merv"]) .sy1-shell::before,
+  :is([data-skin="merv"], [data-machine="merv"]) .sy1-shell::after {
+    display: none;
+  }
+}
+
+:is([data-skin="merv"], [data-machine="merv"]) .synth-hint {
+  display: none;
+}
+
+/* ------------------------------------------------------------
+   Merv Top Bar: Glowing Neon Yellow Machine Select, Recessed CRT Scope,
+   and Linked Cable Icon
+   ------------------------------------------------------------ */
+:is([data-skin="merv"], [data-machine="merv"]) .synth-brand-maker {
+  display: none;
+}
+:is([data-skin="merv"], [data-machine="merv"]) .synth-machine-select {
+  background:
+    linear-gradient(45deg, transparent 50%, #ffe600 50%) right 11px center / 5px 5px no-repeat,
+    linear-gradient(135deg, #ffe600 50%, transparent 50%) right 6px center / 5px 5px no-repeat,
+    #121519;
+  color: #ffe600;
+  border: 2px solid #ffe600;
+  border-radius: 8px;
+  padding: 4px 24px 4px 10px;
+  font-family: var(--font-head);
+  font-weight: 800;
+  font-size: 0.94rem;
+  letter-spacing: 0.04em;
+  box-shadow:
+    0 0 10px rgba(255, 230, 0, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  text-shadow: 0 0 8px rgba(255, 230, 0, 0.65);
+}
+
+:is([data-skin="merv"], [data-machine="merv"]) .synth-scope {
+  border-radius: 6px;
+  border: 1.5px solid #161b22;
+  background:
+    var(--merv-scope) center center / 100% 100% no-repeat,
+    #031218;
+  box-shadow:
+    inset 0 2px 6px rgba(0, 0, 0, 0.9),
+    0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+:is([data-skin="merv"], [data-machine="merv"]) .synth-conn-btn {
+  background: #12161a;
+  color: #ffe600;
+  border: 1.5px solid #28303a;
+  border-radius: 6px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 2px 4px rgba(0, 0, 0, 0.5);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+:is([data-skin="merv"], [data-machine="merv"]) .synth-conn-btn::after {
+  content: "-oo-";
+  font-size: 0.78rem;
+  font-weight: 900;
+  color: #ffe600;
+  text-shadow: 0 0 6px #ffe600;
+  letter-spacing: 0.04em;
+}
+:is([data-skin="merv"], [data-machine="merv"]) .synth-conn-btn svg {
+  display: none;
+}
+
+/* ------------------------------------------------------------
+   Merv Subbar: Neon Yellow Preset Pill, Gunmetal Tempo, Yellow/Cyan Tabs
+   ------------------------------------------------------------ */
+:is([data-skin="merv"], [data-machine="merv"]) .synth-preset-nav {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}
+:is([data-skin="merv"], [data-machine="merv"]) .preset-step-btn {
+  background: #12161b;
+  color: #ffe600;
+  border: 1.5px solid #ffe600;
+  border-radius: 4px;
+  box-shadow: 0 0 6px rgba(255, 230, 0, 0.25);
+}
+:is([data-skin="merv"], [data-machine="merv"]) .preset-display {
+  background: #12161b;
+  border: 2px solid #ffe600;
+  border-radius: 6px;
+  box-shadow: 0 0 10px rgba(255, 230, 0, 0.4);
+}
+:is([data-skin="merv"], [data-machine="merv"]) .pd-name {
+  color: #ffffff;
+  font-weight: 800;
+  text-shadow: 0 0 6px rgba(255, 255, 255, 0.4);
+}
+:is([data-skin="merv"], [data-machine="merv"]) .pd-sub {
+  color: #ffe600;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-shadow: 0 0 6px rgba(255, 230, 0, 0.65);
+}
+:is([data-skin="merv"], [data-machine="merv"]) .pd-icon {
+  color: #ffe600;
+  filter: drop-shadow(0 0 4px #ffe600);
+}
+
+:is([data-skin="merv"], [data-machine="merv"]) .synth-tempo {
+  background: #12161b;
+  border: 1.5px solid #28303a;
+  border-radius: 6px;
+  padding: 1px 4px;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+:is([data-skin="merv"], [data-machine="merv"]) .synth-tempo .synth-midi-btn {
+  background: #181d24;
+  color: #ffe600;
+  border: 1px solid #28303a;
+  border-radius: 4px;
+}
+:is([data-skin="merv"], [data-machine="merv"]) .synth-tempo-val {
+  color: #ffffff;
+  font-weight: 800;
+}
+
+/* Page Tabs (Osc, Filter & amp, Wobble, Effects) */
+:is([data-skin="merv"], [data-machine="merv"]) .synth-tabs {
+  display: flex !important;
+  gap: var(--sp-1);
+}
+:is([data-skin="merv"], [data-machine="merv"]) .synth-tab {
+  background: rgba(14, 38, 46, 0.85);
+  color: #6ce8f8;
+  border: 1.5px solid #165e6e;
+  border-radius: 6px;
+  font-family: var(--font-head);
+  font-weight: 800;
+  font-size: 0.82rem;
+  letter-spacing: 0.02em;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+:is([data-skin="merv"], [data-machine="merv"]) .synth-tab::before {
+  content: "○";
+  font-size: 0.74rem;
+  font-weight: 900;
+  color: #00e5ff;
+  filter: drop-shadow(0 0 3px #00e5ff);
+}
+:is([data-skin="merv"], [data-machine="merv"]) .synth-tab.active {
+  background: #ffe600 !important;
+  color: #121416 !important;
+  border-color: #fff04d !important;
+  box-shadow:
+    0 0 14px rgba(255, 230, 0, 0.85),
+    inset 0 1px 0 rgba(255, 255, 255, 0.65) !important;
+}
+:is([data-skin="merv"], [data-machine="merv"]) .synth-tab.active::before {
+  content: "●";
+  color: #121416;
+  filter: none;
+}
+
+/* ------------------------------------------------------------
+   Desktop & Tablet 2-Column Layout for Merv (OSC 1 and OSC 2)
+   ------------------------------------------------------------ */
+@media (min-width: 761px) and (min-height: 561px) {
+  .sy1-shell:not(.is-fit-paged) .synth-panel[data-machine="merv"] .synth-sec {
+    min-height: 58vh;
+  }
+  .sy1-shell.is-fit-paged .synth-panel[data-machine="merv"] .synth-sections {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    grid-auto-rows: minmax(0, 1fr);
+  }
+  .sy1-shell.is-fit-paged .synth-panel[data-machine="merv"] .synth-sec {
+    container-type: size;
+    justify-content: space-between;
+  }
+  .sy1-shell.is-fit-paged .synth-panel[data-machine="merv"] .synth-sec > h4 + * {
+    margin-top: auto;
+  }
+  .sy1-shell.is-fit-paged .synth-panel[data-machine="merv"] .synth-sec > :last-child {
+    margin-bottom: auto;
+  }
+}
+
+/* ------------------------------------------------------------
+   Section Cards: Chamfered Octagon Neon Yellow (OSC 1) & Cyan (OSC 2)
+   ------------------------------------------------------------ */
+:is([data-skin="merv"], [data-machine="merv"]) .synth-sec {
+  background: var(--merv-card-yellow) center center / 100% 100% no-repeat;
+  border: none;
+  border-radius: 8px;
+  filter: drop-shadow(0 0 8px rgba(255, 230, 0, 0.35));
+}
+:is([data-skin="merv"], [data-machine="merv"]) .synth-sec h4 {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  font-family: var(--font-head);
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-align: left;
+  padding-left: 6px;
+}
+
+/* Section 1: OSC 1 (Chamfered Neon Yellow Glowing Frame) */
+:is([data-skin="merv"], [data-machine="merv"]) .synth-sec:nth-child(1) {
+  background: var(--merv-card-yellow) center center / 100% 100% no-repeat;
+  filter: drop-shadow(0 0 8px rgba(255, 230, 0, 0.38));
+}
+:is([data-skin="merv"], [data-machine="merv"]) .synth-sec:nth-child(1) h4 {
+  color: #4de8f4;
+  text-shadow: 0 0 8px rgba(77, 232, 244, 0.65);
+}
+
+/* Section 2: OSC 2 (Chamfered Electric Cyan Glowing Frame) */
+:is([data-skin="merv"], [data-machine="merv"]) .synth-sec:nth-child(2) {
+  background: var(--merv-card-cyan) center center / 100% 100% no-repeat;
+  filter: drop-shadow(0 0 8px rgba(0, 229, 255, 0.38));
+}
+:is([data-skin="merv"], [data-machine="merv"]) .synth-sec:nth-child(2) h4 {
+  color: #4de8f4;
+  text-shadow: 0 0 8px rgba(77, 232, 244, 0.65);
+}
+
+/* Other Sections (Filter, Wobble, etc.) */
+:is([data-skin="merv"], [data-machine="merv"]) .synth-sec:nth-child(odd):nth-child(n+3) {
+  background: var(--merv-card-yellow) center center / 100% 100% no-repeat;
+  filter: drop-shadow(0 0 8px rgba(255, 230, 0, 0.35));
+}
+:is([data-skin="merv"], [data-machine="merv"]) .synth-sec:nth-child(even):nth-child(n+3) {
+  background: var(--merv-card-cyan) center center / 100% 100% no-repeat;
+  filter: drop-shadow(0 0 8px rgba(0, 229, 255, 0.35));
+}
+
+/* ------------------------------------------------------------
+   Buttons: Waveform Selectors & Toggles
+   ------------------------------------------------------------ */
+:is([data-skin="merv"], [data-machine="merv"]) .synth-choice {
+  gap: 6px;
+}
+:is([data-skin="merv"], [data-machine="merv"]) .synth-choice-btn,
+:is([data-skin="merv"], [data-machine="merv"]) .synth-toggle-btn {
+  background: linear-gradient(180deg, #163640 0%, #102830 100%);
+  border: 1.5px solid #1e4652;
+  border-radius: 5px;
+  color: #7ee8f8;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+/* Active Glowing Electric Cyan Wave Button */
+:is([data-skin="merv"], [data-machine="merv"]) .synth-choice-btn.active,
+:is([data-skin="merv"], [data-machine="merv"]) .synth-toggle-btn.active {
+  background: linear-gradient(180deg, #1e6274 0%, #154c5a 100%) !important;
+  color: #ffffff !important;
+  border: 2px solid #00f0ff !important;
+  box-shadow:
+    0 0 12px rgba(0, 240, 255, 0.75),
+    inset 0 0 8px rgba(0, 240, 255, 0.35) !important;
+  text-shadow: 0 0 8px #00f0ff;
+}
+
+/* ------------------------------------------------------------
+   3D Knobs: Segmented Neon Yellow & Cyan Radial Tick Ring
+   ------------------------------------------------------------ */
+:is([data-skin="merv"], [data-machine="merv"]) {
+  --ring-pad: 0px;
+}
+:is([data-skin="merv"], [data-machine="merv"]) :is(.sk-skirt, .sk-cap) {
+  display: block;
+}
+:is([data-skin="merv"], [data-machine="merv"]) .sk-scale {
+  display: none;
+}
+:is([data-skin="merv"], [data-machine="merv"]) .sk-dial {
+  background: transparent;
+  box-shadow: none;
 }
 :is([data-skin="merv"], [data-machine="merv"]) .sk-dial::before {
-  -webkit-mask:
-    radial-gradient(closest-side, transparent calc(100% - 3px), #000 calc(100% - 2px)),
-    repeating-conic-gradient(from 225deg, #000 0deg 8deg, transparent 8deg 11deg);
+  content: "";
+  position: absolute;
+  inset: 0px;
+  border-radius: 50%;
+  background: conic-gradient(
+    from -135deg at 50% 50%,
+    #ffe600 0deg,
+    #ffe600 calc(var(--n, 0) * 270deg),
+    rgba(0, 210, 240, 0.55) calc(var(--n, 0) * 270deg),
+    rgba(0, 210, 240, 0.55) 270deg,
+    transparent 270deg
+  );
+  -webkit-mask-image:
+    radial-gradient(circle, transparent 62%, #000 64%, #000 94%, transparent 96%),
+    repeating-conic-gradient(from -135deg, #000 0deg 4deg, transparent 4deg 9deg);
   -webkit-mask-composite: source-in;
-  mask:
-    radial-gradient(closest-side, transparent calc(100% - 3px), #000 calc(100% - 2px)) intersect,
-    repeating-conic-gradient(from 225deg, #000 0deg 8deg, transparent 8deg 11deg);
+  mask-image:
+    radial-gradient(circle, transparent 62%, #000 64%, #000 94%, transparent 96%),
+    repeating-conic-gradient(from -135deg, #000 0deg 4deg, transparent 4deg 9deg);
+  mask-composite: intersect;
+  filter: drop-shadow(0 0 4px rgba(255, 230, 0, 0.65));
+  pointer-events: none;
+  z-index: 1;
 }
-:is([data-skin="merv"], [data-machine="merv"]) .synth-preset-btn,
-:is([data-skin="merv"], [data-machine="merv"]) .synth-midi-btn,
-:is([data-skin="merv"], [data-machine="merv"]) .synth-choice-btn,
+:is([data-skin="merv"], [data-machine="merv"]) .sk-skirt {
+  position: absolute;
+  inset: 14%;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 40% 30%, rgba(255, 255, 255, 0.14) 0%, transparent 55%),
+    repeating-conic-gradient(from 0deg, #101418 0deg 5deg, #242c36 5deg 10deg);
+  border: 1px solid #163844;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.85);
+  z-index: 2;
+}
+:is([data-skin="merv"], [data-machine="merv"]) .sk-cap {
+  position: absolute;
+  inset: 21%;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 35% 28%, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0) 45%),
+    radial-gradient(circle, #252c38 0%, #171b22 65%, #0e1014 100%);
+  border: 1px solid #2e3744;
+  box-shadow:
+    inset 0 2px 3px rgba(255, 255, 255, 0.12),
+    inset 0 -2px 3px rgba(0, 0, 0, 0.75),
+    0 2px 4px rgba(0, 0, 0, 0.6);
+  z-index: 3;
+}
+:is([data-skin="merv"], [data-machine="merv"]) .sk-rotor {
+  position: absolute;
+  inset: 21%;
+  z-index: 4;
+  pointer-events: none;
+}
+:is([data-skin="merv"], [data-machine="merv"]) .sk-ind {
+  position: absolute;
+  top: 7%;
+  left: 50%;
+  width: 2.4px;
+  height: 40%;
+  margin-left: -1.2px;
+  border-radius: 1.5px;
+  background: #ffe600;
+  box-shadow:
+    0 0 6px rgba(255, 230, 0, 0.95),
+    0 0 2px #ffffff;
+}
+
+:is([data-skin="merv"], [data-machine="merv"]) .sk-label {
+  color: #ffe600;
+  font-family: var(--font-head);
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-shadow: 0 0 5px rgba(255, 230, 0, 0.55);
+}
+:is([data-skin="merv"], [data-machine="merv"]) .sk-val {
+  color: #c8f6ff;
+  font-family: var(--font-head);
+  font-weight: 700;
+  text-shadow: 0 0 5px rgba(0, 229, 255, 0.45);
+}
+:is([data-skin="merv"], [data-machine="merv"]) .sk-caption {
+  color: #ffe600;
+  font-family: var(--font-head);
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-shadow: 0 0 5px rgba(255, 230, 0, 0.55);
+}
+
+/* ------------------------------------------------------------
+   Keyboard Bar: Dark Gunmetal with Glowing Cyan / Yellow Controls
+   ------------------------------------------------------------ */
+:is([data-skin="merv"], [data-machine="merv"]) .kb-bar {
+  background: #14171b;
+  border-top: 1px solid #232730;
+  border-bottom: 1px solid #232730;
+  border-radius: 6px;
+  padding: 4px 0;
+}
 :is([data-skin="merv"], [data-machine="merv"]) .kb-btn {
-  border-radius: 0;
-  clip-path: polygon(5px 0, 100% 0, 100% calc(100% - 5px), calc(100% - 5px) 100%, 0 100%, 0 5px);
+  background: linear-gradient(180deg, #32363e 0%, #24282f 100%);
+  color: #e6eef4;
+  border: 1px solid #16191e;
+  border-radius: 4px;
+  font-family: var(--font-head);
+  font-weight: 800;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14);
 }
-:is([data-skin="merv"], [data-machine="merv"]) .synth-choice-btn.active {
-  border-color: #39e8ff;
-  box-shadow: inset 0 0 10px rgba(57,232,255,0.4);
+:is([data-skin="merv"], [data-machine="merv"]) .kb-oct-disp {
+  background: #1a1e24;
+  color: #00e5ff;
+  border: 1px solid #2d333d;
+  border-radius: 4px;
+  font-family: var(--font-head);
+  font-weight: 800;
+}
+
+:is([data-skin="merv"], [data-machine="merv"]) .kb-oct .kb-btn.active,
+:is([data-skin="merv"], [data-machine="merv"]) .kb-oct .kb-btn:active {
+  background: #00e5ff !important;
+  color: #081014 !important;
+  border-color: #80f0ff !important;
+  box-shadow: 0 0 10px rgba(0, 229, 255, 0.75) !important;
+}
+
+/* Active HOLD & ARP Buttons */
+:is([data-skin="merv"], [data-machine="merv"]) .kb-hold.active,
+:is([data-skin="merv"], [data-machine="merv"]) .kb-hold[aria-pressed="true"] {
+  background: #ffe600 !important;
+  color: #101214 !important;
+  border-color: #fff04d !important;
+  box-shadow: 0 0 12px rgba(255, 230, 0, 0.8) !important;
+}
+:is([data-skin="merv"], [data-machine="merv"]) .kb-arp.active,
+:is([data-skin="merv"], [data-machine="merv"]) .kb-arp[aria-pressed="true"] {
+  background: linear-gradient(180deg, #d8ecf2 0%, #b4d4de 100%) !important;
+  color: #0a181e !important;
+  border-color: #e0f6fb !important;
+  box-shadow:
+    0 0 12px rgba(180, 212, 222, 0.65),
+    inset 0 1px 0 #ffffff !important;
+}
+
+/* ORIENTAL Button */
+:is([data-skin="merv"], [data-machine="merv"]) .kb-or {
+  background: #1a1d22;
+  border: 1px solid #2d333d;
+  color: #e6eef4;
+}
+:is([data-skin="merv"], [data-machine="merv"]) .kb-or .kb-or-dot {
+  background: transparent;
+  border: 1.5px solid #e6eef4;
+}
+:is([data-skin="merv"], [data-machine="merv"]) .kb-or.active {
+  background: #00e5ff;
+  color: #081014;
+  border-color: #80f0ff;
+  box-shadow: 0 0 10px rgba(0, 229, 255, 0.75);
+}
+:is([data-skin="merv"], [data-machine="merv"]) .kb-or.active .kb-or-dot {
+  background: #081014;
+  border-color: #081014;
+}
+
+/* ------------------------------------------------------------
+   Wheels: Neon Yellow PB & Electric Cyan MOD
+   ------------------------------------------------------------ */
+:is([data-skin="merv"], [data-machine="merv"]) .kb-wheels {
+  background:
+    var(--sy1-screw) 4px 4px / 9px 9px no-repeat,
+    var(--sy1-screw) calc(100% - 4px) 4px / 9px 9px no-repeat,
+    var(--sy1-screw) 4px calc(100% - 4px) / 9px 9px no-repeat,
+    var(--sy1-screw) calc(100% - 4px) calc(100% - 4px) / 9px 9px no-repeat,
+    linear-gradient(180deg, #16191f 0%, #0d0f13 100%);
+  border: 1.5px solid #1c2025;
+  border-radius: 6px;
+  box-shadow:
+    inset 0 2px 6px rgba(0, 0, 0, 0.8),
+    0 2px 6px rgba(0, 0, 0, 0.6);
+}
+/* PB Wheel: Neon Yellow Rim Glow */
+:is([data-skin="merv"], [data-machine="merv"]) .kb-wheel:first-of-type {
+  border: 2px solid #ffe600;
+  border-radius: 7px;
+  background:
+    repeating-linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.45) 0px,
+      rgba(255, 255, 255, 0.45) 1.5px,
+      rgba(20, 24, 28, 0.9) 1.5px,
+      rgba(20, 24, 28, 0.9) 3.5px
+    ),
+    linear-gradient(180deg, #2a3038 0%, #7e8896 28%, #d0d8e2 50%, #727c8a 72%, #1c2026 100%);
+  box-shadow:
+    0 0 10px rgba(255, 230, 0, 0.6),
+    inset 0 6px 10px rgba(0, 0, 0, 0.8),
+    inset 0 -6px 10px rgba(0, 0, 0, 0.8);
+}
+/* MOD Wheel: Neon Electric Cyan Rim Glow */
+:is([data-skin="merv"], [data-machine="merv"]) .kb-wheel:last-of-type {
+  border: 2px solid #00f0ff;
+  border-radius: 7px;
+  background:
+    repeating-linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.45) 0px,
+      rgba(255, 255, 255, 0.45) 1.5px,
+      rgba(16, 26, 32, 0.9) 1.5px,
+      rgba(16, 26, 32, 0.9) 3.5px
+    ),
+    linear-gradient(180deg, #20343e 0%, #6896a6 28%, #c4e4ee 50%, #5e8898 72%, #14222a 100%);
+  box-shadow:
+    0 0 10px rgba(0, 240, 255, 0.6),
+    inset 0 6px 10px rgba(0, 0, 0, 0.8),
+    inset 0 -6px 10px rgba(0, 0, 0, 0.8);
+}
+:is([data-skin="merv"], [data-machine="merv"]) .kb-wheel:first-of-type + .kb-wheel-label {
+  color: #ffe600;
+  text-shadow: 0 0 6px #ffe600;
+}
+:is([data-skin="merv"], [data-machine="merv"]) .kb-wheel:last-of-type + .kb-wheel-label {
+  color: #00f0ff;
+  text-shadow: 0 0 6px #00f0ff;
+}
+
+/* ------------------------------------------------------------
+   Keybed: Matte Anthracite White Keys & Jet Black Sharps with Yellow Accents
+   ------------------------------------------------------------ */
+:is([data-skin="merv"], [data-machine="merv"]) .kb {
+  border: 2px solid #14171d;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.8);
+}
+:is([data-skin="merv"], [data-machine="merv"]) .kb:not(.is-pads)::before {
+  background: linear-gradient(180deg, #0b0d10 0%, #171b22 55%, #08090c 100%);
+}
+:is([data-skin="merv"], [data-machine="merv"]) .key:not(.black):not(.pad) {
+  background: linear-gradient(
+    180deg,
+    #4c5058 0%,
+    #585c65 18%,
+    #484c54 75%,
+    #383b42 93%,
+    #282b30 100%
+  );
+  border-right: 1.5px solid #16181d;
+  border-bottom: 2px solid #16181d;
+  border-radius: 0 0 4px 4px;
+  box-shadow:
+    inset 0 4px 5px rgba(0, 0, 0, 0.45),
+    inset 1px 0 0 rgba(255, 255, 255, 0.14),
+    inset -1px 0 2px rgba(0, 0, 0, 0.4),
+    inset 0 -5px 0 rgba(0, 0, 0, 0.35);
+}
+:is([data-skin="merv"], [data-machine="merv"]) .key:not(.black):not(.pad):is(.down, .held) {
+  background: linear-gradient(180deg, #fff066 0%, #cca800 100%);
+}
+:is([data-skin="merv"], [data-machine="merv"]) .key.black {
+  border: 1.5px solid #08090a;
+  border-radius: 0 0 4px 4px;
+  box-shadow:
+    inset -1.5px 0 0 rgba(255, 230, 0, 0.38),
+    inset 1.5px 0 0 rgba(255, 230, 0, 0.38),
+    0 3px 6px rgba(0, 0, 0, 0.85);
+}
+:is([data-skin="merv"], [data-machine="merv"]) .key-lbl {
+  color: #b4bec8;
+  font-weight: 700;
+  font-size: 0.64rem;
+}
+
+/* Short Landscape Compact Adjustments for Merv (740x340, 932x400) */
+@media (max-height: 560px) and (orientation: landscape) {
+  :is([data-skin="merv"], [data-machine="merv"]) .sy1-shell {
+    border-width: 1px;
+    padding-left: 6px;
+    padding-right: 6px;
+  }
+  :is([data-skin="merv"], [data-machine="merv"]) .sy1-shell::before,
+  :is([data-skin="merv"], [data-machine="merv"]) .sy1-shell::after {
+    display: none;
+  }
+  :is([data-skin="merv"], [data-machine="merv"]) .synth-brand {
+    flex: 0 0 auto;
+    width: auto;
+  }
+  :is([data-skin="merv"], [data-machine="merv"]) .synth-machine-select {
+    padding: 0 18px 0 6px !important;
+    font-size: 0.72rem !important;
+    line-height: 1.05 !important;
+    border-width: 1px !important;
+  }
+  :is([data-skin="merv"], [data-machine="merv"]) .synth-subbar {
+    gap: var(--sp-1);
+  }
+  :is([data-skin="merv"], [data-machine="merv"]) .synth-preset-nav,
+  :is([data-skin="merv"], [data-machine="merv"]) .preset-display,
+  :is([data-skin="merv"], [data-machine="merv"]) .preset-step-btn {
+    border-width: 1px !important;
+  }
+  :is([data-skin="merv"], [data-machine="merv"]) .synth-tab {
+    padding: 0 6px;
+    font-size: 0.68rem;
+    border-width: 1px;
+  }
+  :is([data-skin="merv"], [data-machine="merv"]) .synth-sec {
+    filter: none !important;
+    box-shadow: none !important;
+  }
+  :is([data-skin="merv"], [data-machine="merv"]) .synth-sec h4 {
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 4px !important;
+    font-size: 0.6rem !important;
+    line-height: 1 !important;
+  }
+  :is([data-skin="merv"], [data-machine="merv"]) .kb-bar {
+    padding: 0 !important;
+    border-width: 1px 0 !important;
+  }
+  :is([data-skin="merv"], [data-machine="merv"]) .kb-machine-badge {
+    padding: 1px 5px;
+    border-width: 1px;
+  }
+}
+
+@media (max-height: 360px) and (orientation: landscape) {
+  :is([data-skin="merv"], [data-machine="merv"]) .synth-sec h4 {
+    border: none !important;
+    padding: 0 !important;
+    font-size: 7px !important;
+    line-height: 1 !important;
+    box-shadow: none !important;
+  }
+  :is([data-skin="merv"], [data-machine="merv"]) .sk-label {
+    font-size: 0.46rem !important;
+    margin-top: 0 !important;
+  }
+  :is([data-skin="merv"], [data-machine="merv"]) .sk-dial {
+    box-shadow: none !important;
+  }
+}
+
+/* ------------------------------------------------------------
+   Sound Library Modal (.lib-pop):
+   Clean, high-contrast & readable like the other synths
+   ------------------------------------------------------------ */
+:is([data-skin="merv"], [data-machine="merv"]) .lib-pop {
+  background: #14171d;
+  border: 1.5px solid #ffe600;
+  color: #f0f4f8;
+}
+:is([data-skin="merv"], [data-machine="merv"]) .lib-pop::before {
+  background: linear-gradient(180deg, #1e232c 0%, #14171d 100%);
+}
+:is([data-skin="merv"], [data-machine="merv"]) .lib-head {
+  background: rgba(14, 18, 23, 0.7);
+  border-bottom: 1px solid #28303c;
+}
+:is([data-skin="merv"], [data-machine="merv"]) .lib-title b {
+  color: #ffffff;
+}
+:is([data-skin="merv"], [data-machine="merv"]) .lib-title span {
+  color: #ffe600;
+}
+:is([data-skin="merv"], [data-machine="merv"]) .lib-search {
+  background: #0d1014;
+  border: 1px solid #384252;
+  color: #d8edf6;
+}
+:is([data-skin="merv"], [data-machine="merv"]) .lib-q {
+  color: #ffffff;
+}
+:is([data-skin="merv"], [data-machine="merv"]) .lib-cats {
+  border-color: #28303c;
+}
+:is([data-skin="merv"], [data-machine="merv"]) .lib-cat {
+  color: #d8edf6;
+}
+:is([data-skin="merv"], [data-machine="merv"]) .lib-cat.active {
+  background: #ffe600;
+  color: #0c0e12;
+  font-weight: 800;
+}
+:is([data-skin="merv"], [data-machine="merv"]) .lib-count {
+  color: #688094;
+}
+:is([data-skin="merv"], [data-machine="merv"]) .lib-preset {
+  border-bottom: 1px solid #1e242e;
+}
+:is([data-skin="merv"], [data-machine="merv"]) .lib-preset:hover {
+  background: rgba(255, 230, 0, 0.08);
+}
+:is([data-skin="merv"], [data-machine="merv"]) .lib-preset.active {
+  background: rgba(255, 230, 0, 0.15);
+  border-left: 3px solid #ffe600;
+}
+:is([data-skin="merv"], [data-machine="merv"]) .lib-pname {
+  color: #ffffff;
+  font-weight: 700;
+}
+:is([data-skin="merv"], [data-machine="merv"]) .lib-ptag {
+  color: #4de8f4;
 }
 
 
@@ -2946,129 +3683,870 @@
 
 
 /* ------------------------------------------------------------
-   BAKU — synthwave neon arpeggiator
-   Black, magenta and cyan neon outlines, chrome knobs, sunset grid.
+   BAKU — 80s Synthwave Neon Outrun Hardware Synthesizer
+   Glossy piano-black obsidian casing with corner hex screws,
+   electric cyan wireframe neon outer border with diagonal glass sheen,
+   synthwave sunset perspective grid oscilloscope with hot pink wave trace,
+   electric cyan preset & tempo controls, glowing hot pink active tabs,
+   multi-column desktop layout (ARPEGGIATOR, OSC 1, OSC 2 side-by-side)
+   with alternating cyan & magenta neon card borders, fluted black knobs
+   with glowing hot magenta neon indicator arcs & cyan labels, floating
+   magenta-bordered keyboard bar, dual neon-rimmed PB (magenta) and MOD (cyan)
+   wheels, and high-contrast readable dark synthwave sound library.
    ------------------------------------------------------------ */
 [data-skin="baku"],
 [data-machine="baku"] {
-  --font-ui: "Futura", "Century Gothic", "Avenir Next", "Segoe UI", sans-serif;
-  --font-head: "Futura", "Century Gothic", "Avenir Next", sans-serif;
+  --baku-screw: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 14 14'%3E%3Cdefs%3E%3CradialGradient id='g' cx='35%25' cy='32%25' r='65%25'%3E%3Cstop offset='0%25' stop-color='%23585d6b'/%3E%3Cstop offset='55%25' stop-color='%23222329'/%3E%3Cstop offset='100%25' stop-color='%2308090c'/%3E%3C/radialGradient%3E%3C/defs%3E%3Ccircle cx='7' cy='7' r='5.5' fill='url(%23g)' stroke='%23050508' stroke-width='1.2'/%3E%3Cpath d='M4.5,7 L9.5,7 M7,4.5 L7,9.5' stroke='%230b0c10' stroke-width='1.4' stroke-linecap='round'/%3E%3Cpath d='M4.8,7.5 L9.2,7.5 M7.5,4.8 L7.5,9.2' stroke='%237a8292' stroke-opacity='0.5' stroke-width='0.6' stroke-linecap='round'/%3E%3C/svg%3E");
 
-  --page-bg: #07020f;
-  --ink: #f6eeff;
-  --ink-dim: #d4a8ff;
-  --ink-faint: #a87cde;
+  --baku-grid: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='100' viewBox='0 0 400 100' preserveAspectRatio='none'%3E%3Crect width='400' height='100' fill='%23080212'/%3E%3Cline x1='0' y1='50' x2='400' y2='50' stroke='%23ff007f' stroke-width='1.5' opacity='0.9'/%3E%3Cg stroke='%23ff3388' stroke-width='1.2' opacity='0.75'%3E%3Cline x1='200' y1='50' x2='-100' y2='100'/%3E%3Cline x1='200' y1='50' x2='-40' y2='100'/%3E%3Cline x1='200' y1='50' x2='15' y2='100'/%3E%3Cline x1='200' y1='50' x2='65' y2='100'/%3E%3Cline x1='200' y1='50' x2='115' y2='100'/%3E%3Cline x1='200' y1='50' x2='155' y2='100'/%3E%3Cline x1='200' y1='50' x2='180' y2='100'/%3E%3Cline x1='200' y1='50' x2='200' y2='100'/%3E%3Cline x1='200' y1='50' x2='220' y2='100'/%3E%3Cline x1='200' y1='50' x2='245' y2='100'/%3E%3Cline x1='200' y1='50' x2='285' y2='100'/%3E%3Cline x1='200' y1='50' x2='335' y2='100'/%3E%3Cline x1='200' y1='50' x2='385' y2='100'/%3E%3Cline x1='200' y1='50' x2='440' y2='100'/%3E%3Cline x1='200' y1='50' x2='500' y2='100'/%3E%3C/g%3E%3Cg stroke='%23ff6600' stroke-width='1.1' opacity='0.85'%3E%3Cline x1='0' y1='52' x2='400' y2='52' stroke-width='0.7' opacity='0.45'/%3E%3Cline x1='0' y1='55' x2='400' y2='55' stroke-width='0.8' opacity='0.55'/%3E%3Cline x1='0' y1='59' x2='400' y2='59' stroke-width='0.9' opacity='0.65'/%3E%3Cline x1='0' y1='64' x2='400' y2='64' stroke-width='1.0' opacity='0.75'/%3E%3Cline x1='0' y1='71' x2='400' y2='71' stroke-width='1.2' opacity='0.85'/%3E%3Cline x1='0' y1='80' x2='400' y2='80' stroke-width='1.4' opacity='0.92'/%3E%3Cline x1='0' y1='91' x2='400' y2='91' stroke-width='1.6' opacity='0.98'/%3E%3Cline x1='0' y1='100' x2='400' y2='100' stroke-width='1.8' stroke='%23ff007f'/%3E%3C/g%3E%3C/svg%3E");
 
-  --accent: #ff3fb4;
-  --accent-2: #24e3ff;
-  --accent-ink: #12001f;
-  --accent-glow: rgba(255,63,180,0.8);
-  --accent-glow-soft: rgba(255,63,180,0.35);
+  --font-ui: "Century Gothic", "Futura", "Avenir Next", "Helvetica Neue", sans-serif;
+  --font-head: var(--font-ui);
 
-  --shell-bg:
-    linear-gradient(rgba(255,63,180,0.0) 0, rgba(255,63,180,0) 55%, rgba(255,63,180,0.18) 100%),
-    repeating-linear-gradient(90deg, rgba(36,227,255,0.07) 0 1px, transparent 1px 48px),
-    repeating-linear-gradient(0deg, rgba(255,63,180,0.07) 0 1px, transparent 1px 48px),
-    linear-gradient(180deg, #12031f 0%, #070210 100%);
-  --panel-bg: rgba(10,2,20,0.9);
-  --panel-border: #24e3ff;
-  --panel-radius: 12px;
-  --panel-shadow: 0 0 0 1px rgba(36,227,255,0.3), 0 0 22px rgba(36,227,255,0.22), inset 0 0 18px rgba(36,227,255,0.08);
+  --page-bg: #06030c;
+  --ink: #ffffff;
+  --ink-dim: #00f0ff;
+  --ink-faint: #ff3fa0;
 
-  --sec-bg: rgba(14,3,28,0.92);
-  --sec-border: #ff3fb4;
+  --accent: #ff007f;
+  --accent-2: #00f0ff;
+  --accent-ink: #ffffff;
+  --accent-glow: rgba(255, 0, 127, 0.85);
+  --accent-glow-soft: rgba(255, 0, 127, 0.4);
+
+  --shell-bg: #08080c;
+
+  /* Glassy Obsidian Faceplate with Electric Cyan Neon Rim */
+  --panel-bg:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.015) 38%, transparent 48%),
+    linear-gradient(180deg, #10051e 0%, #080210 100%);
+  --panel-border: #00f0ff;
+  --panel-radius: 10px;
+  --panel-shadow:
+    0 0 16px rgba(0, 240, 255, 0.42),
+    inset 0 0 16px rgba(0, 240, 255, 0.12),
+    0 16px 38px rgba(0, 0, 0, 0.85);
+
+  --sec-bg: linear-gradient(180deg, rgba(16, 4, 30, 0.95) 0%, rgba(10, 2, 18, 0.95) 100%);
+  --sec-border: #00f0ff;
   --sec-radius: 10px;
-  --sec-shadow: 0 0 10px rgba(255,63,180,0.32), inset 0 0 12px rgba(255,63,180,0.08);
-  --sec-head: #24e3ff;
+  --sec-shadow:
+    0 0 14px rgba(0, 240, 255, 0.38),
+    inset 0 0 14px rgba(0, 240, 255, 0.08);
+  --sec-head: #ff3fb4;
 
-  --btn-bg: rgba(14,3,28,0.95);
-  --btn-ink: #24e3ff;
-  --btn-border: #24e3ff;
-  --ctl-bg: rgba(14,3,28,0.95);
-  --ctl-ink: #ff9ee0;
-  --choice-active-bg: rgba(255,63,180,0.28);
+  --btn-bg: rgba(14, 4, 25, 0.88);
+  --btn-ink: #eaf8ff;
+  --btn-border: #00f0ff;
+  --ctl-bg: rgba(14, 4, 25, 0.88);
+  --ctl-ink: #d8f5ff;
+  --choice-active-bg: linear-gradient(180deg, #ff3898 0%, #d81070 100%);
   --choice-active-ink: #ffffff;
 
-  --scope-bg: linear-gradient(180deg, #1a0430 0%, #3a0a3e 60%, rgba(255,106,61,0.34) 100%);
-  --scope-border: #24e3ff;
-  --scope-line: #ff3fb4;
-  --scope-grid: rgba(36,227,255,0.25);
+  /* Synthwave Retro Sunset Grid Oscilloscope */
+  --scope-bg: #080212;
+  --scope-border: #00f0ff;
+  --scope-line: #ff2ea6;
+  --scope-grid: transparent;
 
+  /* Matte Fluted Knob with Glowing Hot Magenta Indicator Arc */
+  --knob-cap:
+    radial-gradient(circle at 35% 28%, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0) 45%),
+    radial-gradient(circle, #221c2b 0%, #130f1c 65%, #09060f 100%);
+  --knob-skirt:
+    radial-gradient(circle at 40% 30%, rgba(255, 255, 255, 0.12) 0%, transparent 55%),
+    repeating-conic-gradient(from 0deg, #100d18 0deg 6deg, #241d2e 6deg 12deg);
   --knob-face:
-    radial-gradient(circle at 36% 28%, #ffffff 0%, rgba(255,255,255,0) 30%),
-    radial-gradient(circle, #e9e9f2 0%, #a9a9bd 55%, #5c5c74 100%);
+    radial-gradient(circle at 35% 28%, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0) 45%),
+    radial-gradient(circle, #221c2b 0%, #130f1c 65%, #09060f 100%);
   --knob-gap: #0b0216;
-  --knob-edge: rgba(255,63,180,0.65);
-  --knob-arc: #ff3fb4;
-  --knob-track: rgba(36,227,255,0.16);
-  --knob-arc-filter: drop-shadow(0 0 4px rgba(255,63,180,0.9));
-  --knob-ind: #ff3fb4;
-  --knob-ind-glow: rgba(255,63,180,0.9);
-  --label-ink: #47e8ff;
-  --value-ink: #ffc2eb;
+  --knob-edge: #ff007f;
+  --knob-arc: #ff007f;
+  --knob-track: rgba(255, 0, 127, 0.18);
+  --knob-arc-filter: drop-shadow(0 0 5px rgba(255, 0, 127, 0.95));
+  --knob-ind: #ff2ea6;
+  --knob-ind-glow: rgba(255, 46, 166, 0.95);
+  --label-ink: #00f0ff;
+  --value-ink: #7ef9ff;
 
-  --key-white: linear-gradient(180deg, #c9fbff 0%, #8ef2ff 100%);
-  --key-white-ink: #123e57;
-  --key-black: linear-gradient(180deg, #1a0430 0%, #3d0b4d 100%);
+  --key-white: linear-gradient(180deg, #ffffff 0%, #f6f3fb 75%, #e8e0f4 100%);
+  --key-white-ink: #5a7888;
+  --key-black: linear-gradient(180deg, #240a36 0%, #12031c 100%);
   --key-black-ink: #ff9ee0;
-  --key-line: #24e3ff;
-  --key-pressed: linear-gradient(180deg, #ffb0e4 0%, #ff3fb4 100%);
-  --key-pressed-ink: #12001f;
+  --key-line: #14141e;
+  --key-pressed: linear-gradient(180deg, #ff60b8 0%, #ff007f 100%);
+  --key-pressed-ink: #ffffff;
 
-  --kb-white-top: #f8f6fc;
-  --kb-white-bottom: #eae3f5;
-  --kb-black-top: #381b40;
-  --kb-black-bottom: #140718;
-  --kb-accent: #ff3fb4;
+  --kb-white-top: #ffffff;
+  --kb-white-bottom: #e8e0f4;
+  --kb-black-top: #280b3c;
+  --kb-black-bottom: #100219;
+  --kb-accent: #ff007f;
   --kb-pattern: none;
-  --kb-frame: #0d0416;
-  --kb-wheel: #1a082c;
+  --kb-frame: #0a0412;
+  --kb-wheel: #150624;
 
-  --led-off: #2a0a3a;
-  --led-off-edge: #ff3fb4;
+  --led-off: #240532;
+  --led-off-edge: #00f0ff;
 }
-:is([data-skin="baku"], [data-machine="baku"]) .key:not(.black):not(.pad).is-pressed {
+
+/* ------------------------------------------------------------
+   Baku Chassis: Piano-Black Polycarbonate Enclosure & Raised Cheeks
+   ------------------------------------------------------------ */
+:is([data-skin="baku"], [data-machine="baku"]) .sy1-shell {
+  position: relative;
+  padding-left: clamp(22px, 2.6vw, 32px);
+  padding-right: clamp(22px, 2.6vw, 32px);
+  border: 2px solid #14141c;
+  border-radius: 12px;
+  background:
+    var(--baku-screw) 12px 12px / 13px 13px no-repeat,
+    var(--baku-screw) calc(100% - 12px) 12px / 13px 13px no-repeat,
+    var(--baku-screw) 12px calc(100% - 12px) / 13px 13px no-repeat,
+    var(--baku-screw) calc(100% - 12px) calc(100% - 12px) / 13px 13px no-repeat,
+    linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.015) 38%, transparent 48%),
+    radial-gradient(ellipse at 50% 0%, #150624 0%, #08080c 65%, #030305 100%);
   box-shadow:
-    inset 0 4px 6px rgba(0, 0, 0, 0.35),
-    inset 1px 0 0 rgba(255, 255, 255, 0.65),
-    inset -1px 0 2px rgba(0, 0, 0, 0.25),
-    inset 0 -3px 0 #ffffff,
-    inset 0 -6px 0 #ff3fb4,
-    0 0 14px rgba(255, 63, 180, 0.8),
-    0 0 24px rgba(36, 227, 255, 0.65),
-    0 2px 5px rgba(0, 0, 0, 0.5) !important;
+    0 0 0 1px #040406,
+    0 22px 48px rgba(0, 0, 0, 0.88);
 }
-:is([data-skin="baku"], [data-machine="baku"]) .key.black.is-pressed {
+
+:is([data-skin="baku"], [data-machine="baku"]) .sy1-shell::before,
+:is([data-skin="baku"], [data-machine="baku"]) .sy1-shell::after {
+  content: "";
+  position: absolute;
+  top: 6px;
+  bottom: 6px;
+  width: clamp(14px, 1.8vw, 22px);
+  z-index: 5;
+  pointer-events: none;
+  border-radius: 6px;
+  background: linear-gradient(90deg, #181820 0%, #2a2a34 50%, #101015 100%);
   box-shadow:
-    1px 3px 4px rgba(0, 0, 0, 0.75),
-    0 0 14px rgba(255, 63, 180, 0.8),
-    0 0 22px rgba(36, 227, 255, 0.65),
-    inset 0 -3px 0 #ff3fb4,
-    inset 0 -6px 0 #070709 !important;
+    inset 1px 0 0 rgba(255, 255, 255, 0.15),
+    inset -1px 0 0 rgba(0, 0, 0, 0.8),
+    0 4px 12px rgba(0, 0, 0, 0.7);
+  border: 1px solid #101016;
 }
-:is([data-skin="baku"], [data-machine="baku"]) .key.black.is-pressed::before {
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.75),
-    0 0 10px rgba(36, 227, 255, 0.85) !important;
+:is([data-skin="baku"], [data-machine="baku"]) .sy1-shell::before {
+  left: 3px;
 }
-:is([data-skin="baku"], [data-machine="baku"]) .synth-sec h4,
+:is([data-skin="baku"], [data-machine="baku"]) .sy1-shell::after {
+  right: 3px;
+}
+
+@media (max-width: 600px) {
+  :is([data-skin="baku"], [data-machine="baku"]) .sy1-shell {
+    padding-left: 6px;
+    padding-right: 6px;
+  }
+  :is([data-skin="baku"], [data-machine="baku"]) .sy1-shell::before,
+  :is([data-skin="baku"], [data-machine="baku"]) .sy1-shell::after {
+    display: none;
+  }
+}
+
+@media (max-height: 560px) and (orientation: landscape) {
+  :is([data-skin="baku"], [data-machine="baku"]) .sy1-shell {
+    border-width: 1px;
+    padding-left: 6px;
+    padding-right: 6px;
+  }
+  :is([data-skin="baku"], [data-machine="baku"]) .sy1-shell::before,
+  :is([data-skin="baku"], [data-machine="baku"]) .sy1-shell::after {
+    display: none;
+  }
+  :is([data-skin="baku"], [data-machine="baku"]) .synth-brand {
+    flex: 0 0 auto;
+    width: auto;
+  }
+  :is([data-skin="baku"], [data-machine="baku"]) .synth-machine-select {
+    padding: 1px 18px 1px 6px !important;
+    font-size: 0.76rem !important;
+    line-height: 1.1 !important;
+  }
+  :is([data-skin="baku"], [data-machine="baku"]) .synth-subbar {
+    gap: var(--sp-1);
+  }
+  :is([data-skin="baku"], [data-machine="baku"]) .synth-preset-nav {
+    padding: 0 4px !important;
+    border-width: 1px !important;
+  }
+  :is([data-skin="baku"], [data-machine="baku"]) .synth-tab {
+    padding: 0 6px;
+    font-size: 0.68rem;
+    border-width: 1px;
+  }
+  :is([data-skin="baku"], [data-machine="baku"]) .synth-sec {
+    border-width: 1px !important;
+    box-shadow: none !important;
+  }
+  :is([data-skin="baku"], [data-machine="baku"]) .synth-sec h4 {
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 4px !important;
+    font-size: 0.6rem !important;
+    line-height: 1 !important;
+  }
+  :is([data-skin="baku"], [data-machine="baku"]) .kb-bar {
+    padding: 0 !important;
+    border-width: 1px 0 !important;
+  }
+  :is([data-skin="baku"], [data-machine="baku"]) .kb-machine-badge {
+    padding: 1px 5px;
+    border-width: 1px;
+  }
+}
+
+@media (max-height: 360px) and (orientation: landscape) {
+  :is([data-skin="baku"], [data-machine="baku"]) .synth-sec h4 {
+    border: none !important;
+    padding: 0 !important;
+    font-size: 7px !important;
+    line-height: 1 !important;
+    box-shadow: none !important;
+  }
+  :is([data-skin="baku"], [data-machine="baku"]) .sk-label {
+    font-size: 0.46rem !important;
+    margin-top: 0 !important;
+  }
+  :is([data-skin="baku"], [data-machine="baku"]) .sk-dial {
+    box-shadow: none !important;
+  }
+}
+
+:is([data-skin="baku"], [data-machine="baku"]) .synth-hint {
+  display: none;
+}
+
+/* ------------------------------------------------------------
+   Baku Top Bar: Electric Cyan Machine Selector, Sunset Horizon Scope,
+   and Infinity Button
+   ------------------------------------------------------------ */
+:is([data-skin="baku"], [data-machine="baku"]) .synth-brand-maker {
+  display: none;
+}
 :is([data-skin="baku"], [data-machine="baku"]) .synth-machine-select {
-  text-shadow: 0 0 8px rgba(36,227,255,0.8);
+  background:
+    linear-gradient(45deg, transparent 50%, #ff5ec4 50%) right 11px center / 5px 5px no-repeat,
+    linear-gradient(135deg, #ff5ec4 50%, transparent 50%) right 6px center / 5px 5px no-repeat,
+    rgba(14, 4, 25, 0.9);
+  color: #ff5ec4;
+  border: 1.5px solid #00f0ff;
+  border-radius: 6px;
+  padding: 4px 24px 4px 10px;
+  font-family: var(--font-head);
+  font-weight: 800;
+  font-size: 0.94rem;
+  letter-spacing: 0.04em;
+  box-shadow:
+    0 0 10px rgba(0, 240, 255, 0.42),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  text-shadow: 0 0 10px rgba(255, 63, 180, 0.95);
 }
-:is([data-skin="baku"], [data-machine="baku"]) .synth-machine-select {
-  color: #ff5cc0;
-  text-shadow: 0 0 10px rgba(255,63,180,0.9);
+
+:is([data-skin="baku"], [data-machine="baku"]) .synth-scope {
+  border-radius: 8px;
+  border: 2px solid #00f0ff;
+  background:
+    var(--baku-grid) center bottom / 100% 100% no-repeat,
+    #0a0214;
+  box-shadow:
+    0 0 14px rgba(0, 240, 255, 0.48),
+    inset 0 0 16px rgba(255, 0, 127, 0.22);
 }
-:is([data-skin="baku"], [data-machine="baku"]) .synth-sec:nth-child(odd) {
-  border-color: #24e3ff;
-  box-shadow: 0 0 10px rgba(36,227,255,0.32), inset 0 0 12px rgba(36,227,255,0.08);
+
+:is([data-skin="baku"], [data-machine="baku"]) .synth-conn-btn {
+  background: rgba(14, 4, 25, 0.9);
+  color: #00f0ff;
+  border: 1.5px solid #00f0ff;
+  border-radius: 6px;
+  box-shadow:
+    0 0 8px rgba(0, 240, 255, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
-:is([data-skin="baku"], [data-machine="baku"]) .synth-sec:nth-child(odd) h4 {
-  color: #ff66c4;
-  text-shadow: 0 0 8px rgba(255,63,180,0.8);
+:is([data-skin="baku"], [data-machine="baku"]) .synth-conn-btn::after {
+  content: "· ∞ ·";
+  font-size: 0.82rem;
+  font-weight: 900;
+  color: #00f0ff;
+  text-shadow: 0 0 6px #00f0ff;
+  letter-spacing: 0.08em;
 }
+:is([data-skin="baku"], [data-machine="baku"]) .synth-conn-btn svg {
+  display: none;
+}
+
+/* ------------------------------------------------------------
+   Baku Subbar: Electric Cyan Preset & Tempo, Glowing Pink Active Tabs
+   ------------------------------------------------------------ */
+:is([data-skin="baku"], [data-machine="baku"]) .synth-preset-nav {
+  background: rgba(14, 4, 25, 0.88);
+  border: 1.5px solid #00f0ff;
+  border-radius: 6px;
+  box-shadow:
+    0 0 10px rgba(0, 240, 255, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+:is([data-skin="baku"], [data-machine="baku"]) .preset-step-btn {
+  background: rgba(8, 2, 16, 0.9);
+  color: #00f0ff;
+  border: 1px solid #00f0ff;
+  border-radius: 4px;
+  box-shadow: 0 0 6px rgba(0, 240, 255, 0.25);
+}
+:is([data-skin="baku"], [data-machine="baku"]) .preset-display {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+:is([data-skin="baku"], [data-machine="baku"]) .pd-name {
+  color: #ffffff;
+  font-weight: 800;
+  text-shadow: 0 0 6px rgba(255, 255, 255, 0.5);
+}
+:is([data-skin="baku"], [data-machine="baku"]) .pd-sub {
+  color: #00f0ff;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-shadow: 0 0 6px rgba(0, 240, 255, 0.65);
+}
+:is([data-skin="baku"], [data-machine="baku"]) .pd-icon {
+  color: #00f0ff;
+  filter: drop-shadow(0 0 4px #00f0ff);
+}
+
+:is([data-skin="baku"], [data-machine="baku"]) .synth-tempo {
+  background: rgba(14, 4, 25, 0.88);
+  border: 1.5px solid #00f0ff;
+  border-radius: 6px;
+  padding: 1px 4px;
+  box-shadow: 0 0 8px rgba(0, 240, 255, 0.35);
+}
+:is([data-skin="baku"], [data-machine="baku"]) .synth-tempo .synth-midi-btn {
+  background: rgba(8, 2, 16, 0.9);
+  color: #00f0ff;
+  border: 1px solid #00f0ff;
+  border-radius: 4px;
+  box-shadow: 0 0 4px rgba(0, 240, 255, 0.25);
+}
+:is([data-skin="baku"], [data-machine="baku"]) .synth-tempo-val {
+  color: #00f0ff;
+  font-weight: 800;
+  text-shadow: 0 0 6px rgba(0, 240, 255, 0.65);
+}
+
+/* Page Tabs (Arp, Osc, Filter & amp, Space) */
+:is([data-skin="baku"], [data-machine="baku"]) .synth-tabs {
+  display: flex !important;
+  gap: var(--sp-1);
+}
+:is([data-skin="baku"], [data-machine="baku"]) .synth-tab {
+  background: rgba(14, 4, 25, 0.88);
+  color: #00f0ff;
+  border: 1.5px solid #00f0ff;
+  border-radius: 6px;
+  font-family: var(--font-head);
+  font-weight: 800;
+  font-size: 0.82rem;
+  letter-spacing: 0.02em;
+  box-shadow: 0 0 8px rgba(0, 240, 255, 0.32);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+:is([data-skin="baku"], [data-machine="baku"]) .synth-tab::before {
+  content: "○";
+  font-size: 0.74rem;
+  font-weight: 900;
+  color: #00f0ff;
+  filter: drop-shadow(0 0 3px #00f0ff);
+}
+:is([data-skin="baku"], [data-machine="baku"]) .synth-tab.active {
+  background: linear-gradient(180deg, #ff3898 0%, #ff1078 100%);
+  color: #ffffff;
+  border-color: #ff70b8;
+  box-shadow:
+    0 0 16px rgba(255, 16, 120, 0.85),
+    inset 0 1px 0 rgba(255, 255, 255, 0.55);
+}
+:is([data-skin="baku"], [data-machine="baku"]) .synth-tab.active::before {
+  content: "●";
+  color: #ffffff;
+  filter: drop-shadow(0 0 5px #ffffff);
+}
+
+/* ------------------------------------------------------------
+   Desktop & Tablet 3-Column Layout for Baku (ARPEGGIATOR, OSC 1, OSC 2)
+   ------------------------------------------------------------ */
+@media (min-width: 761px) and (min-height: 561px) {
+  .sy1-shell:not(.is-fit-paged) .synth-panel[data-machine="baku"] .synth-sec {
+    min-height: 58vh;
+  }
+  .sy1-shell.is-fit-paged .synth-panel[data-machine="baku"] .synth-sections {
+    grid-template-columns: 1.15fr 1fr 1fr !important;
+    grid-auto-rows: minmax(0, 1fr);
+  }
+  .sy1-shell.is-fit-paged .synth-panel[data-machine="baku"][data-count="2"] .synth-sections {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+  .sy1-shell.is-fit-paged .synth-panel[data-machine="baku"] .synth-sec {
+    container-type: size;
+    justify-content: space-between;
+  }
+  .sy1-shell.is-fit-paged .synth-panel[data-machine="baku"] .synth-sec > h4 + * {
+    margin-top: auto;
+  }
+  .sy1-shell.is-fit-paged .synth-panel[data-machine="baku"] .synth-sec > :last-child {
+    margin-bottom: auto;
+  }
+}
+
+/* ------------------------------------------------------------
+   Section Cards & Alternating Cyan / Magenta Glowing Borders
+   ------------------------------------------------------------ */
+:is([data-skin="baku"], [data-machine="baku"]) .synth-sec {
+  background: linear-gradient(180deg, rgba(16, 4, 30, 0.95) 0%, rgba(10, 2, 18, 0.95) 100%);
+  border: 2px solid #00f0ff;
+  border-radius: 10px;
+  box-shadow:
+    0 0 14px rgba(0, 240, 255, 0.4),
+    inset 0 0 14px rgba(0, 240, 255, 0.08);
+}
+:is([data-skin="baku"], [data-machine="baku"]) .synth-sec h4 {
+  background: transparent;
+  color: #ff3fb4;
+  border: none;
+  box-shadow: none;
+  font-family: var(--font-head);
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-shadow: 0 0 10px rgba(255, 63, 180, 0.85);
+}
+
+/* Section 1: ARPEGGIATOR (Electric Cyan Border, Magenta Header) */
+:is([data-skin="baku"], [data-machine="baku"]) .synth-sec:nth-child(1) {
+  border-color: #00f0ff;
+  box-shadow:
+    0 0 14px rgba(0, 240, 255, 0.4),
+    inset 0 0 14px rgba(0, 240, 255, 0.08);
+}
+:is([data-skin="baku"], [data-machine="baku"]) .synth-sec:nth-child(1) h4 {
+  color: #ff3fb4;
+  text-shadow: 0 0 10px rgba(255, 63, 180, 0.85);
+}
+
+/* Section 2: OSC 1 (Neon Magenta Border, Cyan Header) */
+:is([data-skin="baku"], [data-machine="baku"]) .synth-sec:nth-child(2) {
+  border-color: #ff007f;
+  box-shadow:
+    0 0 14px rgba(255, 0, 127, 0.4),
+    inset 0 0 14px rgba(255, 0, 127, 0.08);
+}
+:is([data-skin="baku"], [data-machine="baku"]) .synth-sec:nth-child(2) h4 {
+  color: #00f0ff;
+  text-shadow: 0 0 10px rgba(0, 240, 255, 0.85);
+}
+
+/* Section 3: OSC 2 (Electric Cyan Border, Magenta Header) */
+:is([data-skin="baku"], [data-machine="baku"]) .synth-sec:nth-child(3) {
+  border-color: #00f0ff;
+  box-shadow:
+    0 0 14px rgba(0, 240, 255, 0.4),
+    inset 0 0 14px rgba(0, 240, 255, 0.08);
+}
+:is([data-skin="baku"], [data-machine="baku"]) .synth-sec:nth-child(3) h4 {
+  color: #ff3fb4;
+  text-shadow: 0 0 10px rgba(255, 63, 180, 0.85);
+}
+
+/* ------------------------------------------------------------
+   Buttons: Toggles & Choices (Glowing Magenta Active, Cyan Inactive)
+   ------------------------------------------------------------ */
+:is([data-skin="baku"], [data-machine="baku"]) .synth-choice {
+  gap: 6px;
+}
+:is([data-skin="baku"], [data-machine="baku"]) .synth-choice-btn,
+:is([data-skin="baku"], [data-machine="baku"]) .synth-toggle-btn {
+  background: rgba(14, 4, 25, 0.88);
+  border: 1.5px solid #00f0ff;
+  border-radius: 6px;
+  color: #eaf8ff;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  box-shadow: 0 0 6px rgba(0, 240, 255, 0.25);
+}
+
+/* Section 1 & 3 Buttons: Glowing Magenta Borders matching reference */
+:is([data-skin="baku"], [data-machine="baku"]) .synth-sec:nth-child(1) .synth-choice-btn,
+:is([data-skin="baku"], [data-machine="baku"]) .synth-sec:nth-child(1) .synth-toggle-btn,
+:is([data-skin="baku"], [data-machine="baku"]) .synth-sec:nth-child(3) .synth-choice-btn,
+:is([data-skin="baku"], [data-machine="baku"]) .synth-sec:nth-child(3) .synth-toggle-btn {
+  border-color: #ff007f;
+  box-shadow: 0 0 6px rgba(255, 0, 127, 0.3);
+  color: #ffe8f6;
+}
+
+/* Section 2 Buttons: Electric Cyan Borders matching reference */
+:is([data-skin="baku"], [data-machine="baku"]) .synth-sec:nth-child(2) .synth-choice-btn,
+:is([data-skin="baku"], [data-machine="baku"]) .synth-sec:nth-child(2) .synth-toggle-btn {
+  border-color: #00f0ff;
+  box-shadow: 0 0 6px rgba(0, 240, 255, 0.3);
+  color: #eaf8ff;
+}
+
+/* Active Glowing Hot Magenta Button across all sections */
+:is([data-skin="baku"], [data-machine="baku"]) .synth-choice-btn.active,
+:is([data-skin="baku"], [data-machine="baku"]) .synth-toggle-btn.active {
+  background: linear-gradient(180deg, #ff3898 0%, #d81070 100%) !important;
+  color: #ffffff !important;
+  border-color: #ff70b8 !important;
+  box-shadow:
+    0 0 14px rgba(255, 40, 140, 0.85),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5) !important;
+  text-shadow: 0 0 6px rgba(255, 255, 255, 0.7);
+}
+
+/* ------------------------------------------------------------
+   Knobs: 3D Fluted Gunmetal Dial with Glowing Magenta Value Arc
+   ------------------------------------------------------------ */
+:is([data-skin="baku"], [data-machine="baku"]) {
+  --ring-pad: 0px;
+}
+:is([data-skin="baku"], [data-machine="baku"]) :is(.sk-skirt, .sk-cap) {
+  display: block;
+}
+:is([data-skin="baku"], [data-machine="baku"]) .sk-scale {
+  display: none;
+}
+:is([data-skin="baku"], [data-machine="baku"]) .sk-dial {
+  background: transparent;
+  box-shadow: none;
+}
+:is([data-skin="baku"], [data-machine="baku"]) .sk-dial::before {
+  content: "";
+  position: absolute;
+  inset: 0px;
+  border-radius: 50%;
+  background: conic-gradient(
+    from -135deg at 50% 50%,
+    #ff007f 0deg,
+    #ff2ea6 calc(var(--n, 0) * 270deg),
+    rgba(255, 0, 127, 0.22) calc(var(--n, 0) * 270deg),
+    rgba(0, 240, 255, 0.12) 270deg,
+    transparent 270deg
+  );
+  -webkit-mask: radial-gradient(circle, transparent 68%, black 71%, black 95%, transparent 98%);
+  mask: radial-gradient(circle, transparent 68%, black 71%, black 95%, transparent 98%);
+  filter: drop-shadow(0 0 5px rgba(255, 0, 127, 0.95));
+  pointer-events: none;
+  z-index: 1;
+}
+:is([data-skin="baku"], [data-machine="baku"]) .sk-skirt {
+  position: absolute;
+  inset: 7%;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 40% 30%, rgba(255, 255, 255, 0.12) 0%, transparent 55%),
+    repeating-conic-gradient(from 0deg, #100d18 0deg 6deg, #241d2e 6deg 12deg);
+  box-shadow:
+    0 4px 10px rgba(0, 0, 0, 0.9),
+    inset 0 1px 1px rgba(255, 255, 255, 0.12);
+  border: 1px solid #20172c;
+  z-index: 2;
+}
+:is([data-skin="baku"], [data-machine="baku"]) .sk-cap {
+  position: absolute;
+  inset: 16%;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 35% 28%, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0) 45%),
+    radial-gradient(circle, #221c2b 0%, #130f1c 65%, #09060f 100%);
+  border: 1px solid #362944;
+  box-shadow:
+    inset 0 2px 4px rgba(255, 255, 255, 0.14),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.75),
+    0 2px 5px rgba(0, 0, 0, 0.6);
+  z-index: 3;
+}
+:is([data-skin="baku"], [data-machine="baku"]) .sk-rotor {
+  position: absolute;
+  inset: 16%;
+  z-index: 4;
+  pointer-events: none;
+}
+:is([data-skin="baku"], [data-machine="baku"]) .sk-ind {
+  position: absolute;
+  top: 8%;
+  left: 50%;
+  width: 2.2px;
+  height: 38%;
+  margin-left: -1.1px;
+  border-radius: 1.5px;
+  background: #ff2ea6;
+  box-shadow:
+    0 0 6px rgba(255, 46, 166, 0.95),
+    0 0 2px #ffffff;
+}
+
 :is([data-skin="baku"], [data-machine="baku"]) .sk-label {
-  text-shadow: 0 0 6px rgba(36,227,255,0.55);
+  color: #00f0ff;
+  font-family: var(--font-head);
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-shadow: 0 0 6px rgba(0, 240, 255, 0.65);
+}
+:is([data-skin="baku"], [data-machine="baku"]) .sk-val {
+  color: #7ef9ff;
+  font-family: var(--font-head);
+  font-weight: 700;
+  text-shadow: 0 0 6px rgba(0, 240, 255, 0.55);
+}
+:is([data-skin="baku"], [data-machine="baku"]) .sk-caption {
+  color: #00f0ff;
+  font-family: var(--font-head);
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-shadow: 0 0 6px rgba(0, 240, 255, 0.65);
+}
+
+/* ------------------------------------------------------------
+   Keyboard Bar: Floating Magenta Border, Glowing Cyan Octave Buttons
+   ------------------------------------------------------------ */
+:is([data-skin="baku"], [data-machine="baku"]) .kb-bar {
+  background: #0c0418;
+  border-top: 1.5px solid #ff007f;
+  border-bottom: 1.5px solid #ff007f;
+  border-radius: 6px;
+  box-shadow: 0 0 10px rgba(255, 0, 127, 0.35);
+  padding: 4px 0;
+}
+:is([data-skin="baku"], [data-machine="baku"]) .kb-btn {
+  background: rgba(14, 4, 25, 0.9);
+  color: #eaf8ff;
+  border: 1.5px solid #00f0ff;
+  border-radius: 6px;
+  font-family: var(--font-head);
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  box-shadow: 0 0 6px rgba(0, 240, 255, 0.25);
+}
+:is([data-skin="baku"], [data-machine="baku"]) .kb-oct-disp {
+  background: rgba(14, 4, 25, 0.9);
+  color: #eaf8ff;
+  border: 1.5px solid #00f0ff;
+  border-radius: 6px;
+  font-family: var(--font-head);
+  font-weight: 800;
+  box-shadow: 0 0 6px rgba(0, 240, 255, 0.25);
+}
+
+/* Active Octave / Button: Electric Cyan */
+:is([data-skin="baku"], [data-machine="baku"]) .kb-oct .kb-btn.active,
+:is([data-skin="baku"], [data-machine="baku"]) .kb-oct .kb-btn:active {
+  background: linear-gradient(180deg, #38f2ff 0%, #16ccd8 100%) !important;
+  color: #061a22 !important;
+  border-color: #94f4ff !important;
+  box-shadow: 0 0 12px rgba(56, 242, 255, 0.75) !important;
+}
+
+/* Active HOLD & ARP: Glowing Hot Pink */
+:is([data-skin="baku"], [data-machine="baku"]) .kb-hold.active,
+:is([data-skin="baku"], [data-machine="baku"]) .kb-hold[aria-pressed="true"],
+:is([data-skin="baku"], [data-machine="baku"]) .kb-arp.active,
+:is([data-skin="baku"], [data-machine="baku"]) .kb-arp[aria-pressed="true"] {
+  background: linear-gradient(180deg, #ff3898 0%, #d81070 100%) !important;
+  color: #ffffff !important;
+  border-color: #ff70b8 !important;
+  box-shadow: 0 0 14px rgba(255, 40, 140, 0.8) !important;
+}
+
+/* ORIENTAL Button */
+:is([data-skin="baku"], [data-machine="baku"]) .kb-or {
+  background: rgba(14, 4, 25, 0.9);
+  border: 1.5px solid #00f0ff;
+  color: #00f0ff;
+  box-shadow: 0 0 6px rgba(0, 240, 255, 0.25);
+}
+:is([data-skin="baku"], [data-machine="baku"]) .kb-or .kb-or-dot {
+  background: transparent;
+  border: 1.5px solid #00f0ff;
+  box-shadow: 0 0 4px #00f0ff;
+}
+:is([data-skin="baku"], [data-machine="baku"]) .kb-or.active {
+  background: linear-gradient(180deg, #38f2ff 0%, #16ccd8 100%);
+  color: #061a22;
+  border-color: #94f4ff;
+  box-shadow: 0 0 12px rgba(56, 242, 255, 0.75);
+}
+:is([data-skin="baku"], [data-machine="baku"]) .kb-or.active .kb-or-dot {
+  background: #061a22;
+  border-color: #061a22;
+}
+
+/* ------------------------------------------------------------
+   Wheels: Recessed Well with Neon Magenta PB & Neon Cyan MOD
+   ------------------------------------------------------------ */
+:is([data-skin="baku"], [data-machine="baku"]) .kb-wheels {
+  background:
+    var(--sy1-screw) 4px 4px / 9px 9px no-repeat,
+    var(--sy1-screw) calc(100% - 4px) 4px / 9px 9px no-repeat,
+    var(--sy1-screw) 4px calc(100% - 4px) / 9px 9px no-repeat,
+    var(--sy1-screw) calc(100% - 4px) calc(100% - 4px) / 9px 9px no-repeat,
+    linear-gradient(180deg, #10061c 0%, #080210 100%);
+  border: 1.5px solid #1e0a30;
+  border-radius: 6px;
+  box-shadow:
+    inset 0 2px 6px rgba(0, 0, 0, 0.8),
+    0 2px 6px rgba(0, 0, 0, 0.6);
+}
+/* PB Wheel: Neon Magenta Rim Glow */
+:is([data-skin="baku"], [data-machine="baku"]) .kb-wheel:first-of-type {
+  border: 1.5px solid #ff007f;
+  border-radius: 7px;
+  background:
+    repeating-linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.45) 0px,
+      rgba(255, 255, 255, 0.45) 1.5px,
+      rgba(30, 20, 36, 0.9) 1.5px,
+      rgba(30, 20, 36, 0.9) 3.5px
+    ),
+    linear-gradient(180deg, #3c2a44 0%, #908498 28%, #d8d0e0 50%, #84768c 72%, #2c1a34 100%);
+  box-shadow:
+    0 0 12px rgba(255, 0, 127, 0.6),
+    inset 0 6px 10px rgba(0, 0, 0, 0.8),
+    inset 0 -6px 10px rgba(0, 0, 0, 0.8);
+}
+/* MOD Wheel: Neon Electric Cyan Rim Glow */
+:is([data-skin="baku"], [data-machine="baku"]) .kb-wheel:last-of-type {
+  border: 1.5px solid #00f0ff;
+  border-radius: 7px;
+  background:
+    repeating-linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.45) 0px,
+      rgba(255, 255, 255, 0.45) 1.5px,
+      rgba(20, 32, 40, 0.9) 1.5px,
+      rgba(20, 32, 40, 0.9) 3.5px
+    ),
+    linear-gradient(180deg, #2a3c48 0%, #8096a4 28%, #d0e0ec 50%, #768a98 72%, #1a2c38 100%);
+  box-shadow:
+    0 0 12px rgba(0, 240, 255, 0.6),
+    inset 0 6px 10px rgba(0, 0, 0, 0.8),
+    inset 0 -6px 10px rgba(0, 0, 0, 0.8);
+}
+:is([data-skin="baku"], [data-machine="baku"]) .kb-wheel:first-of-type + .kb-wheel-label {
+  color: #ff3fb4;
+  text-shadow: 0 0 6px #ff007f;
+}
+:is([data-skin="baku"], [data-machine="baku"]) .kb-wheel:last-of-type + .kb-wheel-label {
+  color: #00f0ff;
+  text-shadow: 0 0 6px #00f0ff;
+}
+
+/* ------------------------------------------------------------
+   Keybed & Bottom Neon Underglow
+   ------------------------------------------------------------ */
+:is([data-skin="baku"], [data-machine="baku"]) .kb {
+  border: 2px solid #0a0412;
+  border-bottom: 2px solid #ff007f;
+  box-shadow:
+    0 0 0 1px #1a082c,
+    0 4px 18px rgba(255, 0, 127, 0.55);
+}
+:is([data-skin="baku"], [data-machine="baku"]) .key:not(.black) {
+  border-right: 1.5px solid #14141e;
+  border-bottom: 2px solid #14141e;
+  border-radius: 0 0 5px 5px;
+}
+:is([data-skin="baku"], [data-machine="baku"]) .key.black {
+  border: 1.5px solid #08020d;
+  border-radius: 0 0 4px 4px;
+}
+:is([data-skin="baku"], [data-machine="baku"]) .key-lbl {
+  color: #6a7888;
+  font-weight: 700;
+  font-size: 0.64rem;
+}
+
+/* ------------------------------------------------------------
+   Sound Library Modal (.lib-pop):
+   High-contrast, clean 80s synthwave palette, readable like other synths
+   ------------------------------------------------------------ */
+:is([data-skin="baku"], [data-machine="baku"]) .lib-pop {
+  background: #0e0419;
+  border: 1.5px solid #00f0ff;
+  color: #f5eeff;
+}
+:is([data-skin="baku"], [data-machine="baku"]) .lib-pop::before {
+  background: linear-gradient(180deg, #1b072c 0%, #0e0419 100%);
+}
+:is([data-skin="baku"], [data-machine="baku"]) .lib-head {
+  background: rgba(14, 4, 25, 0.85);
+  border-bottom: 1px solid #2e104a;
+}
+:is([data-skin="baku"], [data-machine="baku"]) .lib-title b {
+  color: #ff5ec4;
+  text-shadow: 0 0 6px rgba(255, 63, 180, 0.75);
+}
+:is([data-skin="baku"], [data-machine="baku"]) .lib-title span {
+  color: #bfa8db;
+}
+:is([data-skin="baku"], [data-machine="baku"]) .lib-search {
+  background: #0a0212;
+  border: 1px solid #00f0ff;
+  color: #d8f5ff;
+}
+:is([data-skin="baku"], [data-machine="baku"]) .lib-q {
+  color: #ffffff;
+}
+:is([data-skin="baku"], [data-machine="baku"]) .lib-done {
+  background: linear-gradient(180deg, #ff3898 0%, #d81070 100%);
+  color: #ffffff;
+}
+:is([data-skin="baku"], [data-machine="baku"]) .lib-cats {
+  border-color: #2e104a;
+}
+:is([data-skin="baku"], [data-machine="baku"]) .lib-cat {
+  color: #dcd0ee;
+}
+:is([data-skin="baku"], [data-machine="baku"]) .lib-count {
+  color: #8f7ca8;
+}
+:is([data-skin="baku"], [data-machine="baku"]) .lib-cat.active {
+  background: #280a3c;
+  color: #ffffff;
+  box-shadow: inset 3px 0 0 #ff007f;
+}
+:is([data-skin="baku"], [data-machine="baku"]) .lib-cat.active .lib-count {
+  color: #ff5ec4;
+}
+:is([data-skin="baku"], [data-machine="baku"]) .lib-tile {
+  background: linear-gradient(180deg, #1c0a2e 0%, #120420 100%);
+  border: 1px solid #3c1460;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 2px 6px rgba(0, 0, 0, 0.45);
+  color: #f5eeff;
+}
+:is([data-skin="baku"], [data-machine="baku"]) .lib-tile.active {
+  border-color: #00f0ff;
+  box-shadow: 0 0 0 1px #00f0ff, 0 0 14px rgba(0, 240, 255, 0.4);
+}
+:is([data-skin="baku"], [data-machine="baku"]) .lib-name {
+  color: #ffffff;
+}
+:is([data-skin="baku"], [data-machine="baku"]) .lib-sub {
+  color: #00f0ff;
+}
+:is([data-skin="baku"], [data-machine="baku"]) .lib-fav {
+  color: #bfa8db;
+}
+:is([data-skin="baku"], [data-machine="baku"]) .lib-fav.on {
+  color: #ff5ec4;
 }
 
 
@@ -5740,209 +7218,930 @@
 
 
 /* ------------------------------------------------------------
-   KONYA — Bauhaus Euclidean rhythm instrument
-   Warm museum cream paper, primary red / yellow / blue geometric
-   blocks, matte black bakelite knobs, bold geometric type, and
-   Euclidean rings drawn as big clean circles with lit pulses.
+   KONYA — Piet Mondrian / De Stijl Modernist Euclidean Rhythm Synth
+   Warm cream matte powder-coated chassis with corner hex screws,
+   thick graphic black Mondrian grid borders, stacked primary color
+   rails (Red, Yellow, Blue), recessed amber CRT oscilloscope with -0B mark,
+   champagne-silver preset bay with corner screws, Canary Yellow active
+   Rings tab, vibrant Red RINGS header & concentric 3-color Euclidean
+   rings (Blue outer, Yellow middle, Red inner), Canary Yellow CLOCK
+   header with wide horizontal LATCH bar and fluted bakelite rotary knobs,
+   Mondrian accent blocks, illuminated yellow ARP button, 3-stripe
+   Mondrian emblem badge, dark pewter wheel bay with knurled silver wheels,
+   warm ivory keybed, and a high-contrast readable sound library.
    ------------------------------------------------------------ */
 [data-skin="konya"],
 [data-machine="konya"] {
-  --kb-btn-ink: #111111;
-  --midi-btn-ink: #111111;
-  --font-ui: "Futura", "Century Gothic", "Avenir Next", "Trebuchet MS", sans-serif;
+  --kb-btn-ink: #141414;
+  --midi-btn-ink: #141414;
+  --font-ui: "Futura", "Avenir Next", "Century Gothic", "Trebuchet MS", sans-serif;
   --font-head: var(--font-ui);
-  --eu-1: #d92b24;
-  --eu-2: #f2b705;
-  --eu-3: #1b4ca1;
 
-  --page-bg: #e4dbc6;
-  --ink: #111111;
-  --ink-dim: #38352e;
-  --ink-faint: #595449;
+  /* Primary De Stijl palette */
+  --eu-1: #d62828; /* Red */
+  --eu-2: #f7c815; /* Yellow */
+  --eu-3: #1d5bbf; /* Blue */
 
-  --accent: #d92b24;
-  --accent-2: #1b4ca1;
-  --accent-ink: #ffffff;
-  --accent-glow: rgba(217,43,36,0.48);
-  --accent-glow-soft: rgba(217,43,36,0.22);
+  /* Slotted hex chassis screw SVG */
+  --konya-screw: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='7' fill='%23222328' stroke='%23141414' stroke-width='1'/%3E%3Ccircle cx='8' cy='8' r='5.4' fill='%23c8cbd2' stroke='%23505460' stroke-width='0.8'/%3E%3Cpath d='M5.2 8h5.6M8 5.2v5.6' stroke='%2322242a' stroke-width='1.5' stroke-linecap='round'/%3E%3Cpath d='M5.4 8.4h4.8M8.4 5.4v4.8' stroke='%23ffffff' stroke-opacity='0.45' stroke-width='0.6' stroke-linecap='round'/%3E%3C/svg%3E");
 
+  /* Miniature corner screw for preset box & wheel bay */
+  --konya-screw-sm: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Ccircle cx='6' cy='6' r='5' fill='%23202126' stroke='%23141414' stroke-width='0.8'/%3E%3Ccircle cx='6' cy='6' r='3.8' fill='%23b8bbc2' stroke='%23484c56' stroke-width='0.6'/%3E%3Cpath d='M4 6h4M6 4v4' stroke='%231c1d22' stroke-width='1.2' stroke-linecap='round'/%3E%3C/svg%3E");
+
+  /* Left cheek: Stacked Mondrian color blocks [Red, Yellow, Blue] with thick black grid borders */
+  --konya-rail-left: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='640' viewBox='0 0 32 640' preserveAspectRatio='none'%3E%3Crect x='1' y='1' width='30' height='638' fill='%23eae5d8' stroke='%23141414' stroke-width='2'/%3E%3Crect x='1' y='36' width='30' height='190' fill='%23d62828' stroke='%23141414' stroke-width='2.5'/%3E%3Crect x='1' y='226' width='30' height='200' fill='%23f7c815' stroke='%23141414' stroke-width='2.5'/%3E%3Crect x='1' y='426' width='30' height='178' fill='%231d5bbf' stroke='%23141414' stroke-width='2.5'/%3E%3C/svg%3E");
+
+  /* Right cheek: Stacked Mondrian color blocks [Yellow, Red, Blue] with thick black grid borders */
+  --konya-rail-right: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='640' viewBox='0 0 32 640' preserveAspectRatio='none'%3E%3Crect x='1' y='1' width='30' height='638' fill='%23eae5d8' stroke='%23141414' stroke-width='2'/%3E%3Crect x='1' y='36' width='30' height='190' fill='%23f7c815' stroke='%23141414' stroke-width='2.5'/%3E%3Crect x='1' y='226' width='30' height='200' fill='%23d62828' stroke='%23141414' stroke-width='2.5'/%3E%3Crect x='1' y='426' width='30' height='178' fill='%231d5bbf' stroke='%23141414' stroke-width='2.5'/%3E%3C/svg%3E");
+
+  /* Mondrian subbar accent block strip: Yellow, Red, Blue */
+  --konya-subbar-mondrian: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='72' height='34' viewBox='0 0 72 34'%3E%3Crect width='72' height='34' fill='%23141414'/%3E%3Crect x='2' y='2' width='22' height='30' fill='%23f7c815'/%3E%3Crect x='26' y='2' width='18' height='30' fill='%23d62828'/%3E%3Crect x='46' y='2' width='24' height='30' fill='%231d5bbf'/%3E%3C/svg%3E");
+
+  --page-bg: #1e1f24;
+  --ink: #141414;
+  --ink-dim: #32302b;
+  --ink-faint: #565248;
+
+  --accent: #f7c815;
+  --accent-2: #d62828;
+  --accent-ink: #141414;
+  --accent-glow: rgba(247, 200, 21, 0.55);
+  --accent-glow-soft: rgba(247, 200, 21, 0.28);
+
+  /* Warm cream powder-coated chassis background */
   --shell-bg:
-    linear-gradient(90deg, rgba(17,17,17,0.03) 1px, transparent 1px) 0 0 / 32px 32px,
-    linear-gradient(0deg, rgba(17,17,17,0.03) 1px, transparent 1px) 0 0 / 32px 32px,
-    linear-gradient(180deg, #f3ebd9 0%, #e7dec9 100%);
-  --panel-bg:
-    linear-gradient(135deg, rgba(242,183,5,0.06) 0%, transparent 40%),
-    #f8f2e4;
-  --panel-border: #111111;
-  --panel-radius: 0;
-  --panel-shadow: inset 0 1px 0 #ffffff, 4px 4px 0 #111111;
+    radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.45) 0%, transparent 80%),
+    linear-gradient(180deg, #eae5d8 0%, #ece7dc 100%);
 
-  --sec-bg: #fcf8ee;
-  --sec-border: #111111;
+  /* Warm cream faceplate with black grid border */
+  --panel-bg:
+    radial-gradient(circle at 50% 30%, rgba(255, 255, 255, 0.3) 0%, transparent 70%),
+    linear-gradient(180deg, #ece7dc 0%, #eae5d8 100%);
+  --panel-border: #141414;
+  --panel-radius: 4px;
+  --panel-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    inset 0 0 0 1px #141414,
+    0 16px 36px rgba(0, 0, 0, 0.65);
+
+  /* Section cards: warm cream with thick black grid borders */
+  --sec-bg: #ece7dc;
+  --sec-border: #141414;
   --sec-radius: 0;
-  --sec-shadow: inset 0 1px 0 #ffffff, 3px 3px 0 #111111;
+  --sec-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.8),
+    2px 2px 0 #141414;
   --sec-head: #ffffff;
 
-  --btn-bg: #fcf8ee;
-  --btn-ink: #111111;
-  --btn-border: #111111;
-  --ctl-bg: #ede4d0;
-  --ctl-ink: #111111;
-  --choice-active-bg: #1b4ca1;
-  --choice-active-ink: #ffffff;
+  /* Cream bevelled hardware buttons */
+  --btn-bg: linear-gradient(180deg, #f7f3ea 0%, #eae4d6 100%);
+  --btn-ink: #141414;
+  --btn-border: #141414;
+  --ctl-bg: linear-gradient(180deg, #f2ebe0 0%, #e2dacd 100%);
+  --ctl-ink: #141414;
+  --choice-active-bg: #f7c815;
+  --choice-active-ink: #141414;
 
-  --scope-bg: #111111;
-  --scope-border: #111111;
-  --scope-line: #f2b705;
-  --scope-grid: rgba(242,183,5,0.22);
+  /* Deep recessed dark amber oscilloscope screen */
+  --scope-bg:
+    radial-gradient(ellipse at 50% 50%, #1a1712 0%, #0d0c0a 100%);
+  --scope-border: #141414;
+  --scope-line: #f59e0b;
+  --scope-grid: rgba(245, 158, 11, 0.22);
 
+  /* Fluted dark matte rotary knobs with thin amber pointer line */
+  --knob-cap:
+    radial-gradient(circle at 35% 28%, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0) 38%),
+    radial-gradient(circle, #2a2a2e 0%, #161619 65%, #0e0e11 100%);
+  --knob-skirt:
+    repeating-conic-gradient(from 0deg, #18181a 0deg 7.5deg, #26262a 7.5deg 15deg);
   --knob-face:
-    radial-gradient(circle at 35% 28%, rgba(255,255,255,0.22) 0%, rgba(255,255,255,0) 35%),
-    radial-gradient(circle, #242424 0 64%, #111111 65% 100%);
-  --knob-gap: #fcf8ee;
-  --knob-edge: #111111;
-  --knob-arc: #d92b24;
-  --knob-track: rgba(17,17,17,0.14);
-  --knob-arc-filter: none;
-  --knob-ind: #f2b705;
-  --knob-ind-glow: rgba(0,0,0,0);
-  --label-ink: #111111;
-  --value-ink: #153e85;
+    radial-gradient(circle at 35% 28%, rgba(255, 255, 255, 0.28) 0%, rgba(255, 255, 255, 0) 36%),
+    radial-gradient(circle, #2d2d32 0%, #18181c 62%, #101013 100%);
+  --knob-gap: #ece7dc;
+  --knob-edge: #141414;
+  --knob-arc: #1d5bbf;
+  --knob-track: rgba(20, 20, 20, 0.16);
+  --knob-arc-filter: drop-shadow(0 0 2px rgba(29, 91, 191, 0.7));
+  --knob-ind: #f7c815;
+  --knob-ind-glow: rgba(247, 200, 21, 0.85);
+  --label-ink: #141414;
+  --value-ink: #141414;
 
-  --key-white: linear-gradient(180deg, #fdfaf2 0%, #efe7d4 100%);
-  --key-white-ink: #454139;
-  --key-black: linear-gradient(180deg, #1c1c1c 0%, #0d0d0d 100%);
-  --key-black-ink: #e4dbc6;
-  --key-line: #111111;
-  --key-pressed: #f2b705;
-  --key-pressed-ink: #111111;
+  /* Warm vintage ivory white keys & matte black keys */
+  --key-white: linear-gradient(180deg, #fdfcf9 0%, #f6f3eb 72%, #ece6d8 100%);
+  --key-white-ink: #48443d;
+  --key-black: linear-gradient(180deg, #2b2b2e 0%, #171719 65%, #0e0e10 100%);
+  --key-black-ink: #e0d8c8;
+  --key-line: #141414;
+  --key-pressed: #f7c815;
+  --key-pressed-ink: #141414;
 
-  --kb-white-top: #fcf6e8;
-  --kb-white-bottom: #ece1cc;
-  --kb-black-top: #2f2c27;
-  --kb-black-bottom: #14120f;
-  --kb-accent: #d92b24;
+  --kb-white-top: #fdfcf9;
+  --kb-white-bottom: #ece6d8;
+  --kb-black-top: #2b2b2e;
+  --kb-black-bottom: #0e0e10;
+  --kb-accent: #f7c815;
   --kb-pattern: none;
-  --kb-frame: #181614;
-  --kb-wheel: #262420;
+  --kb-frame: #18181a;
+  --kb-wheel: #26272c;
 
-  --led-off: #d8cfba;
-  --led-off-edge: #111111;
+  --led-off: #d8d2c2;
+  --led-off-edge: #141414;
 }
-:is([data-skin="konya"], [data-machine="konya"]) .synth-brand,
-:is([data-skin="konya"], [data-machine="konya"]) .synth-machine-select {
-  color: #111111;
-  text-transform: uppercase;
-}
-:is([data-skin="konya"], [data-machine="konya"]) .synth-panel {
-  border-width: 2px;
-}
-/* Bauhaus geometric colour blocks on section headers (inside card padding, no negative margins) */
-:is([data-skin="konya"], [data-machine="konya"]) .synth-sec {
-  border-width: 2px;
-}
-:is([data-skin="konya"], [data-machine="konya"]) .synth-sec h4 {
-  background: #d92b24;
-  color: #ffffff;
-  border: 1.5px solid #111111;
-  border-radius: 0;
-  box-shadow: 2px 2px 0 #111111;
-  text-transform: uppercase;
-}
-:is([data-skin="konya"], [data-machine="konya"]) .synth-sec:nth-child(3n+2) h4 {
-  background: #f2b705;
-  color: #111111;
-}
-:is([data-skin="konya"], [data-machine="konya"]) .synth-sec:nth-child(3n) h4 {
-  background: #1b4ca1;
-  color: #ffffff;
-}
-:is([data-skin="konya"], [data-machine="konya"]) .synth-sec:nth-child(3n+2) {
-  --knob-arc: #1b4ca1;
-}
-:is([data-skin="konya"], [data-machine="konya"]) .synth-sec:nth-child(3n) {
-  --knob-arc: #f2b705;
-}
-:is([data-skin="konya"], [data-machine="konya"]) .sk-dial {
-  box-shadow:
-    2px 2px 0 rgba(17,17,17,0.3),
-    0 0 0 2px #fcf8ee,
-    0 0 0 3.5px #111111;
-}
-:is([data-skin="konya"], [data-machine="konya"]) .synth-choice-btn,
-:is([data-skin="konya"], [data-machine="konya"]) .synth-midi-btn,
-:is([data-skin="konya"], [data-machine="konya"]) .kb-btn,
-:is([data-skin="konya"], [data-machine="konya"]) .synth-tab {
-  border-radius: 0;
-  border: 1.5px solid #111111;
-  box-shadow: 2px 2px 0 #111111;
-}
-:is([data-skin="konya"], [data-machine="konya"]) .synth-choice-btn.active {
-  background: #1b4ca1;
-  color: #ffffff;
-  border-color: #111111;
-  box-shadow: inset 0 2px 0 rgba(255,255,255,0.3), 1px 1px 0 #111111;
-}
-:is([data-skin="konya"], [data-machine="konya"]) .synth-tab.active,
-:is([data-skin="konya"], [data-machine="konya"]) .kb-btn.active {
-  background: #f2b705;
-  color: #111111;
-  border-color: #111111;
-}
-:is([data-skin="konya"], [data-machine="konya"]) .synth-midi-bar {
-  background: #f2ead8;
-  border: 1.5px solid #111111;
-  border-radius: 0;
-  box-shadow: 2px 2px 0 #111111;
-}
-:is([data-skin="konya"], [data-machine="konya"]) .kb {
-  border-radius: 0;
-  border-width: 2px;
-  box-shadow: 3px 3px 0 #111111;
-}
-/* Euclidean rings: bold geometric compass circles with glowing primary pulses */
-:is([data-skin="konya"], [data-machine="konya"]) .eu-svg {
+
+/* ------------------------------------------------------------
+   Konya Chassis: Cream Powder-Coated Enclosure with Screws & Cheeks
+   ------------------------------------------------------------ */
+:is([data-skin="konya"], [data-machine="konya"]) .sy1-shell {
+  position: relative;
+  padding-left: clamp(24px, 2.8vw, 36px);
+  padding-right: clamp(24px, 2.8vw, 36px);
+  border: 2px solid #141414;
+  border-radius: 12px;
   background:
-    linear-gradient(0deg, transparent calc(50% - 0.5px), rgba(17,17,17,0.12) calc(50% - 0.5px) calc(50% + 0.5px), transparent calc(50% + 0.5px)),
-    linear-gradient(90deg, transparent calc(50% - 0.5px), rgba(17,17,17,0.12) calc(50% - 0.5px) calc(50% + 0.5px), transparent calc(50% + 0.5px)),
-    radial-gradient(circle, #f3ead6 0 62%, transparent 63%);
-  border: 2px solid #111111;
-  box-shadow: inset 0 0 0 2px #fcf8ee, 2px 2px 0 #111111;
+    var(--konya-screw) 12px 12px / 14px 14px no-repeat,
+    var(--konya-screw) calc(100% - 12px) 12px / 14px 14px no-repeat,
+    var(--konya-screw) 12px calc(100% - 12px) / 14px 14px no-repeat,
+    var(--konya-screw) calc(100% - 12px) calc(100% - 12px) / 14px 14px no-repeat,
+    radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.45) 0%, transparent 80%),
+    linear-gradient(180deg, #eae5d8 0%, #ece7dc 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.15),
+    0 22px 50px rgba(0, 0, 0, 0.65);
 }
+
+:is([data-skin="konya"], [data-machine="konya"]) .sy1-shell::before,
+:is([data-skin="konya"], [data-machine="konya"]) .sy1-shell::after {
+  content: "";
+  position: absolute;
+  top: 40px;
+  bottom: 24px;
+  width: clamp(20px, 2.3vw, 30px);
+  z-index: 6;
+  pointer-events: none;
+}
+:is([data-skin="konya"], [data-machine="konya"]) .sy1-shell::before {
+  left: 6px;
+  background: var(--konya-rail-left) center center / 100% 100% no-repeat;
+}
+:is([data-skin="konya"], [data-machine="konya"]) .sy1-shell::after {
+  right: 6px;
+  background: var(--konya-rail-right) center center / 100% 100% no-repeat;
+}
+
+@media (max-width: 600px) {
+  :is([data-skin="konya"], [data-machine="konya"]) .sy1-shell {
+    padding-left: 6px;
+    padding-right: 6px;
+  }
+  :is([data-skin="konya"], [data-machine="konya"]) .sy1-shell::before,
+  :is([data-skin="konya"], [data-machine="konya"]) .sy1-shell::after {
+    display: none;
+  }
+}
+
+@media (max-height: 560px) and (orientation: landscape) {
+  :is([data-skin="konya"], [data-machine="konya"]) .sy1-shell {
+    border-width: 1px;
+    padding-left: 6px;
+    padding-right: 6px;
+  }
+  :is([data-skin="konya"], [data-machine="konya"]) .sy1-shell::before,
+  :is([data-skin="konya"], [data-machine="konya"]) .sy1-shell::after {
+    display: none;
+  }
+  :is([data-skin="konya"], [data-machine="konya"]) .synth-brand {
+    flex: 0 0 auto;
+    width: auto;
+  }
+  :is([data-skin="konya"], [data-machine="konya"]) .synth-machine-select {
+    padding: 1px 18px 1px 6px !important;
+    font-size: 0.76rem !important;
+    line-height: 1.1 !important;
+  }
+  :is([data-skin="konya"], [data-machine="konya"]) .synth-subbar {
+    gap: var(--sp-1);
+  }
+  :is([data-skin="konya"], [data-machine="konya"]) .synth-preset-nav {
+    padding: 0 4px !important;
+    border-width: 1px !important;
+  }
+  :is([data-skin="konya"], [data-machine="konya"]) .synth-tab {
+    padding: 0 6px;
+    font-size: 0.68rem;
+    border-width: 1px;
+  }
+  :is([data-skin="konya"], [data-machine="konya"]) .synth-tempo .synth-midi-btn,
+  :is([data-skin="konya"], [data-machine="konya"]) .synth-tempo-val {
+    border-width: 1px;
+  }
+  :is([data-skin="konya"], [data-machine="konya"]) .synth-sec {
+    border-width: 1px !important;
+    box-shadow: none !important;
+  }
+  :is([data-skin="konya"], [data-machine="konya"]) .synth-sec h4 {
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 4px !important;
+    font-size: 0.6rem !important;
+    line-height: 1 !important;
+  }
+  :is([data-skin="konya"], [data-machine="konya"]) .synth-tempo::after {
+    display: none;
+  }
+  :is([data-skin="konya"], [data-machine="konya"]) .synth-top::after {
+    display: none;
+  }
+  :is([data-skin="konya"], [data-machine="konya"]) .kb-bar {
+    padding: 0 !important;
+    border-width: 1px 0 !important;
+  }
+  :is([data-skin="konya"], [data-machine="konya"]) .kb-machine-badge {
+    padding: 1px 5px;
+    border-width: 1px;
+  }
+}
+
+:is([data-skin="konya"], [data-machine="konya"]) .synth-hint {
+  display: none;
+}
+
+/* ------------------------------------------------------------
+   Konya Top Bar: Cream Brand Dropdown, Wide Amber Wave Oscilloscope
+   with -0B marker, and Screws
+   ------------------------------------------------------------ */
+:is([data-skin="konya"], [data-machine="konya"]) .synth-top {
+  position: relative;
+}
+:is([data-skin="konya"], [data-machine="konya"]) .synth-brand {
+  flex: 0 0 112px;
+  width: 112px;
+}
+:is([data-skin="konya"], [data-machine="konya"]) .synth-brand-maker {
+  display: none;
+}
+:is([data-skin="konya"], [data-machine="konya"]) .synth-machine-select {
+  width: 100%;
+  background:
+    linear-gradient(45deg, transparent 50%, #141414 50%) right 11px center / 5px 5px no-repeat,
+    linear-gradient(135deg, #141414 50%, transparent 50%) right 6px center / 5px 5px no-repeat,
+    linear-gradient(180deg, #f7f3ea 0%, #ece5d6 100%);
+  color: #141414;
+  border: 2px solid #141414;
+  border-radius: 6px;
+  padding: 6px 24px 6px 12px;
+  font-family: var(--font-head);
+  font-weight: 900;
+  font-size: 0.94rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.95),
+    inset 0 -1.5px 0 #cfc8b8,
+    0 2px 4px rgba(0, 0, 0, 0.16);
+}
+
+:is([data-skin="konya"], [data-machine="konya"]) .synth-scope {
+  border-radius: 6px;
+  border: 2px solid #141414;
+  background:
+    linear-gradient(180deg, rgba(245, 158, 11, 0.06) 0%, transparent 40%),
+    #0f0f11;
+  box-shadow:
+    inset 0 3px 10px rgba(0, 0, 0, 0.85),
+    inset 0 0 16px rgba(245, 158, 11, 0.12),
+    0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+/* Right-side oscilloscope indicator label -0B ● */
+:is([data-skin="konya"], [data-machine="konya"]) .synth-top::after {
+  content: "-0B ●";
+  position: absolute;
+  right: 54px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #f59e0b;
+  font-family: var(--font-head);
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-shadow: 0 0 6px rgba(245, 158, 11, 0.6);
+  pointer-events: none;
+  z-index: 4;
+}
+
+:is([data-skin="konya"], [data-machine="konya"]) .synth-conn-btn {
+  background:
+    var(--konya-screw-sm) center center / 12px 12px no-repeat,
+    linear-gradient(180deg, #f7f3ea 0%, #ece5d6 100%);
+  color: transparent;
+  border: 2px solid #141414;
+  border-radius: 6px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    0 2px 4px rgba(0, 0, 0, 0.15);
+}
+:is([data-skin="konya"], [data-machine="konya"]) .synth-conn-btn svg {
+  opacity: 0;
+}
+
+/* ------------------------------------------------------------
+   Konya Subbar: Brushed Metal Preset Box, Tempo Group with
+   Mondrian Accent Strip & Canary Yellow / Cream Page Tabs
+   ------------------------------------------------------------ */
+:is([data-skin="konya"], [data-machine="konya"]) .synth-subbar {
+  gap: var(--sp-2);
+}
+
+/* Preset selector box with 4 corner Phillips screws */
+:is([data-skin="konya"], [data-machine="konya"]) .synth-preset-nav {
+  position: relative;
+  background:
+    var(--konya-screw-sm) 4px 4px / 9px 9px no-repeat,
+    var(--konya-screw-sm) calc(100% - 4px) 4px / 9px 9px no-repeat,
+    var(--konya-screw-sm) 4px calc(100% - 4px) / 9px 9px no-repeat,
+    var(--konya-screw-sm) calc(100% - 4px) calc(100% - 4px) / 9px 9px no-repeat,
+    linear-gradient(180deg, #ded9ce 0%, #cac5b8 100%);
+  border: 2px solid #141414;
+  border-radius: 4px;
+  padding: 3px 6px;
+  box-shadow:
+    inset 0 1px 3px rgba(0, 0, 0, 0.25),
+    0 1px 0 rgba(255, 255, 255, 0.8);
+}
+:is([data-skin="konya"], [data-machine="konya"]) .preset-step-btn {
+  background: linear-gradient(180deg, #f7f3ea 0%, #e8e2d4 100%);
+  color: #141414;
+  border: 1.5px solid #141414;
+  border-radius: 3px;
+  font-weight: 900;
+  box-shadow: inset 0 1px 0 #ffffff, 0 1px 2px rgba(0, 0, 0, 0.15);
+}
+:is([data-skin="konya"], [data-machine="konya"]) .preset-display {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  padding: 0 8px;
+}
+:is([data-skin="konya"], [data-machine="konya"]) .pd-name {
+  color: #141414;
+  font-weight: 900;
+  font-size: 0.95rem;
+  letter-spacing: 0.02em;
+}
+:is([data-skin="konya"], [data-machine="konya"]) .pd-sub {
+  color: #141414;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  font-size: 0.68rem;
+  text-transform: uppercase;
+}
+:is([data-skin="konya"], [data-machine="konya"]) .pd-icon {
+  color: #141414;
+  stroke-width: 2.5;
+}
+
+/* Tempo box with Mondrian De Stijl accent block strip immediately to the right */
+:is([data-skin="konya"], [data-machine="konya"]) .synth-tempo {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-1);
+}
+:is([data-skin="konya"], [data-machine="konya"]) .synth-tempo .synth-midi-btn {
+  background: linear-gradient(180deg, #f7f3ea 0%, #e8e2d4 100%);
+  color: #141414;
+  border: 2px solid #141414;
+  border-radius: 4px;
+  font-weight: 900;
+  box-shadow: inset 0 1px 0 #ffffff, inset 0 -1.5px 0 #cfc8b8, 0 1px 2px rgba(0, 0, 0, 0.15);
+}
+:is([data-skin="konya"], [data-machine="konya"]) .synth-tempo-val {
+  background: linear-gradient(180deg, #f7f3ea 0%, #e8e2d4 100%);
+  color: #141414;
+  border: 2px solid #141414;
+  border-radius: 4px;
+  font-weight: 900;
+  box-shadow: inset 0 1px 0 #ffffff, inset 0 -1.5px 0 #cfc8b8, 0 1px 2px rgba(0, 0, 0, 0.15);
+}
+:is([data-skin="konya"], [data-machine="konya"]) .synth-tempo::after {
+  content: "";
+  display: block;
+  width: 68px;
+  height: 32px;
+  margin-left: 6px;
+  background: var(--konya-subbar-mondrian) center center / 100% 100% no-repeat;
+  border: 2px solid #141414;
+  border-radius: 2px;
+  box-shadow: 1px 1px 0 #141414;
+  flex: 0 0 68px;
+}
+
+/* Page Tabs (Rings, Ring settings, Sound, Space) */
+:is([data-skin="konya"], [data-machine="konya"]) .synth-tabs {
+  display: flex !important;
+  gap: var(--sp-1);
+}
+:is([data-skin="konya"], [data-machine="konya"]) .synth-tab {
+  background: linear-gradient(180deg, #f7f3ea 0%, #eae4d6 100%);
+  color: #141414;
+  border: 2px solid #141414;
+  border-radius: 4px;
+  font-family: var(--font-head);
+  font-weight: 800;
+  font-size: 0.84rem;
+  letter-spacing: 0.02em;
+  box-shadow:
+    inset 0 1px 0 #ffffff,
+    0 1.5px 3px rgba(0, 0, 0, 0.15);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+:is([data-skin="konya"], [data-machine="konya"]) .synth-tab::before {
+  content: "○";
+  font-size: 0.72rem;
+  font-weight: 900;
+  color: #141414;
+  opacity: 0.75;
+}
+:is([data-skin="konya"], [data-machine="konya"]) .synth-tab.active {
+  background: linear-gradient(180deg, #fbd832 0%, #f7c815 100%);
+  color: #141414;
+  border-color: #141414;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.65),
+    0 0 12px rgba(247, 200, 21, 0.55),
+    0 2px 4px rgba(0, 0, 0, 0.2);
+}
+:is([data-skin="konya"], [data-machine="konya"]) .synth-tab.active::before {
+  content: "●";
+  color: #141414;
+  opacity: 1;
+  filter: drop-shadow(0 0 3px #f7c815);
+}
+
+/* ------------------------------------------------------------
+   Desktop & Tablet 2-Column Paged Grid for Konya (Rings & Clock)
+   ------------------------------------------------------------ */
+@media (min-width: 761px) and (min-height: 561px) {
+  .sy1-shell:not(.is-fit-paged) .synth-panel[data-machine="konya"] .synth-sec {
+    min-height: 58vh;
+  }
+  .sy1-shell.is-fit-paged .synth-panel[data-machine="konya"] .synth-sections {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    grid-auto-rows: minmax(0, 1fr);
+  }
+  .sy1-shell.is-fit-paged .synth-panel[data-machine="konya"][data-count="3"] .synth-sections {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+  .sy1-shell.is-fit-paged .synth-panel[data-machine="konya"][data-count="4"] .synth-sections {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  }
+  .sy1-shell.is-fit-paged .synth-panel[data-machine="konya"] .synth-sec:not(.synth-sec-custom) {
+    container-type: size;
+    justify-content: space-between;
+  }
+  .sy1-shell.is-fit-paged .synth-panel[data-machine="konya"] .synth-sec:not(.synth-sec-custom):has(> .sk-row ~ .sk-row) {
+    --sec-row-gap: 6px;
+  }
+  .sy1-shell.is-fit-paged .synth-panel[data-machine="konya"] .synth-sec:not(.synth-sec-custom) > h4 + * {
+    margin-top: auto;
+  }
+  .sy1-shell.is-fit-paged .synth-panel[data-machine="konya"] .synth-sec:not(.synth-sec-custom) > :last-child {
+    margin-bottom: auto;
+  }
+}
+
+/* ------------------------------------------------------------
+   Section Cards & Bold De Stijl Headers (Red RINGS, Yellow CLOCK)
+   ------------------------------------------------------------ */
+:is([data-skin="konya"], [data-machine="konya"]) .synth-sec {
+  background: #ece7dc;
+  border: 2px solid #141414;
+  border-radius: 0;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.85),
+    2px 2px 0 #141414;
+}
+
+:is([data-skin="konya"], [data-machine="konya"]) .synth-sec h4 {
+  border: 2px solid #141414;
+  border-radius: 0;
+  text-transform: uppercase;
+  font-family: var(--font-head);
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  padding: 5px 12px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
+/* RINGS Header: Vibrant Primary Red */
+:is([data-skin="konya"], [data-machine="konya"]) .synth-sec:has(.eu-wrap) h4,
+:is([data-skin="konya"], [data-machine="konya"]) .synth-sec:nth-child(3n+1) h4 {
+  background: linear-gradient(180deg, #e62f2f 0%, #d62828 100%);
+  color: #ffffff;
+  border-color: #141414;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+/* CLOCK Header: Vibrant Canary Yellow */
+:is([data-skin="konya"], [data-machine="konya"]) .synth-sec:has([data-param="hold"]) h4,
+:is([data-skin="konya"], [data-machine="konya"]) .synth-sec:nth-child(3n+2) h4 {
+  background: linear-gradient(180deg, #fcd828 0%, #f7c815 100%);
+  color: #141414;
+  border-color: #141414;
+  text-shadow: none;
+}
+
+/* Third section in paged groups: Primary Blue */
+:is([data-skin="konya"], [data-machine="konya"]) .synth-sec:nth-child(3n) h4 {
+  background: linear-gradient(180deg, #2465d6 0%, #1d5bbf 100%);
+  color: #ffffff;
+  border-color: #141414;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+@media (max-height: 360px) and (orientation: landscape) {
+  :is([data-skin="konya"], [data-machine="konya"]) .synth-sec h4 {
+    border: none !important;
+    padding: 0 !important;
+    font-size: 7px !important;
+    line-height: 1 !important;
+    box-shadow: none !important;
+  }
+  :is([data-skin="konya"], [data-machine="konya"]) .synth-toggle-btn[data-param="hold"] {
+    min-height: 18px !important;
+    font-size: 0.62rem !important;
+    padding: 0 4px !important;
+  }
+  :is([data-skin="konya"], [data-machine="konya"]) .sk-label {
+    font-size: 0.46rem !important;
+    margin-top: 0 !important;
+  }
+  :is([data-skin="konya"], [data-machine="konya"]) .sk-dial {
+    box-shadow: none !important;
+  }
+}
+
+/* ------------------------------------------------------------
+   Euclidean Rings: Concentric Circles with 3-Color Dots & Hub
+   Outer ring: Blue, Middle ring: Yellow, Inner ring: Red
+   ------------------------------------------------------------ */
+:is([data-skin="konya"], [data-machine="konya"]) .eu-hint {
+  display: none !important;
+}
+
+:is([data-skin="konya"], [data-machine="konya"]) .eu-svg {
+  background: #fdfcf9;
+  border: 2px solid #141414;
+  border-radius: 4px;
+  box-shadow:
+    inset 0 1px 0 #ffffff,
+    0 4px 12px rgba(0, 0, 0, 0.15),
+    2px 2px 0 rgba(20, 20, 20, 0.25);
+}
+
 :is([data-skin="konya"], [data-machine="konya"]) .eu-track {
-  stroke: #111111;
-  stroke-width: 2;
+  stroke-width: 1.6;
 }
-:is([data-skin="konya"], [data-machine="konya"]) .eu-ring-1 .eu-track { stroke: rgba(217,43,36,0.55); }
-:is([data-skin="konya"], [data-machine="konya"]) .eu-ring-2 .eu-track { stroke: rgba(184,136,0,0.6); }
-:is([data-skin="konya"], [data-machine="konya"]) .eu-ring-3 .eu-track { stroke: rgba(27,76,161,0.55); }
+:is([data-skin="konya"], [data-machine="konya"]) .eu-ring-1 .eu-track {
+  stroke: rgba(214, 40, 40, 0.65);
+}
+:is([data-skin="konya"], [data-machine="konya"]) .eu-ring-2 .eu-track {
+  stroke: rgba(247, 200, 21, 0.7);
+}
+:is([data-skin="konya"], [data-machine="konya"]) .eu-ring-3 .eu-track {
+  stroke: rgba(29, 91, 191, 0.65);
+}
+
 :is([data-skin="konya"], [data-machine="konya"]) .eu-dot {
-  fill: #fcf8ee;
-  stroke: #111111;
-  stroke-width: 1.5;
+  fill: #141414;
+  stroke: #141414;
+  stroke-width: 1;
 }
+/* Inactive dots per ring */
+:is([data-skin="konya"], [data-machine="konya"]) .eu-ring-1 .eu-dot:not(.hit) {
+  fill: #321818;
+  stroke: #141414;
+  r: 3.2px;
+}
+:is([data-skin="konya"], [data-machine="konya"]) .eu-ring-2 .eu-dot:not(.hit) {
+  fill: #342a12;
+  stroke: #141414;
+  r: 3.2px;
+}
+:is([data-skin="konya"], [data-machine="konya"]) .eu-ring-3 .eu-dot:not(.hit) {
+  fill: #182236;
+  stroke: #141414;
+  r: 3.2px;
+}
+
+/* Hit pulses: 3D Spheres with Highlights & Shadows */
 :is([data-skin="konya"], [data-machine="konya"]) .eu-ring-1 .eu-dot.hit {
-  fill: #d92b24;
-  stroke: #111111;
-  stroke-width: 1.5;
-  filter: drop-shadow(0 0 3px rgba(217,43,36,0.65));
+  fill: #d62828;
+  stroke: #141414;
+  stroke-width: 1.4;
+  filter: drop-shadow(0 2px 4px rgba(214, 40, 40, 0.65));
 }
 :is([data-skin="konya"], [data-machine="konya"]) .eu-ring-2 .eu-dot.hit {
-  fill: #f2b705;
-  stroke: #111111;
-  stroke-width: 1.5;
-  filter: drop-shadow(0 0 3px rgba(242,183,5,0.75));
+  fill: #f7c815;
+  stroke: #141414;
+  stroke-width: 1.4;
+  filter: drop-shadow(0 2px 4px rgba(247, 200, 21, 0.7));
 }
 :is([data-skin="konya"], [data-machine="konya"]) .eu-ring-3 .eu-dot.hit {
-  fill: #1b4ca1;
-  stroke: #111111;
-  stroke-width: 1.5;
-  filter: drop-shadow(0 0 3px rgba(27,76,161,0.65));
+  fill: #1d5bbf;
+  stroke: #141414;
+  stroke-width: 1.4;
+  filter: drop-shadow(0 2px 4px rgba(29, 91, 191, 0.65));
 }
+
 :is([data-skin="konya"], [data-machine="konya"]) .eu-dot.now {
-  stroke: #111111;
-  stroke-width: 3;
-  filter: drop-shadow(0 0 5px rgba(242,183,5,0.95));
+  stroke: #f7c815;
+  stroke-width: 2.8;
+  filter: drop-shadow(0 0 6px rgba(247, 200, 21, 0.95));
+}
+
+/* Concentric Center Hub Disc */
+:is([data-skin="konya"], [data-machine="konya"]) .eu-hub-rim {
+  fill: #141414;
+  stroke: #36363a;
+  stroke-width: 1;
+}
+:is([data-skin="konya"], [data-machine="konya"]) .eu-hub {
+  fill: #1a1a1d;
+  stroke: #0a0a0c;
+  stroke-width: 1.5;
+}
+
+/* ------------------------------------------------------------
+   Clock Section: Horizontal LATCH Bar & Fluted Rotary Knobs
+   ------------------------------------------------------------ */
+:is([data-skin="konya"], [data-machine="konya"]) .synth-toggle-btn[data-param="hold"] {
+  background: linear-gradient(180deg, #f7f3ea 0%, #e8e2d4 100%);
+  border: 2px solid #141414;
+  border-radius: 4px;
+  color: #141414;
+  font-family: var(--font-head);
+  font-weight: 900;
+  font-size: 0.95rem;
+  letter-spacing: 0.14em;
+  box-shadow:
+    inset 0 1px 0 #ffffff,
+    inset 0 -2px 0 #cfc8b8,
+    0 2px 4px rgba(0, 0, 0, 0.16);
+}
+:is([data-skin="konya"], [data-machine="konya"]) .synth-toggle-btn[data-param="hold"].active {
+  background: linear-gradient(180deg, #fbd832 0%, #f7c815 100%);
+  color: #141414;
+  border-color: #141414;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.65),
+    0 0 12px rgba(247, 200, 21, 0.55),
+    0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+@media (min-width: 761px) and (min-height: 561px), (orientation: portrait) {
+  :is([data-skin="konya"], [data-machine="konya"]) .synth-sec:has([data-param="hold"]) .synth-toggles {
+    width: 100%;
+  }
+  :is([data-skin="konya"], [data-machine="konya"]) .synth-toggle-btn[data-param="hold"] {
+    width: 100%;
+    min-height: 38px;
+  }
+}
+
+:is([data-skin="konya"], [data-machine="konya"]) .sk-dial {
+  box-shadow:
+    inset 0 1px 2px rgba(0, 0, 0, 0.5),
+    0 0 0 2px #ece7dc,
+    0 0 0 3.5px #141414,
+    2px 2px 0 #141414;
+}
+
+:is([data-skin="konya"], [data-machine="konya"]) .sk-label {
+  font-family: var(--font-head);
+  font-weight: 900;
+  font-size: 0.74rem;
+  letter-spacing: 0.08em;
+  color: #141414;
+}
+:is([data-skin="konya"], [data-machine="konya"]) .sk-value {
+  font-family: var(--font-head);
+  font-weight: 800;
+  color: #141414;
+}
+
+/* ------------------------------------------------------------
+   Keyboard Header Strip: Cream Buttons, Illuminated Yellow ARP,
+   and 3-Stripe Mondrian Badge
+   ------------------------------------------------------------ */
+:is([data-skin="konya"], [data-machine="konya"]) .kb-bar {
+  background: #ece7dc;
+  border-top: 2px solid #141414;
+  border-bottom: 2px solid #141414;
+  padding: 4px 0;
+}
+
+:is([data-skin="konya"], [data-machine="konya"]) .kb-btn {
+  background: linear-gradient(180deg, #f7f3ea 0%, #e8e2d4 100%);
+  color: #141414;
+  border: 2px solid #141414;
+  border-radius: 4px;
+  font-family: var(--font-head);
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  box-shadow:
+    inset 0 1px 0 #ffffff,
+    inset 0 -1.5px 0 #cfc8b8,
+    0 1.5px 3px rgba(0, 0, 0, 0.15);
+}
+
+:is([data-skin="konya"], [data-machine="konya"]) .kb-oct-disp {
+  background: linear-gradient(180deg, #f7f3ea 0%, #e8e2d4 100%);
+  color: #141414;
+  border: 2px solid #141414;
+  border-radius: 4px;
+  font-family: var(--font-head);
+  font-weight: 900;
+  box-shadow: inset 0 1px 0 #ffffff, inset 0 -1.5px 0 #cfc8b8, 0 1.5px 3px rgba(0, 0, 0, 0.15);
+}
+
+/* Illuminated Canary Yellow ARP Button */
+:is([data-skin="konya"], [data-machine="konya"]) .kb-arp {
+  background: linear-gradient(180deg, #fbd832 0%, #f7c815 100%);
+  color: #141414;
+  border: 2px solid #141414;
+  border-radius: 4px;
+  font-family: var(--font-head);
+  font-weight: 900;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.7),
+    0 0 10px rgba(247, 200, 21, 0.5),
+    0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* HOLD Button: Illuminated Canary Yellow when on/active, neutral uncolored cream when off */
+:is([data-skin="konya"], [data-machine="konya"]) .kb-hold.active,
+:is([data-skin="konya"], [data-machine="konya"]) .kb-hold[aria-pressed="true"] {
+  background: linear-gradient(180deg, #fbd832 0%, #f7c815 100%) !important;
+  color: #141414 !important;
+  border-color: #141414 !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.7),
+    0 0 12px rgba(247, 200, 21, 0.65),
+    0 2px 4px rgba(0, 0, 0, 0.2) !important;
+}
+:is([data-skin="konya"], [data-machine="konya"]) .kb-hold:not(.active):not([aria-pressed="true"]) {
+  background: linear-gradient(180deg, #f7f3ea 0%, #e8e2d4 100%);
+  color: #141414;
+  border: 2px solid #141414;
+  box-shadow:
+    inset 0 1px 0 #ffffff,
+    inset 0 -1.5px 0 #cfc8b8,
+    0 1.5px 3px rgba(0, 0, 0, 0.15);
+}
+
+/* ------------------------------------------------------------
+   Wheels Bay & Vintage Ivory Keybed
+   ------------------------------------------------------------ */
+:is([data-skin="konya"], [data-machine="konya"]) .kb-wheels {
+  background:
+    var(--konya-screw-sm) 4px 4px / 9px 9px no-repeat,
+    var(--konya-screw-sm) calc(100% - 4px) 4px / 9px 9px no-repeat,
+    var(--konya-screw-sm) 4px calc(100% - 4px) / 9px 9px no-repeat,
+    var(--konya-screw-sm) calc(100% - 4px) calc(100% - 4px) / 9px 9px no-repeat,
+    linear-gradient(180deg, #2c2d33 0%, #1a1b1f 100%);
+  border: 2px solid #141414;
+  border-radius: 6px;
+  box-shadow:
+    inset 0 2px 6px rgba(0, 0, 0, 0.8),
+    0 1px 0 rgba(255, 255, 255, 0.7);
+}
+
+:is([data-skin="konya"], [data-machine="konya"]) .kb-wheel-thumb {
+  background: repeating-linear-gradient(
+    90deg,
+    #adb2bd 0 2px,
+    #444750 2px 4px,
+    #e0e4ec 4px 5px,
+    #26282e 5px 6px
+  );
+  box-shadow:
+    inset 0 2px 4px rgba(255, 255, 255, 0.35),
+    inset 0 -3px 6px rgba(0, 0, 0, 0.85),
+    0 3px 6px rgba(0, 0, 0, 0.6);
+  border: 1px solid #141414;
+}
+
+:is([data-skin="konya"], [data-machine="konya"]) .kb-wheel-label {
+  color: #eae5d8;
+  font-family: var(--font-head);
+  font-weight: 800;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+}
+
+:is([data-skin="konya"], [data-machine="konya"]) .kb {
+  border: 2px solid #141414;
+  border-radius: 0;
+  box-shadow: 2px 2px 0 #141414;
+}
+
+:is([data-skin="konya"], [data-machine="konya"]) .key:not(.black) {
+  border-right: 1.5px solid #141414;
+  border-bottom: 2px solid #141414;
+  border-radius: 0 0 5px 5px;
+}
+:is([data-skin="konya"], [data-machine="konya"]) .key.black {
+  border: 1.5px solid #141414;
+  border-radius: 0 0 4px 4px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.22),
+    0 3px 6px rgba(0, 0, 0, 0.6);
+}
+:is([data-skin="konya"], [data-machine="konya"]) .key-lbl {
+  font-family: var(--font-head);
+  font-weight: 800;
+  color: #68645c;
+  font-size: 0.68rem;
+}
+
+/* ------------------------------------------------------------
+   Konya Sound Library (.lib-pop) & Popovers:
+   Clean, high-contrast & perfectly readable De Stijl aesthetic
+   ------------------------------------------------------------ */
+:is([data-skin="konya"], [data-machine="konya"]) .lib-pop {
+  background: #18191d;
+  border: 2px solid #f7c815;
+  color: #f5f3ee;
+}
+:is([data-skin="konya"], [data-machine="konya"]) .lib-pop::before {
+  background: linear-gradient(180deg, #22242a 0%, #18191d 100%);
+}
+:is([data-skin="konya"], [data-machine="konya"]) .lib-head {
+  background: rgba(18, 19, 23, 0.85);
+  border-bottom: 2px solid #30323c;
+}
+:is([data-skin="konya"], [data-machine="konya"]) .lib-title b {
+  color: #f7c815;
+  font-weight: 900;
+}
+:is([data-skin="konya"], [data-machine="konya"]) .lib-title span {
+  color: #cfd2db;
+}
+:is([data-skin="konya"], [data-machine="konya"]) .lib-search {
+  background: #101114;
+  border: 1.5px solid #3a3d48;
+  color: #d8dae2;
+}
+:is([data-skin="konya"], [data-machine="konya"]) .lib-q {
+  color: #ffffff;
+}
+:is([data-skin="konya"], [data-machine="konya"]) .lib-done {
+  background: linear-gradient(180deg, #fbd832 0%, #f7c815 100%);
+  color: #141414;
+  font-weight: 900;
+  border: 1px solid #141414;
+}
+:is([data-skin="konya"], [data-machine="konya"]) .lib-cats {
+  border-color: #30323c;
+}
+:is([data-skin="konya"], [data-machine="konya"]) .lib-cat {
+  color: #dcdfe8;
+}
+:is([data-skin="konya"], [data-machine="konya"]) .lib-count {
+  color: #8c909e;
+}
+:is([data-skin="konya"], [data-machine="konya"]) .lib-cat.active {
+  background: #242730;
+  color: #ffffff;
+  box-shadow: inset 3.5px 0 0 #d62828;
+}
+:is([data-skin="konya"], [data-machine="konya"]) .lib-cat.active .lib-count {
+  color: #f7c815;
+}
+:is([data-skin="konya"], [data-machine="konya"]) .lib-tile {
+  background: linear-gradient(180deg, #22252e 0%, #181a20 100%);
+  border: 1.5px solid #343846;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 2px 6px rgba(0, 0, 0, 0.45);
+  color: #f5f3ee;
+}
+:is([data-skin="konya"], [data-machine="konya"]) .lib-tile.active {
+  border-color: #f7c815;
+  box-shadow: 0 0 0 1.5px #f7c815, 0 0 14px rgba(247, 200, 21, 0.4);
+}
+:is([data-skin="konya"], [data-machine="konya"]) .lib-tile-name {
+  color: #ffffff;
+  font-weight: 800;
+}
+:is([data-skin="konya"], [data-machine="konya"]) .lib-tile-sub {
+  color: #a0a4b2;
+}
+:is([data-skin="konya"], [data-machine="konya"]) .lib-fav {
+  color: #f7c815;
 }
 
 
@@ -6834,25 +9033,31 @@
   color: #7ef9ff;
 }
 
-/* 5. MERV — Brutalist tactical HUD with cut-corner & signal orange chevron */
+/* 5. MERV — Industrial gunmetal box with neon yellow border and yellow corner emblem */
 :is([data-skin="merv"], [data-machine="merv"]) .kb-machine-badge {
   background: #14181b;
-  border: 1px solid #ff6a2b;
-  border-radius: 2px;
-  clip-path: polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px));
+  border: 1.5px solid #ffe600;
+  border-radius: 4px;
+  box-shadow: 0 0 8px rgba(255, 230, 0, 0.35);
+  clip-path: none;
 }
 :is([data-skin="merv"], [data-machine="merv"]) .kb-machine-emblem {
   width: 10px;
   height: 10px;
   border-radius: 0;
   background: transparent;
-  border-left: 3px solid #ff6a2b;
-  border-top: 3px solid #ff6a2b;
+  border-left: 2.5px solid #ffe600;
+  border-top: 2.5px solid #ffe600;
   box-shadow: none;
 }
 :is([data-skin="merv"], [data-machine="merv"]) .kb-machine-name {
-  letter-spacing: 0.16em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
+  color: #ffe600;
+  font-weight: 800;
+}
+:is([data-skin="merv"], [data-machine="merv"]) .kb-machine-role {
+  color: #00e5ff;
 }
 
 /* 8. KASHAN — 80s FM green backlit dot-matrix LCD window */
@@ -6883,29 +9088,44 @@
   font-family: "SF Mono", Menlo, Consolas, monospace;
 }
 
-/* 9. KONYA — Bauhaus cream block, stark black frame & primary red/yellow/blue geometric bar */
+/* 9. KONYA — De Stijl cream capsule, black frame & 3-stripe Mondrian flag */
 :is([data-skin="konya"], [data-machine="konya"]) .kb-machine-badge {
-  background: #f5efe0;
-  border: 2px solid #181614;
-  border-radius: 0;
-  box-shadow: 2px 2px 0 #181614;
+  background: linear-gradient(180deg, #f7f3ea 0%, #ece5d6 100%);
+  border: 2px solid #141414;
+  border-radius: 4px;
+  box-shadow:
+    inset 0 1px 0 #ffffff,
+    0 1.5px 3px rgba(0, 0, 0, 0.15);
+  padding: 3px 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 :is([data-skin="konya"], [data-machine="konya"]) .kb-machine-emblem {
-  width: 15px;
-  height: 10px;
-  border-radius: 0;
-  background: linear-gradient(90deg, #d6312b 0 33.3%, #f2c230 33.3% 66.6%, #1f4fa0 66.6% 100%);
-  border: 1px solid #181614;
+  width: 16px;
+  height: 11px;
+  border-radius: 1.5px;
+  background: linear-gradient(90deg, #d62828 0 33.3%, #f7c815 33.3% 66.6%, #1d5bbf 66.6% 100%);
+  border: 1px solid #141414;
   box-shadow: none;
+  flex: 0 0 16px;
 }
 :is([data-skin="konya"], [data-machine="konya"]) .kb-machine-name {
-  color: #181614;
-  letter-spacing: 0.14em;
+  color: #141414;
+  font-family: var(--font-head);
+  font-weight: 900;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
 }
+:is([data-skin="konya"], [data-machine="konya"]) .kb-machine-sep {
+  color: #141414;
+  font-weight: 900;
+}
 :is([data-skin="konya"], [data-machine="konya"]) .kb-machine-role {
-  color: #1f4fa0;
+  color: #1d5bbf;
+  font-family: var(--font-head);
   font-weight: 800;
+  letter-spacing: 0.02em;
 }
 
 /* 12. KERMAN — Swiss minimal matte off-white + bold orange dot + monospace */
