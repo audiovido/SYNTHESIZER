@@ -4551,108 +4551,295 @@
 
 
 /* ------------------------------------------------------------
-   KERMAN — Swiss minimal analog drum machine
-   Anodized off-white matte chassis, one bold international
-   orange accent, flat machined knobs with a single indicator
-   line, tactile LED-slotted monospace step grid.
+   KERMAN — Swiss-Persian Anodized Off-White Analog Drum Machine
+   Warm anodized putty-white aluminum chassis with 4 corner screws,
+   woven gold-ochre Kerman carpet trim strips, obsidian CRT scope
+   with glowing horizontal orange laser trace, dark espresso/amber
+   preset LCD, international orange active tabs & steps, stacked
+   full-width PATTERN & STEPS sections, and 4x2 brushed-ivory pads.
    ------------------------------------------------------------ */
 [data-skin="kerman"],
 [data-machine="kerman"] {
-  --kb-btn-ink: #161616;
-  --midi-btn-ink: #161616;
+  --kb-btn-ink: #161614;
+  --midi-btn-ink: #161614;
   --font-ui: "SF Mono", "JetBrains Mono", "IBM Plex Mono", Menlo, Consolas, monospace;
   --font-head: var(--font-ui);
 
-  --page-bg: #d8d6cf;
-  --ink: #161616;
-  --ink-dim: #454440;
-  --ink-faint: #5c5b56;
+  /* Machined silver cross/slotted corner screw SVG */
+  --kerman-screw: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cdefs%3E%3CradialGradient id='ks' cx='36%25' cy='30%25' r='68%25'%3E%3Cstop offset='0%25' stop-color='%23f5f4ef'/%3E%3Cstop offset='55%25' stop-color='%23b5b3aa'/%3E%3Cstop offset='100%25' stop-color='%236e6c65'/%3E%3C/radialGradient%3E%3C/defs%3E%3Ccircle cx='8' cy='8' r='6.5' fill='%23b8b6ad' stroke='%2378766e' stroke-width='0.9'/%3E%3Ccircle cx='8' cy='8' r='5.1' fill='url(%23ks)' stroke='%234d4b46' stroke-width='0.8'/%3E%3Cpath d='M5.2 8 H10.8 M8 5.2 V10.8' stroke='%233d3b37' stroke-width='1.35' stroke-linecap='round'/%3E%3C/svg%3E");
 
-  --accent: #ff5519;
-  --accent-2: #d9410d;
+  /* Woven gold-ochre & espresso Kerman tapestry geometric trim tile */
+  --kerman-tapestry: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='12' viewBox='0 0 24 12'%3E%3Crect width='24' height='12' fill='%23704b18'/%3E%3Crect y='1' width='24' height='10' fill='%23b88228'/%3E%3Cpath d='M0 2 H24 M0 10 H24' stroke='%23f7d274' stroke-width='0.9' stroke-dasharray='2 1'/%3E%3Cpath d='M0 6 L3 2.5 L6 6 L9 2.5 L12 6 L15 2.5 L18 6 L21 2.5 L24 6 L21 9.5 L18 6 L15 9.5 L12 6 L9 9.5 L6 6 L3 9.5 Z' fill='%2352330c' stroke='%23f5c85b' stroke-width='0.85'/%3E%3Cg fill='%23ffe38f'%3E%3Ccircle cx='3' cy='6' r='1'/%3E%3Ccircle cx='9' cy='6' r='1'/%3E%3Ccircle cx='15' cy='6' r='1'/%3E%3Ccircle cx='21' cy='6' r='1'/%3E%3Ccircle cx='6' cy='2.5' r='0.75'/%3E%3Ccircle cx='12' cy='2.5' r='0.75'/%3E%3Ccircle cx='18' cy='2.5' r='0.75'/%3E%3Ccircle cx='6' cy='9.5' r='0.75'/%3E%3Ccircle cx='12' cy='9.5' r='0.75'/%3E%3Ccircle cx='18' cy='9.5' r='0.75'/%3E%3C/g%3E%3C/svg%3E");
+
+  /* Glowing horizontal orange laser trace for the dark obsidian scope */
+  --kerman-scope-beam: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 60' preserveAspectRatio='none'%3E%3Cdefs%3E%3ClinearGradient id='kg' x1='0%25' y1='0%25' x2='0%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%23ff4d0f' stop-opacity='0'/%3E%3Cstop offset='50%25' stop-color='%23ff5a1f' stop-opacity='0.38'/%3E%3Cstop offset='100%25' stop-color='%23ff4d0f' stop-opacity='0'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect x='0' y='16' width='600' height='28' fill='url(%23kg)'/%3E%3Cline x1='0' y1='30' x2='600' y2='30' stroke='%23ff6a2b' stroke-width='2.4' stroke-opacity='0.85'/%3E%3Cline x1='0' y1='30' x2='600' y2='30' stroke='%23ffd8b8' stroke-width='0.9' stroke-opacity='0.8'/%3E%3C/svg%3E");
+
+  --page-bg: #8a8882;
+  --ink: #161614;
+  --ink-dim: #3d3c38;
+  --ink-faint: #595751;
+
+  --accent: #ea4c15;
+  --accent-2: #c93806;
   --accent-ink: #ffffff;
-  --accent-glow: rgba(255,85,25,0.55);
-  --accent-glow-soft: rgba(255,85,25,0.22);
+  --accent-glow: rgba(234, 76, 21, 0.55);
+  --accent-glow-soft: rgba(234, 76, 21, 0.25);
 
   --shell-bg:
-    radial-gradient(circle at 50% 0%, rgba(255,255,255,0.55), transparent 70%),
-    linear-gradient(180deg, #efeee9 0%, #e2e0d8 100%);
-  --panel-bg: linear-gradient(180deg, #f8f7f3 0%, #efede7 100%);
-  --panel-border: #181818;
-  --panel-radius: 6px;
-  --panel-shadow:
-    inset 0 1px 0 #ffffff,
-    inset 0 -1px 0 rgba(0,0,0,0.08),
-    0 10px 24px rgba(0,0,0,0.18),
-    0 2px 0 #181818;
+    var(--kerman-screw) 12px 12px / 15px 15px no-repeat,
+    var(--kerman-screw) calc(100% - 12px) 12px / 15px 15px no-repeat,
+    var(--kerman-screw) 12px calc(100% - 12px) / 15px 15px no-repeat,
+    var(--kerman-screw) calc(100% - 12px) calc(100% - 12px) / 15px 15px no-repeat,
+    radial-gradient(ellipse at 50% 0%, rgba(255, 255, 255, 0.45) 0%, transparent 68%),
+    linear-gradient(180deg, #e0ded6 0%, #d8d6ce 52%, #cfcdc4 100%);
+  --panel-bg: transparent;
+  --panel-border: transparent;
+  --panel-radius: 10px;
+  --panel-shadow: none;
 
-  --sec-bg: linear-gradient(180deg, #f5f4ef 0%, #eceae3 100%);
-  --sec-border: #c5c3ba;
-  --sec-radius: 4px;
-  --sec-shadow: inset 0 1px 0 #ffffff, 0 1px 3px rgba(0,0,0,0.08);
-  --sec-head: #161616;
+  --sec-bg: linear-gradient(180deg, #d7d5cc 0%, #cfcdc4 100%);
+  --sec-border: #78756c;
+  --sec-radius: 7px;
+  --sec-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.65),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.08),
+    0 1px 3px rgba(0, 0, 0, 0.1);
+  --sec-head: #161614;
 
-  --btn-bg: linear-gradient(180deg, #fcfbf8 0%, #eceae2 100%);
-  --btn-ink: #161616;
-  --btn-border: #242422;
-  --ctl-bg: linear-gradient(180deg, #e7e5dd 0%, #dedcd3 100%);
-  --ctl-ink: #161616;
-  --choice-active-bg: linear-gradient(180deg, #ff632b 0%, #f0480e 100%);
+  --btn-bg: linear-gradient(180deg, #e4e2d9 0%, #cfcdc3 100%);
+  --btn-ink: #161614;
+  --btn-border: #2a2926;
+  --ctl-bg: linear-gradient(180deg, #dedcd3 0%, #ceccc2 100%);
+  --ctl-ink: #161614;
+  --choice-active-bg: linear-gradient(180deg, #f55b23 0%, #db3f09 100%);
   --choice-active-ink: #ffffff;
 
   --scope-bg:
-    repeating-linear-gradient(0deg, rgba(255,255,255,0.03) 0 1px, transparent 1px 4px),
-    radial-gradient(ellipse at 50% 50%, #1e1e1d 0%, #101010 100%);
-  --scope-border: #181818;
-  --scope-line: #ff5519;
-  --scope-grid: rgba(244,243,239,0.16);
+    linear-gradient(115deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.09) 44%, transparent 45.5%),
+    var(--kerman-scope-beam) center / 100% 100% no-repeat,
+    radial-gradient(ellipse at 50% 50%, #241812 0%, #140f0d 65%, #0c0908 100%);
+  --scope-border: #282623;
+  --scope-line: #ff6326;
+  --scope-grid: rgba(255, 110, 50, 0.06);
 
   --knob-face:
-    radial-gradient(circle at 38% 30%, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0) 45%),
-    radial-gradient(circle, #faf9f5 0 63%, #181818 64% 70%, #e5e3db 71% 100%);
-  --knob-gap: #efede7;
-  --knob-edge: #9c9a91;
-  --knob-arc: #ff5519;
-  --knob-track: rgba(22,22,22,0.12);
-  --knob-arc-filter: drop-shadow(0 0 2px rgba(255,85,25,0.35));
-  --knob-ind: #161616;
-  --knob-ind-glow: rgba(0,0,0,0);
-  --label-ink: #161616;
-  --value-ink: #3d3c38;
+    radial-gradient(circle at 38% 30%, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0) 45%),
+    radial-gradient(circle, #f6f5f0 0 63%, #22211e 64% 70%, #dcdad1 71% 100%);
+  --knob-gap: #d5d3ca;
+  --knob-edge: #7c7a72;
+  --knob-arc: #ea4c15;
+  --knob-track: rgba(22, 22, 20, 0.14);
+  --knob-arc-filter: drop-shadow(0 0 2px rgba(234, 76, 21, 0.4));
+  --knob-ind: #161614;
+  --knob-ind-glow: rgba(0, 0, 0, 0);
+  --label-ink: #161614;
+  --value-ink: #383733;
 
-  --key-white: linear-gradient(180deg, #fdfcf9 0%, #efede5 100%);
-  --key-white-ink: #4a4945;
-  --key-black: linear-gradient(180deg, #222220 0%, #121211 100%);
-  --key-black-ink: #d2d0c8;
-  --key-line: #181818;
-  --key-pressed: linear-gradient(180deg, #ff6d38 0%, #ff5519 100%);
+  --key-white: linear-gradient(180deg, #eae8e0 0%, #d8d6ce 100%);
+  --key-white-ink: #161614;
+  --key-black: linear-gradient(180deg, #242320 0%, #141311 100%);
+  --key-black-ink: #d8d6ce;
+  --key-line: #22211e;
+  --key-pressed: linear-gradient(180deg, #ff6c33 0%, #e0430b 100%);
   --key-pressed-ink: #ffffff;
 
-  --kb-white-top: #fdfcf9;
-  --kb-white-bottom: #eceae2;
-  --kb-black-top: #363633;
-  --kb-black-bottom: #141413;
-  --kb-accent: #ff5519;
+  --kb-white-top: #eae8e0;
+  --kb-white-bottom: #d6d4cb;
+  --kb-black-top: #363532;
+  --kb-black-bottom: #161513;
+  --kb-accent: #ea4c15;
   --kb-pattern: none;
-  --kb-frame: #1c1c1b;
-  --kb-wheel: #2a2a29;
-  --key-black-ink: #d2d0c8;
-  --key-line: #181818;
-  --key-pressed: linear-gradient(180deg, #ff6d38 0%, #ff5519 100%);
-  --key-pressed-ink: #ffffff;
+  --kb-frame: #23211e;
+  --kb-wheel: #2c2b28;
 
-  --led-off: #cfcdc4;
-  --led-off-edge: #181818;
+  --led-off: transparent;
+  --led-off-edge: #262522;
 }
+
+/* ------------------------------------------------------------
+   Kerman Enclosure & Seamless Putty Faceplate
+   ------------------------------------------------------------ */
+:is([data-skin="kerman"], [data-machine="kerman"]) .sy1-shell {
+  border: 2px solid #b5b2a8;
+  border-radius: 14px;
+  box-shadow:
+    inset 0 2px 1px rgba(255, 255, 255, 0.82),
+    inset 0 -2px 3px rgba(0, 0, 0, 0.16),
+    inset 0 0 0 3px rgba(255, 255, 255, 0.28),
+    0 18px 40px rgba(0, 0, 0, 0.45);
+}
+:is([data-skin="kerman"], [data-machine="kerman"]) .synth-panel {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  padding: 2px 4px;
+}
+
+/* ------------------------------------------------------------
+   Kerman Top Bar: Selector, Obsidian Scope & Connections Button
+   ------------------------------------------------------------ */
+:is([data-skin="kerman"], [data-machine="kerman"]) .synth-brand-maker {
+  display: none;
+}
+:is([data-skin="kerman"], [data-machine="kerman"]) .synth-machine-select {
+  background:
+    linear-gradient(45deg, transparent 50%, #262522 50%) right 11px center / 5px 5px no-repeat,
+    linear-gradient(135deg, #262522 50%, transparent 50%) right 6px center / 5px 5px no-repeat,
+    linear-gradient(180deg, #eae8e0 0%, #dcdad1 100%);
+  color: #161614;
+  border: 1.5px solid #4a4842;
+  border-radius: 6px;
+  padding: 5px 28px 5px 12px;
+  font-family: var(--font-ui);
+  font-weight: 700;
+  font-size: 0.94rem;
+  letter-spacing: 0.01em;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.85),
+    0 1px 2px rgba(0, 0, 0, 0.14);
+}
+:is([data-skin="kerman"], [data-machine="kerman"]) .synth-scope {
+  border-radius: 10px;
+  border: 2px solid #2b2926;
+  box-shadow:
+    inset 0 3px 8px rgba(0, 0, 0, 0.9),
+    inset 0 0 18px rgba(255, 90, 31, 0.16),
+    0 1px 0 rgba(255, 255, 255, 0.75);
+}
+:is([data-skin="kerman"], [data-machine="kerman"]) .synth-conn-btn {
+  background: linear-gradient(180deg, #e4e2d9 0%, #cfcdc3 100%);
+  color: #181816;
+  border: 1.5px solid #2a2926;
+  border-radius: 7px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.82),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.14),
+    0 2px 3px rgba(0, 0, 0, 0.18);
+}
+:is([data-skin="kerman"], [data-machine="kerman"]) .synth-conn-btn .conn-dot.is-unavailable {
+  background: #7b7972;
+  opacity: 0.85;
+}
+
+/* ------------------------------------------------------------
+   Kerman Subbar: Espresso/Amber OLED Preset Display, Tempo & Tabs
+   ------------------------------------------------------------ */
+:is([data-skin="kerman"], [data-machine="kerman"]) .synth-preset-nav .synth-midi-btn,
+:is([data-skin="kerman"], [data-machine="kerman"]) .synth-tempo .synth-midi-btn {
+  background: linear-gradient(180deg, #e4e2d9 0%, #cfcdc3 100%);
+  color: #161614;
+  border: 1.5px solid #2a2926;
+  border-radius: 6px;
+  font-weight: 700;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.85),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.14),
+    0 2px 3px rgba(0, 0, 0, 0.18);
+}
+:is([data-skin="kerman"], [data-machine="kerman"]) .preset-display {
+  background: linear-gradient(180deg, #28231e 0%, #1d1915 100%);
+  border: 1.5px solid #161310;
+  border-radius: 6px;
+  padding: 3px 10px;
+  box-shadow:
+    inset 0 2px 5px rgba(0, 0, 0, 0.75),
+    0 1px 0 rgba(255, 255, 255, 0.72);
+}
+:is([data-skin="kerman"], [data-machine="kerman"]) .preset-display .pd-name {
+  color: #f6b83b;
+  font-family: var(--font-ui);
+  font-weight: 700;
+  font-size: 0.76rem;
+  letter-spacing: 0.01em;
+  text-shadow: 0 0 6px rgba(246, 184, 59, 0.28);
+}
+:is([data-skin="kerman"], [data-machine="kerman"]) .preset-display .pd-sub {
+  color: #d6c8b4;
+  font-family: var(--font-ui);
+  font-weight: 600;
+  font-size: 0.56rem;
+  letter-spacing: 0.06em;
+}
+:is([data-skin="kerman"], [data-machine="kerman"]) .preset-display .pd-icon {
+  color: #f0ae34;
+  opacity: 0.92;
+}
+:is([data-skin="kerman"], [data-machine="kerman"]) .synth-tempo-val {
+  color: #161614;
+  font-family: var(--font-ui);
+  font-weight: 700;
+  font-size: 0.78rem;
+}
+:is([data-skin="kerman"], [data-machine="kerman"]) .synth-tempo-val::after {
+  content: "BPM";
+  color: #2b2a27;
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+/* Page Tabs: Vibrant International Orange Active Tab + Putty Inactive Tabs */
+:is([data-skin="kerman"], [data-machine="kerman"]) .synth-tab {
+  background: linear-gradient(180deg, #e4e2d9 0%, #cfcdc3 100%);
+  color: #161614;
+  border: 1.5px solid #2a2926;
+  border-radius: 6px;
+  font-family: var(--font-ui);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.85),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.14),
+    0 2px 3px rgba(0, 0, 0, 0.18);
+}
+:is([data-skin="kerman"], [data-machine="kerman"]) .synth-tab::before {
+  width: 5px;
+  height: 5px;
+  background: transparent;
+  border: 1.3px solid #2a2926;
+  box-shadow: none;
+}
+:is([data-skin="kerman"], [data-machine="kerman"]) .synth-tab.active {
+  background: linear-gradient(180deg, #ff692e 0%, #e04106 100%);
+  color: #ffffff;
+  border: 1.5px solid #b53000;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 235, 210, 0.65),
+    0 2px 8px rgba(234, 76, 21, 0.45);
+}
+:is([data-skin="kerman"], [data-machine="kerman"]) .synth-tab.active::before {
+  background: #fff7e6;
+  border-color: #ffffff;
+  box-shadow: 0 0 6px #ffffff;
+}
+
+/* ------------------------------------------------------------
+   Kerman Section Cards, Woven Tapestry Strips & Controls
+   ------------------------------------------------------------ */
 :is([data-skin="kerman"], [data-machine="kerman"]) .synth-sec {
-  border-color: #c5c3ba;
-  border-top: 2px solid #181818;
+  position: relative;
+  border: 1.5px solid #78756c;
+  border-radius: 7px;
+  background: linear-gradient(180deg, #d7d5cc 0%, #cfcdc4 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.65),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.08),
+    0 1px 3px rgba(0, 0, 0, 0.1);
+}
+:is([data-skin="kerman"], [data-machine="kerman"]) .synth-sec > * {
+  position: relative;
+  z-index: 1;
 }
 :is([data-skin="kerman"], [data-machine="kerman"]) .synth-sec h4 {
   text-transform: uppercase;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  color: #161614;
+  font-family: var(--font-ui);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  padding: 0 2px;
 }
 :is([data-skin="kerman"], [data-machine="kerman"]) .synth-sec h4::after {
   content: "";
@@ -4660,11 +4847,92 @@
   height: 6px;
   border-radius: 50%;
   background: #ff5519;
+  box-shadow: 0 0 5px rgba(255, 85, 25, 0.75);
   flex: none;
 }
+/* Second section card (STEPS) has a warm backlit ring LED on the right of its title */
+:is([data-skin="kerman"], [data-machine="kerman"]) .synth-sec:has([data-custom="drum-steps"]) h4::after {
+  background: #fff2d6;
+  border: 1.5px solid #ff6a26;
+  box-shadow: 0 0 6px rgba(255, 110, 40, 0.85);
+}
+:is([data-skin="kerman"], [data-machine="kerman"]) .synth-hint {
+  display: none;
+}
+
+/* Desktop & Tablet Paged Layout + 3 Woven Kerman Tapestry Trim Strips */
+@media (min-width: 761px) and (min-height: 561px) {
+  .sy1-shell:not(.is-fit-paged) .synth-panel[data-machine="kerman"] .synth-sec {
+    min-height: 58vh;
+  }
+  .sy1-shell.is-fit-paged .synth-panel[data-machine="kerman"][data-page="steps"] .synth-sections {
+    grid-template-columns: minmax(0, 1fr) !important;
+    grid-auto-rows: minmax(0, 1fr);
+  }
+  .sy1-shell.is-fit-paged .synth-panel[data-machine="kerman"]:not([data-page="steps"]) .synth-sections {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    grid-auto-rows: minmax(0, 1fr);
+  }
+  /* Woven Kerman tapestry strip above each section card */
+  :is([data-skin="kerman"], [data-machine="kerman"]) .synth-sec {
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+    padding-top: calc(var(--sec-pad) + 14px);
+  }
+  :is([data-skin="kerman"], [data-machine="kerman"]) .synth-sec::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 11px;
+    border-radius: 5px;
+    border: 1px solid #4a3516;
+    background: var(--kerman-tapestry) 0 0 / 24px 11px repeat-x;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 232, 165, 0.55),
+      0 1px 2px rgba(0, 0, 0, 0.18);
+    pointer-events: none;
+    z-index: 1;
+  }
+  :is([data-skin="kerman"], [data-machine="kerman"]) .synth-sec::after {
+    content: "";
+    position: absolute;
+    top: 14px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: 7px;
+    border: 1.5px solid #78756c;
+    background: linear-gradient(180deg, #d7d5cc 0%, #cfcdc4 100%);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.65),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.08),
+      0 1px 3px rgba(0, 0, 0, 0.1);
+    pointer-events: none;
+    z-index: 0;
+  }
+  /* 3rd Woven Kerman tapestry strip below STEPS (above 8 PADS bar) */
+  :is([data-skin="kerman"], [data-machine="kerman"]) .kb-area::before {
+    content: "";
+    display: block;
+    width: 100%;
+    height: 11px;
+    border-radius: 5px;
+    border: 1px solid #4a3516;
+    background: var(--kerman-tapestry) 0 0 / 24px 11px repeat-x;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 232, 165, 0.55),
+      0 1px 2px rgba(0, 0, 0, 0.18);
+    flex: none;
+  }
+}
+
+/* Machined Knobs on Kerman Sound & Effects Pages */
 :is([data-skin="kerman"], [data-machine="kerman"]) .sk-dial {
   box-shadow:
-    0 2px 5px rgba(0,0,0,0.16),
+    0 2px 5px rgba(0, 0, 0, 0.2),
     inset 0 1px 0 #ffffff,
     0 0 0 2px var(--knob-gap),
     0 0 0 3px var(--knob-edge);
@@ -4676,79 +4944,266 @@
   height: calc(var(--k) * 0.36);
   border-radius: 1px;
 }
+
+/* ------------------------------------------------------------
+   Kerman Sequencer Buttons: Play, A-H, 16/12, ACCENT, CLEAR,
+   8 Voice Selectors, and 16 Illuminated Step Pads
+   ------------------------------------------------------------ */
 :is([data-skin="kerman"], [data-machine="kerman"]) .synth-choice-btn,
-:is([data-skin="kerman"], [data-machine="kerman"]) .synth-midi-btn,
 :is([data-skin="kerman"], [data-machine="kerman"]) .drum-slot,
 :is([data-skin="kerman"], [data-machine="kerman"]) .drum-voice-btn,
-:is([data-skin="kerman"], [data-machine="kerman"]) .drum-play,
-:is([data-skin="kerman"], [data-machine="kerman"]) .drum-step,
-:is([data-skin="kerman"], [data-machine="kerman"]) .kb-btn,
-:is([data-skin="kerman"], [data-machine="kerman"]) .key.pad {
-  border-radius: 3px;
-  box-shadow: inset 0 1px 0 #ffffff, 0 1px 2px rgba(0,0,0,0.1);
+:is([data-skin="kerman"], [data-machine="kerman"]) .drum-play {
+  border-radius: 5px;
+  border: 1.5px solid #262522;
+  background: linear-gradient(180deg, #dfddd4 0%, #ceccc2 100%);
+  color: #161614;
+  font-family: var(--font-ui);
+  font-weight: 700;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.82),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.14),
+    0 2px 3px rgba(0, 0, 0, 0.18);
 }
 :is([data-skin="kerman"], [data-machine="kerman"]) .synth-choice-btn.active,
 :is([data-skin="kerman"], [data-machine="kerman"]) .drum-slot.active,
 :is([data-skin="kerman"], [data-machine="kerman"]) .drum-voice-btn.active,
 :is([data-skin="kerman"], [data-machine="kerman"]) .drum-play.active {
-  background: linear-gradient(180deg, #ff662e 0%, #ee4910 100%);
+  background: linear-gradient(180deg, #f55c24 0%, #db3f08 100%);
   color: #ffffff;
-  border-color: #161616;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.35), 0 0 10px rgba(255,85,25,0.4);
+  border-color: #381808;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 225, 200, 0.55),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.22),
+    0 2px 6px rgba(234, 76, 21, 0.35);
 }
+
+/* 16 Step Buttons inside STEPS */
 :is([data-skin="kerman"], [data-machine="kerman"]) .drum-step {
-  background: linear-gradient(180deg, #b8b6ad 0 4px, transparent 4px 5px, #faf9f5 5px 100%);
-  border-color: #7c7a72;
+  border-radius: 5px;
+  border: 1.5px solid #262522;
+  background: linear-gradient(180deg, #dfddd4 0%, #cccbc1 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.8),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.15),
+    0 2px 3px rgba(0, 0, 0, 0.18);
 }
-:is([data-skin="kerman"], [data-machine="kerman"]) .drum-step.beat {
-  background: linear-gradient(180deg, #87857c 0 4px, transparent 4px 5px, #eae8e0 5px 100%);
-  border-color: #161616;
+:is([data-skin="kerman"], [data-machine="kerman"]) .drum-step::before {
+  display: none;
 }
-:is([data-skin="kerman"], [data-machine="kerman"]) .drum-step.on {
-  background: linear-gradient(180deg, #ff5519 0 6px, #ffd6c6 6px 100%);
-  border-color: #c93b0b;
+:is([data-skin="kerman"], [data-machine="kerman"]) .drum-step.beat:not(.on) {
+  border-color: #22211e;
+}
+/* Midpoint downbeat step 9 (index 8) warm smoked-amber backlit indicator when unlit */
+:is([data-skin="kerman"], [data-machine="kerman"]) .drum-step[data-index="8"]:not(.on) {
+  background:
+    radial-gradient(circle at 50% 42%, #f0a84b 0%, #b5854b 38%, #7a6e62 78%, #635b52 100%);
+  border-color: #22201c;
+  box-shadow:
+    inset 0 1px 1px rgba(255, 230, 175, 0.45),
+    inset 0 -2px 2px rgba(0, 0, 0, 0.35),
+    0 2px 3px rgba(0, 0, 0, 0.22);
+}
+/* Regular active step (e.g. step 7): soft warm peach-apricot backlit glow */
+:is([data-skin="kerman"], [data-machine="kerman"]) .drum-step.on:not(.accent) {
+  background: linear-gradient(180deg, #fff0dc 0%, #ffc899 52%, #f79c5c 100%);
+  border-color: #d94e14;
   opacity: 1;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.6), 0 0 8px rgba(255,85,25,0.3);
+  box-shadow:
+    inset 0 1px 2px #ffffff,
+    0 0 10px rgba(255, 115, 45, 0.48),
+    0 2px 3px rgba(0, 0, 0, 0.18);
 }
+/* Accented active step (e.g. steps 1 & 11): deep neon international orange with white-hot top bar */
 :is([data-skin="kerman"], [data-machine="kerman"]) .drum-step.accent {
-  background: linear-gradient(180deg, #fff3ed 0 5px, #ff5519 5px 100%);
-  border-color: #161616;
+  background: linear-gradient(180deg, #fff8eb 0%, #ff8236 28%, #eb470b 72%, #c93402 100%);
+  border-color: #521a04;
   opacity: 1;
-  box-shadow: inset 0 1px 0 #ffffff, 0 0 12px rgba(255,85,25,0.65);
+  box-shadow:
+    inset 0 2px 3px #ffffff,
+    0 0 12px rgba(234, 76, 21, 0.58),
+    0 2px 4px rgba(0, 0, 0, 0.25);
+}
+:is([data-skin="kerman"], [data-machine="kerman"]) .drum-step.accent::before {
+  display: block;
+  top: 2px;
+  left: 10%;
+  right: 10%;
+  height: 5px;
+  border-radius: 2px;
+  background: linear-gradient(180deg, #ffffff 0%, #ffe6b8 100%);
+  box-shadow: 0 0 8px #ffffff;
 }
 :is([data-skin="kerman"], [data-machine="kerman"]) .drum-step.playing {
-  outline: 2px solid #161616;
+  outline: 2px solid #161614;
   outline-offset: -2px;
-  box-shadow: 0 0 0 2px #ff5519;
+  box-shadow: 0 0 0 2px #ff5a1f;
+}
+
+/* ------------------------------------------------------------
+   Kerman Pad Bar (.kb-bar) & 4x2 Brushed-Ivory Drum Trigger Pads
+   ------------------------------------------------------------ */
+:is([data-skin="kerman"], [data-machine="kerman"]) .kb-bar {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  padding: 0 2px;
+}
+:is([data-skin="kerman"], [data-machine="kerman"]) .kb-area.is-drums .kb-bar::before {
+  color: #161614;
+  font-family: var(--font-ui);
+  font-weight: 700;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+}
+:is([data-skin="kerman"], [data-machine="kerman"]) .kb.is-pads {
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  grid-template-rows: repeat(2, minmax(0, 1fr));
+  gap: 5px;
+  padding: 3px;
+  background: #2b2926;
+  border: 1.5px solid #6b6860;
+  border-radius: 7px;
+  box-shadow:
+    inset 0 2px 5px rgba(0, 0, 0, 0.75),
+    0 1px 0 rgba(255, 255, 255, 0.75);
 }
 :is([data-skin="kerman"], [data-machine="kerman"]) .kb.is-pads .key.pad {
-  border-radius: 4px;
-  border: 1px solid #181818;
+  border-radius: 6px;
+  border: 1.5px solid #2b2926;
   background:
-    radial-gradient(circle at 100% 0%, rgba(255,85,25,0.12) 0 14px, transparent 15px),
-    linear-gradient(180deg, #fcfbf8 0%, #eae8e0 100%);
-  color: #161616;
-  box-shadow: inset 0 1px 0 #ffffff, inset 0 -3px 0 #cfcdc4, 0 2px 5px rgba(0,0,0,0.12);
+    radial-gradient(ellipse at 32% 28%, rgba(255, 255, 255, 0.55) 0%, transparent 55%),
+    radial-gradient(ellipse at 68% 72%, rgba(165, 160, 148, 0.28) 0%, transparent 52%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(150, 146, 136, 0.12) 48%, rgba(255, 255, 255, 0.18) 100%),
+    linear-gradient(180deg, #e5e3db 0%, #dad8cf 58%, #cfcdc3 100%);
+  color: #141413;
+  box-shadow:
+    inset 0 2px 1px rgba(255, 255, 255, 0.88),
+    inset 2px 0 1px rgba(255, 255, 255, 0.55),
+    inset 0 -3px 2px rgba(0, 0, 0, 0.2),
+    0 2px 4px rgba(0, 0, 0, 0.45);
+}
+:is([data-skin="kerman"], [data-machine="kerman"]) .kb.is-pads .key.pad .pad-name {
+  color: #141413;
+  font-family: var(--font-ui);
+  font-weight: 800;
+  font-size: clamp(0.64rem, 1.8cqw, 0.78rem);
+  letter-spacing: 0.03em;
 }
 :is([data-skin="kerman"], [data-machine="kerman"]) .kb.is-pads .key.pad .pad-key {
-  color: #4a4945;
-  font-weight: 700;
+  color: #2b2a27;
+  font-family: var(--font-ui);
+  font-weight: 600;
+  font-size: 0.64rem;
 }
 :is([data-skin="kerman"], [data-machine="kerman"]) .kb.is-pads .key.pad.is-pressed {
-  background: linear-gradient(180deg, #ff6c37 0%, #ff5519 100%) !important;
+  background: linear-gradient(180deg, #ff763d 0%, #e64509 100%) !important;
   color: #ffffff;
-  border-color: #161616;
-  box-shadow: inset 0 2px 4px rgba(0,0,0,0.25), 0 0 14px rgba(255,85,25,0.6);
+  border-color: #161614;
+  box-shadow:
+    inset 0 2px 4px rgba(0, 0, 0, 0.25),
+    0 0 14px rgba(234, 76, 21, 0.65);
 }
+:is([data-skin="kerman"], [data-machine="kerman"]) .kb.is-pads .key.pad.is-pressed .pad-name,
 :is([data-skin="kerman"], [data-machine="kerman"]) .kb.is-pads .key.pad.is-pressed .pad-key {
-  color: #fff2ec;
+  color: #ffffff;
 }
-:is([data-skin="kerman"], [data-machine="kerman"]) .synth-machine-select {
-  color: #161616;
+
+/* Short landscape guardrails for Kerman (740x340, 932x400) */
+@media (max-height: 560px) and (orientation: landscape) {
+  :is([data-skin="kerman"], [data-machine="kerman"]) .sy1-shell {
+    border-width: 1px;
+  }
+  :is([data-skin="kerman"], [data-machine="kerman"]) .synth-machine-select {
+    padding: 1px 18px 1px 6px;
+    font-size: 0.76rem;
+  }
+  :is([data-skin="kerman"], [data-machine="kerman"]) .synth-sec,
+  :is([data-skin="kerman"], [data-machine="kerman"]) .kb.is-pads {
+    border-width: 1px !important;
+  }
+  :is([data-skin="kerman"], [data-machine="kerman"]) .kb.is-pads {
+    padding: 2px;
+    gap: 3px;
+  }
 }
-:is([data-skin="kerman"], [data-machine="kerman"]) .synth-midi-bar {
-  background: #eceae2;
-  border-color: #b8b6ad;
+
+/* ------------------------------------------------------------
+   Kerman Sound Library (.lib-pop) & Popovers:
+   High-contrast dark espresso/charcoal & warm amber/orange
+   ------------------------------------------------------------ */
+:is([data-skin="kerman"], [data-machine="kerman"]) .lib-pop {
+  background: #1a1816;
+  border: 1.5px solid #ea4c15;
+  color: #f4f1ea;
+}
+:is([data-skin="kerman"], [data-machine="kerman"]) .lib-pop::before {
+  background: linear-gradient(180deg, #24211e 0%, #181614 100%);
+}
+:is([data-skin="kerman"], [data-machine="kerman"]) .lib-head {
+  background: rgba(18, 16, 14, 0.78);
+  border-bottom: 1px solid #3a3530;
+}
+:is([data-skin="kerman"], [data-machine="kerman"]) .lib-title b {
+  color: #f7f4ed;
+}
+:is([data-skin="kerman"], [data-machine="kerman"]) .lib-title span {
+  color: #f6b83b;
+}
+:is([data-skin="kerman"], [data-machine="kerman"]) .lib-search {
+  background: #12100e;
+  border: 1px solid #453f39;
+  color: #c7bfb4;
+}
+:is([data-skin="kerman"], [data-machine="kerman"]) .lib-q {
+  color: #f7f4ed;
+}
+:is([data-skin="kerman"], [data-machine="kerman"]) .lib-done {
+  background: linear-gradient(180deg, #ff692e 0%, #e04106 100%);
+  color: #ffffff;
+}
+:is([data-skin="kerman"], [data-machine="kerman"]) .lib-cats {
+  border-color: #3a3530;
+}
+:is([data-skin="kerman"], [data-machine="kerman"]) .lib-cat {
+  color: #e6dfd5;
+}
+:is([data-skin="kerman"], [data-machine="kerman"]) .lib-count {
+  color: #a89f93;
+}
+:is([data-skin="kerman"], [data-machine="kerman"]) .lib-cat.active {
+  background: #2e2924;
+  color: #ffffff;
+  box-shadow: inset 3px 0 0 #ff5a1f;
+}
+:is([data-skin="kerman"], [data-machine="kerman"]) .lib-cat.active .lib-count {
+  color: #f6b83b;
+}
+:is([data-skin="kerman"], [data-machine="kerman"]) .lib-tile {
+  background: linear-gradient(180deg, #2a2622 0%, #201d1a 100%);
+  border: 1px solid #423c36;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 2px 6px rgba(0, 0, 0, 0.4);
+  color: #f4f1ea;
+}
+:is([data-skin="kerman"], [data-machine="kerman"]) .lib-tile.active {
+  border-color: #ff5a1f;
+  box-shadow: 0 0 0 1px #ff5a1f, 0 0 14px rgba(255, 90, 31, 0.35);
+}
+:is([data-skin="kerman"], [data-machine="kerman"]) .lib-name {
+  color: #f7f4ed;
+}
+:is([data-skin="kerman"], [data-machine="kerman"]) .lib-sub {
+  color: #f6b83b;
+}
+:is([data-skin="kerman"], [data-machine="kerman"]) .lib-fav {
+  color: #b8b0a4;
+}
+:is([data-skin="kerman"], [data-machine="kerman"]) .lib-fav.on {
+  color: #f6b83b;
+}
+:is([data-skin="kerman"], [data-machine="kerman"]) :is(.or-inner, .arp-pop-inner, .conn-pop) {
+  background: linear-gradient(180deg, #e5e3db 0%, #d8d6ce 100%);
+  color: #161614;
+  border-color: #2a2926;
 }
 
 
@@ -6589,84 +7044,119 @@
 
 
 /* ------------------------------------------------------------
-   RASHT — Vintage acoustic studio drum kit
-   Dark forest green sparkle wrap + warm cream, oiled walnut
-   wood side panels, chrome tension lugs on rubber/drumhead pads,
-   and a warm backlit VU-meter oscilloscope.
+   RASHT — Acoustic studio drums
+   Deep Caspian forest-green painted metal enclosure with sculpted
+   vertical oiled walnut wood side cheeks, machined silver chassis
+   screws, dark amber CRT oscilloscope with central bell-wave glow,
+   ebony & silver-rimmed sequencer keys, warm brushed-gold active
+   selectors, incandescent ivory-gold step pads, and 4x2 acoustic
+   rubber drumhead trigger pads with 4 corner screws and 3D circular
+   trigger rings.
    ------------------------------------------------------------ */
 [data-skin="rasht"],
 [data-machine="rasht"] {
-  --kb-btn-ink: #1b160f;
-  --midi-btn-ink: #f4ecda;
-  --rasht-walnut: repeating-linear-gradient(179deg, #4d2c16 0 3px, #63391d 3px 7px, #3b200e 7px 10px, #704223 10px 15px, #522f17 15px 19px);
-  --rasht-vu: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 240 60'%3E%3Cpath d='M24 52 Q120 12 216 52' fill='none' stroke='%23d8b878' stroke-opacity='.38' stroke-width='1.2'/%3E%3Cpath d='M170 36 Q194 42 216 52' fill='none' stroke='%23e04838' stroke-opacity='.55' stroke-width='2.2'/%3E%3Cg fill='%23d8b878' fill-opacity='.45' font-family='sans-serif' font-size='6.5' font-weight='700' text-anchor='middle'%3E%3Ctext x='36' y='42'%3E-20%3C/text%3E%3Ctext x='72' y='31'%3E-10%3C/text%3E%3Ctext x='108' y='26'%3E-3%3C/text%3E%3Ctext x='145' y='27'%3E0%3C/text%3E%3Ctext x='182' y='33' fill='%23e04838' fill-opacity='.7'%3E+3%3C/text%3E%3Ctext x='120' y='50' font-size='7' letter-spacing='2'%3EVU%3C/text%3E%3C/g%3E%3C/svg%3E");
+  --kb-btn-ink: #f0e6cc;
+  --midi-btn-ink: #f0e6cc;
 
-  --font-ui: "Futura", "Avenir Next", "Century Gothic", "Segoe UI", sans-serif;
-  --font-head: var(--font-ui);
+  /* Sculpted vertical walnut wood grain for left/right side cheeks */
+  --rasht-cheek-grain:
+    repeating-linear-gradient(
+      90deg,
+      rgba(22, 11, 4, 0.28) 0px,
+      rgba(22, 11, 4, 0.28) 1px,
+      transparent 1px,
+      transparent 3px,
+      rgba(255, 210, 160, 0.06) 3px,
+      rgba(255, 210, 160, 0.06) 5px
+    ),
+    repeating-linear-gradient(
+      89deg,
+      rgba(38, 19, 8, 0.24) 0px,
+      rgba(38, 19, 8, 0.24) 2px,
+      transparent 2px,
+      transparent 7px
+    ),
+    linear-gradient(
+      90deg,
+      #422916 0%,
+      #6e482b 18%,
+      #875b39 44%,
+      #734b2d 72%,
+      #472c18 100%
+    );
 
-  --page-bg: #08120c;
-  --ink: #f6efe0;
-  --ink-dim: #d8decb;
-  --ink-faint: #aebaa5;
+  /* Machined silver slotted/Phillips chassis & pad corner screw */
+  --rasht-screw: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cdefs%3E%3CradialGradient id='rsg' cx='36%25' cy='30%25' r='70%25'%3E%3Cstop offset='0%25' stop-color='%23ffffff'/%3E%3Cstop offset='48%25' stop-color='%23cfd5d2'/%3E%3Cstop offset='82%25' stop-color='%2378807c'/%3E%3Cstop offset='100%25' stop-color='%232e3531'/%3E%3C/radialGradient%3E%3C/defs%3E%3Ccircle cx='8' cy='8.5' r='6.8' fill='%230b140f' fill-opacity='.65'/%3E%3Ccircle cx='8' cy='8' r='6.2' fill='url(%23rsg)' stroke='%231c2620' stroke-width='.9'/%3E%3Cpath d='M4.8 8h6.4M8 4.8v6.4' stroke='%23252d29' stroke-width='1.35' stroke-linecap='round'/%3E%3C/svg%3E");
 
-  --accent: #eab64d;
-  --accent-2: #c48f26;
-  --accent-ink: #1a150d;
-  --accent-glow: rgba(234,182,77,0.68);
-  --accent-glow-soft: rgba(234,182,77,0.3);
+  /* Glowing golden-amber baseline + central Gaussian bell wave in the scope */
+  --rasht-scope-wave: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 80' preserveAspectRatio='none'%3E%3Cdefs%3E%3CradialGradient id='rglow' cx='50%25' cy='52%25' r='26%25'%3E%3Cstop offset='0%25' stop-color='%23ffb838' stop-opacity='.55'/%3E%3Cstop offset='48%25' stop-color='%23e07b18' stop-opacity='.22'/%3E%3Cstop offset='100%25' stop-color='%23000000' stop-opacity='0'/%3E%3C/radialGradient%3E%3ClinearGradient id='rbeam' x1='0%25' y1='0%25' x2='100%25' y2='0%25'%3E%3Cstop offset='0%25' stop-color='%23c47118' stop-opacity='.35'/%3E%3Cstop offset='18%25' stop-color='%23f2a432' stop-opacity='.85'/%3E%3Cstop offset='50%25' stop-color='%23fff0b8' stop-opacity='1'/%3E%3Cstop offset='82%25' stop-color='%23f2a432' stop-opacity='.85'/%3E%3Cstop offset='100%25' stop-color='%23c47118' stop-opacity='.35'/%3E%3C/linearGradient%3E%3Cfilter id='rblur' x='-10%25' y='-40%25' width='120%25' height='180%25'%3E%3CfeGaussianBlur stdDeviation='2.4'/%3E%3C/filter%3E%3C/defs%3E%3Crect width='800' height='80' fill='url(%23rglow)'/%3E%3Cpath d='M305 74 C345 74 365 42 400 42 C435 42 455 74 495 74' fill='none' stroke='%23d9531e' stroke-width='1.5' stroke-opacity='.72'/%3E%3Cpath d='M320 40 C352 40 368 12 400 12 C432 12 448 40 480 40' fill='%23f5a623' fill-opacity='.16' stroke='%23ffcf6e' stroke-width='2.2' filter='url(%23rblur)'/%3E%3Cpath d='M320 40 C352 40 368 12 400 12 C432 12 448 40 480 40' fill='none' stroke='%23ffe699' stroke-width='1.6'/%3E%3Cline x1='8' y1='40' x2='792' y2='40' stroke='%23f59e24' stroke-width='3.5' stroke-opacity='.42' filter='url(%23rblur)'/%3E%3Cline x1='8' y1='40' x2='792' y2='40' stroke='url(%23rbeam)' stroke-width='1.6'/%3E%3C/svg%3E");
+
+  --font-ui: "Inter", "Avenir Next", "Helvetica Neue", "Segoe UI", Arial, sans-serif;
+  --font-head: "Inter", "Avenir Next", "Helvetica Neue", "Segoe UI", Arial, sans-serif;
+
+  --page-bg: #363635;
+  --ink: #f0e6cc;
+  --ink-dim: #d6ccb4;
+  --ink-faint: #9eb0a3;
+
+  --accent: #eab84b;
+  --accent-2: #c79024;
+  --accent-ink: #1c1506;
+  --accent-glow: rgba(234, 184, 75, 0.65);
+  --accent-glow-soft: rgba(234, 184, 75, 0.28);
 
   --shell-bg:
-    radial-gradient(circle at 20% 15%, rgba(255,255,255,0.09) 0 1px, transparent 2px) 0 0 / 9px 9px,
-    radial-gradient(circle at 70% 60%, rgba(165,245,195,0.08) 0 1px, transparent 2px) 0 0 / 13px 13px,
-    linear-gradient(165deg, #1b462f 0%, #11301f 55%, #0a1f14 100%);
+    radial-gradient(ellipse at 50% 0%, rgba(160, 215, 180, 0.14) 0%, transparent 60%),
+    linear-gradient(180deg, #274835 0%, #1d3828 54%, #152b1e 100%);
   --panel-bg:
-    repeating-linear-gradient(90deg, rgba(255,255,255,0.015) 0 1px, transparent 1px 4px),
-    linear-gradient(180deg, #163826 0%, #0e2619 100%);
-  --panel-border: #c8cdd2;
-  --panel-radius: 10px;
+    var(--rasht-screw) 8px 8px / 11px 11px no-repeat,
+    var(--rasht-screw) calc(100% - 8px) 8px / 11px 11px no-repeat,
+    var(--rasht-screw) 8px calc(100% - 7px) / 10px 10px no-repeat,
+    var(--rasht-screw) 50% calc(100% - 7px) / 10px 10px no-repeat,
+    var(--rasht-screw) calc(100% - 8px) calc(100% - 7px) / 10px 10px no-repeat,
+    radial-gradient(ellipse at 48% 0%, rgba(175, 225, 195, 0.12) 0%, transparent 55%),
+    linear-gradient(180deg, #264734 0%, #1d3828 58%, #172e20 100%);
+  --panel-border: #0e1e15;
+  --panel-radius: 6px;
   --panel-shadow:
-    inset 0 1px 0 rgba(255,255,255,0.28),
-    inset 0 0 0 2px #0d2116,
-    inset 0 0 0 3px rgba(200,205,210,0.55),
-    0 14px 28px rgba(0,0,0,0.6);
+    inset 0 2px 1px rgba(175, 220, 190, 0.32),
+    inset 0 -2px 2px rgba(0, 0, 0, 0.55),
+    0 2px 6px rgba(0, 0, 0, 0.45);
 
-  --sec-bg:
-    repeating-linear-gradient(92deg, rgba(0,0,0,0.05) 0 3px, transparent 3px 9px),
-    linear-gradient(180deg, #214531 0%, #173324 100%);
-  --sec-border: #8c968e;
-  --sec-radius: 8px;
+  --sec-bg: linear-gradient(180deg, #213e2d 0%, #1b3325 100%);
+  --sec-border: #335440;
+  --sec-radius: 6px;
   --sec-shadow:
-    inset 0 1px 0 rgba(255,255,255,0.14),
-    inset 0 -2px 6px rgba(0,0,0,0.45),
-    0 3px 6px rgba(0,0,0,0.4);
-  --sec-head: #f6ddb2;
+    inset 0 1px 2px rgba(0, 0, 0, 0.45),
+    0 1px 0 rgba(165, 210, 180, 0.16);
+  --sec-head: #e6dbb8;
 
-  --btn-bg: linear-gradient(180deg, #f7f3e6 0%, #ded5be 100%);
-  --btn-ink: #1b160f;
-  --btn-border: #767c82;
-  --ctl-bg: linear-gradient(180deg, #142b1e 0%, #0d1f15 100%);
-  --ctl-ink: #f6efe0;
-  --choice-active-bg: linear-gradient(180deg, #f5cd70 0%, #c99429 100%);
-  --choice-active-ink: #1a150d;
+  --btn-bg: linear-gradient(180deg, #353a36 0%, #222623 58%, #191c1a 100%);
+  --btn-ink: #e8dec2;
+  --btn-border: #8e9690;
+  --ctl-bg: linear-gradient(180deg, #233329 0%, #19261e 100%);
+  --ctl-ink: #f0e6cc;
+  --choice-active-bg: linear-gradient(180deg, #ffe89e 0%, #f0c35b 48%, #cf982c 100%);
+  --choice-active-ink: #1c1506;
 
   --scope-bg:
-    var(--rasht-vu) center / 100% 100% no-repeat,
-    radial-gradient(ellipse at 50% 90%, #4d3614 0%, #281b09 58%, #120c04 100%);
-  --scope-border: #9da3a8;
-  --scope-line: #f7c85c;
-  --scope-grid: rgba(247,200,92,0.16);
+    var(--rasht-scope-wave) center / 100% 100% no-repeat,
+    radial-gradient(ellipse at 50% 50%, #281b0c 0%, #14110c 58%, #0b0a08 100%);
+  --scope-border: #0d1711;
+  --scope-line: #f5b942;
+  --scope-grid: rgba(245, 185, 66, 0.08);
 
   --knob-face:
-    radial-gradient(circle at 35% 28%, rgba(255,255,255,0.92) 0%, rgba(255,255,255,0) 32%),
-    conic-gradient(from 20deg, #f4f5f7, #8b9096, #eaeced, #73787e, #f4f5f7, #989da3, #f4f5f7);
-  --knob-gap: #11261a;
-  --knob-edge: #9da3a8;
-  --knob-arc: #eab64d;
-  --knob-track: rgba(244,236,218,0.14);
-  --knob-arc-filter: drop-shadow(0 0 2px rgba(234,182,77,0.55));
-  --knob-ind: #1b160f;
-  --knob-ind-glow: rgba(0,0,0,0);
-  --label-ink: #f6efe0;
+    radial-gradient(circle at 35% 28%, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0) 36%),
+    radial-gradient(circle, #333835 0 60%, #1f2321 62% 84%, #9da5a0 85% 92%, #181c1a 93% 100%);
+  --knob-gap: #162b1f;
+  --knob-edge: #8e9690;
+  --knob-arc: #eab84b;
+  --knob-track: rgba(240, 230, 204, 0.14);
+  --knob-arc-filter: drop-shadow(0 0 2px rgba(234, 184, 75, 0.5));
+  --knob-ind: #ffe89e;
+  --knob-ind-glow: rgba(255, 232, 158, 0.65);
+  --label-ink: #e8dec2;
   --value-ink: #f5cd70;
 
   --key-white: linear-gradient(180deg, #f8f3e6 0%, #e4dcc6 100%);
@@ -6674,255 +7164,990 @@
   --key-black: linear-gradient(180deg, #1a1510 0%, #33291e 100%);
   --key-black-ink: #d4c8ae;
   --key-line: #1c1610;
-  --key-pressed: linear-gradient(180deg, #f7d688 0%, #eab64d 100%);
-  --key-pressed-ink: #1a150d;
+  --key-pressed: linear-gradient(180deg, #ffe89e 0%, #eab84b 100%);
+  --key-pressed-ink: #1c1506;
 
   --kb-white-top: #f8f3e6;
   --kb-white-bottom: #e4dcc6;
   --kb-black-top: #2c251f;
   --kb-black-bottom: #120e0b;
-  --kb-accent: #eab64d;
+  --kb-accent: #eab84b;
   --kb-pattern: none;
   --kb-frame: #13241a;
   --kb-wheel: #1d3326;
 
-  --led-off: #2c2214;
-  --led-off-edge: #8d9399;
+  --led-off: #2c3830;
+  --led-off-edge: #6b7870;
 }
+
+/* ------------------------------------------------------------
+   Rasht Chassis: Sculpted Vertical Walnut Wood Cheeks & Seam
+   ------------------------------------------------------------ */
 :is([data-skin="rasht"], [data-machine="rasht"]) .sy1-shell {
-  border-style: solid;
-  border-width: 0 12px;
-  border-image: var(--rasht-walnut) 1;
-  box-shadow: inset 6px 0 12px rgba(0,0,0,0.55), inset -6px 0 12px rgba(0,0,0,0.55);
+  position: relative;
+  padding-left: clamp(22px, 2.5vw, 32px);
+  padding-right: clamp(22px, 2.5vw, 32px);
+  border-top: 2px solid #3c614b;
+  border-bottom: 2px solid #0b1710;
+  border-radius: 10px;
+  box-shadow:
+    inset 0 2px 1px rgba(180, 225, 195, 0.35),
+    0 20px 44px rgba(0, 0, 0, 0.72);
+}
+:is([data-skin="rasht"], [data-machine="rasht"]) .sy1-shell::before,
+:is([data-skin="rasht"], [data-machine="rasht"]) .sy1-shell::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: clamp(18px, 2.2vw, 28px);
+  z-index: 5;
+  pointer-events: none;
+  background: var(--rasht-cheek-grain);
+  border: 1px solid #2b180b;
+}
+:is([data-skin="rasht"], [data-machine="rasht"]) .sy1-shell::before {
+  left: 0;
+  border-radius: 7px 2px 2px 7px;
+  box-shadow:
+    inset -3px 0 6px rgba(0, 0, 0, 0.58),
+    inset 2px 1px 2px rgba(255, 220, 175, 0.25),
+    3px 0 8px rgba(0, 0, 0, 0.6);
+}
+:is([data-skin="rasht"], [data-machine="rasht"]) .sy1-shell::after {
+  right: 0;
+  border-radius: 2px 7px 7px 2px;
+  box-shadow:
+    inset 3px 0 6px rgba(0, 0, 0, 0.58),
+    inset -2px 1px 2px rgba(255, 220, 175, 0.25),
+    -3px 0 8px rgba(0, 0, 0, 0.6);
 }
 @media (max-width: 760px), (max-height: 560px) and (orientation: landscape) {
   :is([data-skin="rasht"], [data-machine="rasht"]) .sy1-shell {
-    border-width: 0 4px;
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+  :is([data-skin="rasht"], [data-machine="rasht"]) .sy1-shell::before,
+  :is([data-skin="rasht"], [data-machine="rasht"]) .sy1-shell::after {
+    width: 5px;
   }
 }
-:is([data-skin="rasht"], [data-machine="rasht"]) .synth-brand,
+
+/* Upper panel & lower pad bay chassis plates with horizontal seam & silver screws */
+:is([data-skin="rasht"], [data-machine="rasht"]) .synth-panel {
+  border-radius: 5px 5px 2px 2px;
+  border: 1px solid #102117;
+  border-bottom: 2px solid #0b1710;
+}
+:is([data-skin="rasht"], [data-machine="rasht"]) .kb-area {
+  position: relative;
+  padding: 6px 8px 10px;
+  border-radius: 2px 2px 5px 5px;
+  border: 1px solid #102117;
+  border-top: 1px solid rgba(170, 215, 185, 0.28);
+  background:
+    var(--rasht-screw) 8px 6px / 10px 10px no-repeat,
+    var(--rasht-screw) calc(100% - 8px) 6px / 10px 10px no-repeat,
+    var(--rasht-screw) 8px calc(100% - 5px) / 10px 10px no-repeat,
+    var(--rasht-screw) 50% calc(100% - 5px) / 10px 10px no-repeat,
+    var(--rasht-screw) calc(100% - 8px) calc(100% - 5px) / 10px 10px no-repeat,
+    linear-gradient(180deg, #234230 0%, #1b3425 58%, #15291d 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(175, 220, 190, 0.22),
+    inset 0 -2px 3px rgba(0, 0, 0, 0.55);
+}
+
+/* ------------------------------------------------------------
+   Rasht Top Bar: Forest-Green Machine Selector, Amber Bell-Wave
+   Oscilloscope, and Forest-Green Connections Button
+   ------------------------------------------------------------ */
+:is([data-skin="rasht"], [data-machine="rasht"]) .synth-brand-maker {
+  display: none;
+}
 :is([data-skin="rasht"], [data-machine="rasht"]) .synth-machine-select {
-  color: #f6ddb2;
+  background:
+    linear-gradient(45deg, transparent 50%, #e6dbb8 50%) right 11px center / 5px 5px no-repeat,
+    linear-gradient(135deg, #e6dbb8 50%, transparent 50%) right 6px center / 5px 5px no-repeat,
+    linear-gradient(180deg, #294a37 0%, #1c3627 100%);
+  color: #f0e6cc;
+  border: 1.5px solid #4d6e5a;
+  border-radius: 6px;
+  padding: 5px 28px 5px 12px;
+  font-family: var(--font-ui);
+  font-weight: 700;
+  font-size: 0.94rem;
+  letter-spacing: 0.01em;
+  text-transform: none;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.22),
+    inset 0 -2px 2px rgba(0, 0, 0, 0.45),
+    0 2px 4px rgba(0, 0, 0, 0.45);
 }
 :is([data-skin="rasht"], [data-machine="rasht"]) .synth-scope {
-  border-width: 2px;
-  border-color: #b4bac0;
+  border-radius: 6px;
+  border: 2px solid #0e1a13;
   box-shadow:
-    inset 0 3px 10px rgba(0,0,0,0.85),
-    inset 0 0 18px rgba(234,182,77,0.18),
-    0 1px 0 rgba(255,255,255,0.25);
+    inset 0 3px 10px rgba(0, 0, 0, 0.92),
+    inset 0 0 18px rgba(245, 166, 35, 0.16),
+    0 1px 0 rgba(165, 210, 180, 0.26);
 }
-:is([data-skin="rasht"], [data-machine="rasht"]) .synth-midi-bar {
-  background: rgba(9,20,14,0.65);
-  border-color: rgba(200,205,210,0.35);
+:is([data-skin="rasht"], [data-machine="rasht"]) .synth-conn-btn {
+  background: linear-gradient(180deg, #294a37 0%, #1c3627 100%);
+  color: #e6dbb8;
+  border: 1.5px solid #4d6e5a;
+  border-radius: 6px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.22),
+    inset 0 -2px 2px rgba(0, 0, 0, 0.45),
+    0 2px 4px rgba(0, 0, 0, 0.45);
 }
+:is([data-skin="rasht"], [data-machine="rasht"]) .synth-conn-btn .conn-dot.is-unavailable {
+  background: #6c8073;
+  opacity: 0.85;
+}
+
+/* ------------------------------------------------------------
+   Rasht Subbar: Preset Display, Tempo Capsule & Brushed-Pearl Active Tab
+   ------------------------------------------------------------ */
+:is([data-skin="rasht"], [data-machine="rasht"]) .synth-preset-nav .synth-midi-btn,
+:is([data-skin="rasht"], [data-machine="rasht"]) .synth-tempo .synth-midi-btn {
+  background: linear-gradient(180deg, #353c37 0%, #202622 100%);
+  color: #e8dec2;
+  border: 1.5px solid #121814;
+  border-radius: 6px;
+  font-weight: 700;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    inset 0 -2px 2px rgba(0, 0, 0, 0.55),
+    0 2px 4px rgba(0, 0, 0, 0.45);
+}
+:is([data-skin="rasht"], [data-machine="rasht"]) .preset-display {
+  background: linear-gradient(180deg, #233429 0%, #18251d 100%);
+  border: 1.5px solid #4a6956;
+  border-radius: 6px;
+  padding: 3px 10px;
+  box-shadow:
+    inset 0 2px 5px rgba(0, 0, 0, 0.65),
+    0 2px 4px rgba(0, 0, 0, 0.4);
+}
+:is([data-skin="rasht"], [data-machine="rasht"]) .preset-display .pd-name {
+  color: #f4ecda;
+  font-family: var(--font-ui);
+  font-weight: 700;
+  font-size: 0.76rem;
+  letter-spacing: 0.01em;
+}
+:is([data-skin="rasht"], [data-machine="rasht"]) .preset-display .pd-sub {
+  color: #cbbfa2;
+  font-family: var(--font-ui);
+  font-weight: 600;
+  font-size: 0.56rem;
+  letter-spacing: 0.06em;
+}
+:is([data-skin="rasht"], [data-machine="rasht"]) .preset-display .pd-icon {
+  color: #e0d4b6;
+  opacity: 0.9;
+}
+:is([data-skin="rasht"], [data-machine="rasht"]) .synth-tempo-val {
+  background: linear-gradient(180deg, #232925 0%, #181d1a 100%);
+  border-top: 1.5px solid #121814;
+  border-bottom: 1.5px solid #121814;
+  padding: 3px 7px;
+  border-radius: 4px;
+  color: #f2ead7;
+  font-family: var(--font-ui);
+  font-weight: 700;
+  font-size: 0.76rem;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.65);
+}
+:is([data-skin="rasht"], [data-machine="rasht"]) .synth-tempo-val::after {
+  content: " BPM";
+  color: #cbbfa2;
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
+/* Page Tabs: Brushed Pearl/Silver Active Tab + Recessed Forest-Slate Inactive Tabs */
+:is([data-skin="rasht"], [data-machine="rasht"]) .synth-tab {
+  background: linear-gradient(180deg, #384a3f 0%, #29382f 100%);
+  color: #8fa195;
+  border: 1.5px solid #4d6355;
+  border-radius: 6px;
+  font-family: var(--font-ui);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    inset 0 -2px 2px rgba(0, 0, 0, 0.38),
+    0 2px 4px rgba(0, 0, 0, 0.35);
+}
+:is([data-skin="rasht"], [data-machine="rasht"]) .synth-tab::before {
+  width: 6px;
+  height: 6px;
+  background: #495c50;
+  border: 1px solid #26332b;
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.5);
+}
+:is([data-skin="rasht"], [data-machine="rasht"]) .synth-tab.active {
+  background: linear-gradient(180deg, #eeece4 0%, #cfccc1 100%);
+  color: #171c19;
+  border: 1.5px solid #a8afa9;
+  box-shadow:
+    inset 0 1px 0 #ffffff,
+    inset 0 -2px 2px rgba(0, 0, 0, 0.18),
+    0 2px 6px rgba(0, 0, 0, 0.45);
+}
+:is([data-skin="rasht"], [data-machine="rasht"]) .synth-tab.active::before {
+  background: #ffffff;
+  border-color: #d6c596;
+  box-shadow: 0 0 6px #ffffff, 0 0 10px rgba(255, 215, 110, 0.95);
+}
+
+/* ------------------------------------------------------------
+   Rasht Section Cards (PATTERN & STEPS) & Full-Width Stacked Layout
+   ------------------------------------------------------------ */
 :is([data-skin="rasht"], [data-machine="rasht"]) .synth-sec {
-  border-top: 2px solid #c8cdd2;
+  position: relative;
+  border: 1.5px solid #355742;
+  border-radius: 6px;
+  background: linear-gradient(180deg, #213e2d 0%, #1a3324 100%);
+  box-shadow:
+    inset 0 1px 2px rgba(0, 0, 0, 0.42),
+    0 1px 0 rgba(165, 210, 180, 0.18);
 }
+:is([data-skin="rasht"], [data-machine="rasht"]) .synth-sec h4 {
+  text-transform: uppercase;
+  color: #e6dbb8;
+  font-family: var(--font-ui);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  padding: 0 2px;
+  border-bottom: 0;
+}
+:is([data-skin="rasht"], [data-machine="rasht"]) .synth-hint {
+  display: none;
+}
+
+/* Desktop & Tablet Paged Layout: Stack PATTERN and STEPS full-width */
+@media (min-width: 761px) and (min-height: 561px) {
+  :is([data-skin="rasht"], [data-machine="rasht"]) .synth-panel {
+    padding-bottom: calc(var(--pad) + 12px);
+  }
+  .sy1-shell:not(.is-fit-paged) .synth-panel[data-machine="rasht"] .synth-sec {
+    min-height: 58vh;
+  }
+  .sy1-shell.is-fit-paged .synth-panel[data-machine="rasht"][data-page="steps"] .synth-sections {
+    grid-template-columns: minmax(0, 1fr) !important;
+    grid-auto-rows: minmax(0, 1fr);
+  }
+  .sy1-shell.is-fit-paged .synth-panel[data-machine="rasht"]:not([data-page="steps"]) .synth-sections {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    grid-auto-rows: minmax(0, 1fr);
+  }
+}
+
+/* Machined Knobs on Rasht Sound & Effects Pages */
 :is([data-skin="rasht"], [data-machine="rasht"]) .sk-dial {
   box-shadow:
-    0 3px 6px rgba(0,0,0,0.55),
+    0 3px 6px rgba(0, 0, 0, 0.55),
     0 0 0 2px #0f2418,
     0 0 0 3.5px #9da3a8;
 }
-:is([data-skin="rasht"], [data-machine="rasht"]) .synth-tab {
-  color: #f6efe0;
-}
-:is([data-skin="rasht"], [data-machine="rasht"]) .synth-tab.active {
-  color: #1a150d;
-}
-/* Studio rubber / coated pads with 4 corner chrome tension lugs & soft shadow */
-:is([data-skin="rasht"], [data-machine="rasht"]) .kb.is-pads .key.pad {
-  background:
-    radial-gradient(circle at 10% 14%, #ffffff 0 1.5px, #9da3a8 2px 4px, #2a302d 4.5px 5.5px, transparent 6px),
-    radial-gradient(circle at 90% 14%, #ffffff 0 1.5px, #9da3a8 2px 4px, #2a302d 4.5px 5.5px, transparent 6px),
-    radial-gradient(circle at 10% 86%, #ffffff 0 1.5px, #9da3a8 2px 4px, #2a302d 4.5px 5.5px, transparent 6px),
-    radial-gradient(circle at 90% 86%, #ffffff 0 1.5px, #9da3a8 2px 4px, #2a302d 4.5px 5.5px, transparent 6px),
-    radial-gradient(circle at 50% 45%, #2b3530 0%, #1d2521 68%, #141a17 100%);
-  border: 2px solid #adb3b8;
-  color: #f6efe0;
-  border-radius: 10px;
+
+/* ------------------------------------------------------------
+   Rasht Sequencer Buttons: Play, A-H, 16/12, ACCENT, CLEAR,
+   8 Voice Selectors, and Step Pads
+   ------------------------------------------------------------ */
+:is([data-skin="rasht"], [data-machine="rasht"]) .synth-choice-btn,
+:is([data-skin="rasht"], [data-machine="rasht"]) .drum-slot,
+:is([data-skin="rasht"], [data-machine="rasht"]) .drum-voice-btn,
+:is([data-skin="rasht"], [data-machine="rasht"]) .drum-play {
+  border-radius: 6px;
+  border: 1.5px solid #8e9690;
+  background: linear-gradient(180deg, #353a36 0%, #222623 55%, #191c1a 100%);
+  color: #e8dec2;
+  font-family: var(--font-ui);
+  font-weight: 700;
   box-shadow:
-    inset 0 1px 0 rgba(255,255,255,0.22),
-    inset 0 -3px 6px rgba(0,0,0,0.65),
-    0 5px 12px rgba(0,0,0,0.5);
+    inset 0 1px 0 rgba(255, 255, 255, 0.22),
+    inset 0 -2px 2px rgba(0, 0, 0, 0.6),
+    0 2px 4px rgba(0, 0, 0, 0.65);
 }
-:is([data-skin="rasht"], [data-machine="rasht"]) .kb.is-pads .key.pad .pad-name {
-  color: #f6efe0;
-}
-:is([data-skin="rasht"], [data-machine="rasht"]) .kb.is-pads .key.pad .pad-key {
-  color: #d0dac8;
-}
-:is([data-skin="rasht"], [data-machine="rasht"]) .kb.is-pads .key.pad.is-pressed {
-  background:
-    radial-gradient(circle at 10% 14%, #ffffff 0 1.5px, #9da3a8 2px 4px, transparent 5px),
-    radial-gradient(circle at 90% 14%, #ffffff 0 1.5px, #9da3a8 2px 4px, transparent 5px),
-    radial-gradient(circle at 10% 86%, #ffffff 0 1.5px, #9da3a8 2px 4px, transparent 5px),
-    radial-gradient(circle at 90% 86%, #ffffff 0 1.5px, #9da3a8 2px 4px, transparent 5px),
-    radial-gradient(circle at 50% 45%, #f9dfa0 0%, #eab64d 58%, #b8811d 100%) !important;
-  color: #1a150d;
-  border-color: #ffffff;
+:is([data-skin="rasht"], [data-machine="rasht"]) .synth-choice-btn.active,
+:is([data-skin="rasht"], [data-machine="rasht"]) .drum-slot.active,
+:is([data-skin="rasht"], [data-machine="rasht"]) .drum-voice-btn.active,
+:is([data-skin="rasht"], [data-machine="rasht"]) .drum-play.active {
+  background: linear-gradient(180deg, #ffe89e 0%, #f0c35b 48%, #cf982c 100%);
+  color: #1c1506;
+  font-weight: 800;
+  border-color: #fff3c4;
   box-shadow:
-    inset 0 1px 0 rgba(255,255,255,0.7),
-    0 0 16px rgba(234,182,77,0.75);
+    inset 0 1px 1px #ffffff,
+    inset 0 -2px 2px rgba(120, 75, 8, 0.45),
+    0 0 10px rgba(240, 195, 91, 0.45),
+    0 2px 4px rgba(0, 0, 0, 0.55);
 }
-:is([data-skin="rasht"], [data-machine="rasht"]) .kb.is-pads .key.pad.is-pressed .pad-name,
-:is([data-skin="rasht"], [data-machine="rasht"]) .kb.is-pads .key.pad.is-pressed .pad-key {
-  color: #1a150d;
-}
+
+/* Step Buttons inside STEPS */
 :is([data-skin="rasht"], [data-machine="rasht"]) .drum-step {
-  background: linear-gradient(180deg, #1b3626 0%, #112419 100%);
-  border-color: #69786e;
   border-radius: 5px;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.12), 0 2px 4px rgba(0,0,0,0.35);
+  border: 1.5px solid #828a84;
+  background: linear-gradient(180deg, #353a36 0%, #232724 60%, #1a1d1b 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    inset 0 -2px 2px rgba(0, 0, 0, 0.58),
+    0 2px 4px rgba(0, 0, 0, 0.65);
 }
-:is([data-skin="rasht"], [data-machine="rasht"]) .drum-step.beat {
-  background: linear-gradient(180deg, #274a35 0%, #193324 100%);
-  border-color: #c8cdd2;
+:is([data-skin="rasht"], [data-machine="rasht"]) .drum-step::before {
+  display: none;
 }
-:is([data-skin="rasht"], [data-machine="rasht"]) .drum-step.on {
-  background: linear-gradient(180deg, #f7df9c 0 4px, #d9a136 4px 100%);
-  border-color: #f6ddb2;
+:is([data-skin="rasht"], [data-machine="rasht"]) .drum-step.beat:not(.on) {
+  border-color: #969e98;
+}
+:is([data-skin="rasht"], [data-machine="rasht"]) .drum-step.on:not(.accent) {
+  background: radial-gradient(circle at 50% 50%, #fff6cf 0%, #f0c259 56%, #bf8922 100%);
+  border-color: #ffe8a3;
   opacity: 1;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.65), 0 0 8px rgba(234,182,77,0.45);
+  box-shadow:
+    inset 0 1px 2px #ffffff,
+    0 0 10px rgba(240, 194, 89, 0.65),
+    0 2px 4px rgba(0, 0, 0, 0.5);
 }
 :is([data-skin="rasht"], [data-machine="rasht"]) .drum-step.accent {
-  background: radial-gradient(circle at 50% 35%, #fff6d6 0%, #f0be52 55%, #c98a1e 100%);
+  background: radial-gradient(circle at 50% 50%, #ffffff 0%, #fff7d4 44%, #f2c358 82%, #c78f24 100%);
   border-color: #ffffff;
   opacity: 1;
-  box-shadow: inset 0 1px 0 #ffffff, 0 0 14px rgba(234,182,77,0.85);
+  box-shadow:
+    inset 0 0 6px #ffffff,
+    0 0 14px rgba(255, 224, 130, 0.85),
+    0 2px 4px rgba(0, 0, 0, 0.5);
 }
 :is([data-skin="rasht"], [data-machine="rasht"]) .drum-step.playing {
   outline: 2px solid #ffffff;
   outline-offset: -2px;
-  box-shadow: 0 0 0 2px #eab64d;
+  box-shadow: 0 0 0 2px #eab84b;
+}
+
+/* ------------------------------------------------------------
+   Rasht Pad Bar (.kb-bar) & 4x2 Acoustic Studio Drum Trigger Pads
+   with 4 Corner Screws & Centered 3D Circular Rubber Trigger Ring
+   ------------------------------------------------------------ */
+:is([data-skin="rasht"], [data-machine="rasht"]) .kb-bar {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  padding: 0 14px;
+}
+:is([data-skin="rasht"], [data-machine="rasht"]) .kb-area.is-drums .kb-bar::before {
+  color: #e6dbb8;
+  font-family: var(--font-ui);
+  font-weight: 700;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+}
+:is([data-skin="rasht"], [data-machine="rasht"]) .kb.is-pads {
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  grid-template-rows: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  padding: 2px 10px 4px;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+:is([data-skin="rasht"], [data-machine="rasht"]) .kb.is-pads .key.pad {
+  position: relative;
+  border-radius: 8px;
+  border: 2px solid #b2b9b4;
+  background:
+    var(--rasht-screw) 8px 8px / 8px 8px no-repeat,
+    var(--rasht-screw) calc(100% - 8px) 8px / 8px 8px no-repeat,
+    var(--rasht-screw) 8px calc(100% - 8px) / 8px 8px no-repeat,
+    var(--rasht-screw) calc(100% - 8px) calc(100% - 8px) / 8px 8px no-repeat,
+    radial-gradient(ellipse at 35% 30%, rgba(255, 255, 255, 0.06) 0%, transparent 55%),
+    linear-gradient(180deg, #2d322f 0%, #202422 58%, #171a18 100%);
+  color: #e8dec2;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.32),
+    inset 0 -3px 5px rgba(0, 0, 0, 0.72),
+    0 0 0 1.5px #0c1711,
+    0 4px 9px rgba(0, 0, 0, 0.65);
+}
+/* 3D Circular Acoustic Drumhead / Rubber Trigger Ring in the center of each pad */
+:is([data-skin="rasht"], [data-machine="rasht"]) .kb.is-pads .key.pad::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  height: min(86%, 102px);
+  aspect-ratio: 1 / 1;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background:
+    radial-gradient(
+      circle at 50% 45%,
+      #333835 0%,
+      #242926 57%,
+      #111412 63%,
+      #424844 69%,
+      #292e2b 81%,
+      #141715 92%,
+      #0b0d0c 100%
+    );
+  box-shadow:
+    inset 0 2px 3px rgba(255, 255, 255, 0.22),
+    inset 0 -3px 5px rgba(0, 0, 0, 0.8),
+    0 4px 9px rgba(0, 0, 0, 0.82),
+    0 -1px 2px rgba(255, 255, 255, 0.14);
+  pointer-events: none;
+  z-index: 0;
+}
+:is([data-skin="rasht"], [data-machine="rasht"]) .kb.is-pads .key.pad .pad-name,
+:is([data-skin="rasht"], [data-machine="rasht"]) .kb.is-pads .key.pad .pad-key {
+  position: relative;
+  z-index: 1;
+}
+:is([data-skin="rasht"], [data-machine="rasht"]) .kb.is-pads .key.pad .pad-name {
+  color: #e8dec2;
+  font-family: var(--font-ui);
+  font-weight: 700;
+  font-size: clamp(0.62rem, 1.8cqw, 0.76rem);
+  letter-spacing: 0.03em;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.85);
+}
+:is([data-skin="rasht"], [data-machine="rasht"]) .kb.is-pads .key.pad .pad-key {
+  color: #d6ccb2;
+  font-family: var(--font-ui);
+  font-weight: 600;
+  font-size: 0.64rem;
+}
+:is([data-skin="rasht"], [data-machine="rasht"]) .kb.is-pads .key.pad.is-pressed {
+  background:
+    var(--rasht-screw) 8px 8px / 8px 8px no-repeat,
+    var(--rasht-screw) calc(100% - 8px) 8px / 8px 8px no-repeat,
+    var(--rasht-screw) 8px calc(100% - 8px) / 8px 8px no-repeat,
+    var(--rasht-screw) calc(100% - 8px) calc(100% - 8px) / 8px 8px no-repeat,
+    linear-gradient(180deg, #383e3a 0%, #252a27 100%) !important;
+  border-color: #ffe89e;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.5),
+    0 0 14px rgba(234, 184, 75, 0.65);
+}
+:is([data-skin="rasht"], [data-machine="rasht"]) .kb.is-pads .key.pad.is-pressed::before {
+  background:
+    radial-gradient(
+      circle at 50% 45%,
+      #fff4c2 0%,
+      #f0c054 56%,
+      #9c6d14 64%,
+      #ffe596 71%,
+      #cf9628 84%,
+      #6e4a0a 100%
+    );
+  box-shadow:
+    inset 0 2px 4px #ffffff,
+    0 0 12px rgba(240, 192, 84, 0.8);
+}
+:is([data-skin="rasht"], [data-machine="rasht"]) .kb.is-pads .key.pad.is-pressed .pad-name,
+:is([data-skin="rasht"], [data-machine="rasht"]) .kb.is-pads .key.pad.is-pressed .pad-key {
+  color: #1c1506;
+  text-shadow: none;
+}
+
+/* Short landscape & compact viewport guardrails for Rasht */
+@media (max-height: 560px) and (orientation: landscape) {
+  :is([data-skin="rasht"], [data-machine="rasht"]) .sy1-shell {
+    border-top-width: 0;
+    border-bottom-width: 0;
+  }
+  :is([data-skin="rasht"], [data-machine="rasht"]) .synth-panel {
+    border-width: 0;
+  }
+  :is([data-skin="rasht"], [data-machine="rasht"]) .synth-machine-select {
+    padding: 1px 18px 1px 6px;
+    font-size: 0.76rem;
+  }
+  :is([data-skin="rasht"], [data-machine="rasht"]) .synth-sec,
+  :is([data-skin="rasht"], [data-machine="rasht"]) .kb.is-pads .key.pad {
+    border-width: 1px !important;
+  }
+  :is([data-skin="rasht"], [data-machine="rasht"]) .kb-area {
+    border-width: 0;
+    padding: 0 4px 2px;
+  }
+  :is([data-skin="rasht"], [data-machine="rasht"]) .kb.is-pads {
+    padding: 0 2px;
+    gap: 3px;
+  }
+}
+
+/* ------------------------------------------------------------
+   Rasht Sound Library (.lib-pop) & Popovers:
+   High-contrast dark Caspian forest-charcoal & warm brushed gold
+   ------------------------------------------------------------ */
+:is([data-skin="rasht"], [data-machine="rasht"]) .lib-pop {
+  background: #14221a;
+  border: 1.5px solid #eab84b;
+  color: #f4ecda;
+}
+:is([data-skin="rasht"], [data-machine="rasht"]) .lib-pop::before {
+  background: linear-gradient(180deg, #1c3024 0%, #122018 100%);
+}
+:is([data-skin="rasht"], [data-machine="rasht"]) .lib-head {
+  background: rgba(14, 24, 18, 0.82);
+  border-bottom: 1px solid #2e4a38;
+}
+:is([data-skin="rasht"], [data-machine="rasht"]) .lib-title b {
+  color: #f7f1e3;
+}
+:is([data-skin="rasht"], [data-machine="rasht"]) .lib-title span {
+  color: #eab84b;
+}
+:is([data-skin="rasht"], [data-machine="rasht"]) .lib-search {
+  background: #0e1913;
+  border: 1px solid #355440;
+  color: #c4d1c8;
+}
+:is([data-skin="rasht"], [data-machine="rasht"]) .lib-q {
+  color: #f7f1e3;
+}
+:is([data-skin="rasht"], [data-machine="rasht"]) .lib-done {
+  background: linear-gradient(180deg, #ffe89e 0%, #d9a334 100%);
+  color: #1c1506;
+}
+:is([data-skin="rasht"], [data-machine="rasht"]) .lib-cats {
+  border-color: #2e4a38;
+}
+:is([data-skin="rasht"], [data-machine="rasht"]) .lib-cat {
+  color: #e2d6;
+  color: #e4decb;
+}
+:is([data-skin="rasht"], [data-machine="rasht"]) .lib-count {
+  color: #9cb0a3;
+}
+:is([data-skin="rasht"], [data-machine="rasht"]) .lib-cat.active {
+  background: #243d2e;
+  color: #ffffff;
+  box-shadow: inset 3px 0 0 #eab84b;
+}
+:is([data-skin="rasht"], [data-machine="rasht"]) .lib-cat.active .lib-count {
+  color: #ffe89e;
+}
+:is([data-skin="rasht"], [data-machine="rasht"]) .lib-tile {
+  background: linear-gradient(180deg, #21382a 0%, #182a1f 100%);
+  border: 1px solid #355440;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 2px 6px rgba(0, 0, 0, 0.4);
+  color: #f4ecda;
+}
+:is([data-skin="rasht"], [data-machine="rasht"]) .lib-tile.active {
+  border-color: #eab84b;
+  box-shadow: 0 0 0 1px #eab84b, 0 0 14px rgba(234, 184, 75, 0.35);
+}
+:is([data-skin="rasht"], [data-machine="rasht"]) .lib-name {
+  color: #f7f1e3;
+}
+:is([data-skin="rasht"], [data-machine="rasht"]) .lib-sub {
+  color: #eab84b;
+}
+:is([data-skin="rasht"], [data-machine="rasht"]) .lib-fav {
+  color: #9cb0a3;
+}
+:is([data-skin="rasht"], [data-machine="rasht"]) .lib-fav.on {
+  color: #eab84b;
 }
 
 
 /* ------------------------------------------------------------
    HORMOZ — Digital / glitch drums (Hormuz Rainbow Island)
-   Rust red, sulfur ochre, and crystalline purple mineral on
-   volcanic near-black, neon-thin line art, glitchy segmented
-   knob arcs, and an LED-matrix step grid.
+   Textured volcanic sandstone & rainbow mineral-strata chassis
+   (terracotta rust, sulfur ochre, iron crimson, and amethyst
+   veins with crystalline salt speckles), 4 gunmetal corner bolts,
+   amber dot-matrix oscilloscope with damped multi-cycle sine wave,
+   stacked dark volcanic PATTERN & STEPS bays, LED-matrix lit step
+   pads, and 4x2 mineral-strata trigger pads with glowing rims.
    ------------------------------------------------------------ */
 [data-skin="hormoz"],
 [data-machine="hormoz"] {
-  --kb-btn-ink: #f6f0f8;
-  --midi-btn-ink: #f6f0f8;
-  --hormoz-led: radial-gradient(circle, rgba(255,255,255,0.12) 1px, transparent 1.25px) 0 0 / 4px 4px;
+  --kb-btn-ink: #f5ece8;
+  --midi-btn-ink: #f5ece8;
 
-  --font-ui: "Eurostile", "Bank Gothic", "Bahnschrift", "Roboto Condensed", "Arial Narrow", sans-serif;
-  --font-head: var(--font-ui);
+  /* Recessed gunmetal / dark-bronze slotted corner chassis bolt */
+  --hormoz-screw: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cdefs%3E%3CradialGradient id='hsg' cx='35%25' cy='30%25' r='70%25'%3E%3Cstop offset='0%25' stop-color='%238c7365'/%3E%3Cstop offset='52%25' stop-color='%234d3b32'/%3E%3Cstop offset='85%25' stop-color='%23281d18'/%3E%3Cstop offset='100%25' stop-color='%23140d0a'/%3E%3C/radialGradient%3E%3C/defs%3E%3Ccircle cx='10' cy='10.5' r='8.6' fill='%230d0705' fill-opacity='.75'/%3E%3Ccircle cx='10' cy='10' r='7.6' fill='url(%23hsg)' stroke='%231a0f0c' stroke-width='1.1'/%3E%3Cline x1='5.2' y1='10' x2='14.8' y2='10' stroke='%23140b08' stroke-width='2.1' stroke-linecap='round'/%3E%3Cline x1='5.2' y1='10.7' x2='14.8' y2='10.7' stroke='%23a68b7c' stroke-opacity='.38' stroke-width='.8' stroke-linecap='round'/%3E%3C/svg%3E");
 
-  --page-bg: #080508;
-  --ink: #f8f2fa;
-  --ink-dim: #dccce0;
-  --ink-faint: #b49fb9;
+  /* Fine crystalline salt & mineral speckles scattered across stone surfaces */
+  --hormoz-speckles: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='120' viewBox='0 0 180 120'%3E%3Cg fill='%23fff5eb' fill-opacity='.55'%3E%3Ccircle cx='14' cy='18' r='.9'/%3E%3Ccircle cx='42' cy='11' r='.7'/%3E%3Ccircle cx='78' cy='24' r='1.1'/%3E%3Ccircle cx='116' cy='15' r='.8'/%3E%3Ccircle cx='154' cy='28' r='1'/%3E%3Ccircle cx='26' cy='52' r='.75'/%3E%3Ccircle cx='63' cy='46' r='1.15'/%3E%3Ccircle cx='95' cy='62' r='.7'/%3E%3Ccircle cx='138' cy='54' r='.95'/%3E%3Ccircle cx='168' cy='71' r='.8'/%3E%3Ccircle cx='19' cy='89' r='1.05'/%3E%3Ccircle cx='54' cy='96' r='.75'/%3E%3Ccircle cx='88' cy='84' r='.9'/%3E%3Ccircle cx='127' cy='98' r='1.1'/%3E%3Ccircle cx='161' cy='106' r='.7'/%3E%3C/g%3E%3Cg fill='%231a0906' fill-opacity='.48'%3E%3Ccircle cx='22' cy='31' r='1.1'/%3E%3Ccircle cx='58' cy='19' r='.9'/%3E%3Ccircle cx='104' cy='34' r='1.2'/%3E%3Ccircle cx='144' cy='18' r='1'/%3E%3Ccircle cx='35' cy='68' r='1.15'/%3E%3Ccircle cx='74' cy='73' r='.85'/%3E%3Ccircle cx='119' cy='67' r='1.1'/%3E%3Ccircle cx='152' cy='82' r='.95'/%3E%3Ccircle cx='41' cy='108' r='1.1'/%3E%3Ccircle cx='102' cy='109' r='.9'/%3E%3Ccircle cx='139' cy='112' r='1.15'/%3E%3C/g%3E%3C/svg%3E");
 
-  --accent: #ff4f2b;
-  --accent-2: #f5b82e;
-  --accent-ink: #120604;
-  --accent-glow: rgba(255,79,43,0.75);
-  --accent-glow-soft: rgba(255,79,43,0.32);
+  /* Wavy rainbow geological strata for Pad 6 (FM TOM) */
+  --hormoz-rainbow-strata: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 240 120' preserveAspectRatio='none'%3E%3Crect width='240' height='120' fill='%23593354'/%3E%3Cpath d='M0 0 L240 0 L240 28 C195 14 162 42 114 26 C68 10 34 24 0 14 Z' fill='%236e3e63'/%3E%3Cpath d='M0 12 C34 22 68 8 114 24 C162 40 195 12 240 26 L240 50 C192 34 158 64 110 46 C64 28 32 44 0 32 Z' fill='%239e4227'/%3E%3Cpath d='M0 30 C32 42 64 26 110 44 C158 62 192 32 240 48 L240 68 C192 52 158 82 110 64 C64 46 32 60 0 50 Z' fill='%23cc7a35'/%3E%3Cpath d='M0 48 C32 58 64 44 110 62 C158 80 192 50 240 66 L240 88 C192 72 158 100 110 82 C64 64 32 78 0 68 Z' fill='%238c3624'/%3E%3Cpath d='M0 66 C32 76 64 62 110 80 C158 98 192 70 240 86 L240 104 C194 90 158 114 110 98 C64 82 32 94 0 86 Z' fill='%23b56530'/%3E%3Cpath d='M0 84 C32 92 64 80 110 96 C158 112 194 88 240 102 L240 120 L0 120 Z' fill='%23593354'/%3E%3C/svg%3E");
 
+  /* Glowing amber-orange baseline + damped multi-cycle sine wave in the scope */
+  --hormoz-scope-wave: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 80' preserveAspectRatio='none'%3E%3Cdefs%3E%3ClinearGradient id='hbeam' x1='0%25' y1='0%25' x2='100%25' y2='0%25'%3E%3Cstop offset='0%25' stop-color='%23ff8826' stop-opacity='.88'/%3E%3Cstop offset='50%25' stop-color='%23ffd278' stop-opacity='1'/%3E%3Cstop offset='100%25' stop-color='%23ff7b24' stop-opacity='.85'/%3E%3C/linearGradient%3E%3ClinearGradient id='hwave' x1='0%25' y1='0%25' x2='100%25' y2='0%25'%3E%3Cstop offset='0%25' stop-color='%23ffd88a'/%3E%3Cstop offset='38%25' stop-color='%23ffbe55'/%3E%3Cstop offset='72%25' stop-color='%23ff8c38'/%3E%3Cstop offset='100%25' stop-color='%23e05a20' stop-opacity='.45'/%3E%3C/linearGradient%3E%3Cfilter id='hblur' x='-5%25' y='-40%25' width='110%25' height='180%25'%3E%3CfeGaussianBlur stdDeviation='2.4'/%3E%3C/filter%3E%3C/defs%3E%3Cline x1='0' y1='42' x2='800' y2='42' stroke='%23ff731c' stroke-width='3.6' stroke-opacity='.45' filter='url(%23hblur)'/%3E%3Cline x1='0' y1='42' x2='800' y2='42' stroke='url(%23hbeam)' stroke-width='1.5'/%3E%3Cpath d='M 6 42 C 42 10, 88 10, 132 42 C 176 70, 218 70, 260 42 C 298 18, 340 18, 378 42 C 414 63, 452 63, 488 42 C 522 25, 558 25, 592 42 C 624 55, 658 55, 690 42 C 724 34, 760 40, 796 42' fill='none' stroke='%23ff7a24' stroke-width='3.8' stroke-opacity='.55' filter='url(%23hblur)'/%3E%3Cpath d='M 6 42 C 42 10, 88 10, 132 42 C 176 70, 218 70, 260 42 C 298 18, 340 18, 378 42 C 414 63, 452 63, 488 42 C 522 25, 558 25, 592 42 C 624 55, 658 55, 690 42 C 724 34, 760 40, 796 42' fill='none' stroke='url(%23hwave)' stroke-width='1.85' stroke-linecap='round'/%3E%3C/svg%3E");
+
+  --font-ui: "Inter", "Avenir Next", "Helvetica Neue", "Segoe UI", Arial, sans-serif;
+  --font-head: "Inter", "Avenir Next", "Helvetica Neue", "Segoe UI", Arial, sans-serif;
+
+  --page-bg: #1e1615;
+  --ink: #f5ece8;
+  --ink-dim: #d8c8c0;
+  --ink-faint: #ab9890;
+
+  --accent: #ff6e3b;
+  --accent-2: #f5a638;
+  --accent-ink: #1a0b04;
+  --accent-glow: rgba(255, 110, 59, 0.68);
+  --accent-glow-soft: rgba(255, 110, 59, 0.28);
+
+  /* Rainbow Island volcanic mineral-strata outer shell with 4 corner gunmetal bolts */
   --shell-bg:
-    linear-gradient(120deg, rgba(255,79,43,0.16) 0%, transparent 34%, rgba(245,184,46,0.1) 52%, rgba(182,120,255,0.18) 78%, transparent 100%),
-    linear-gradient(180deg, #140b13 0%, #080508 100%);
+    var(--hormoz-screw) 7px 7px / 16px 16px no-repeat,
+    var(--hormoz-screw) calc(100% - 7px) 7px / 16px 16px no-repeat,
+    var(--hormoz-screw) 7px calc(100% - 7px) / 16px 16px no-repeat,
+    var(--hormoz-screw) calc(100% - 7px) calc(100% - 7px) / 16px 16px no-repeat,
+    var(--hormoz-speckles) 0 0 / 180px 120px repeat,
+    radial-gradient(ellipse at 18% 8%, rgba(128, 68, 118, 0.55) 0%, transparent 45%),
+    radial-gradient(ellipse at 68% 6%, rgba(220, 135, 62, 0.55) 0%, transparent 42%),
+    radial-gradient(ellipse at 92% 62%, rgba(112, 58, 108, 0.62) 0%, transparent 48%),
+    radial-gradient(ellipse at 38% 95%, rgba(118, 62, 110, 0.52) 0%, transparent 45%),
+    linear-gradient(
+      128deg,
+      #7c392b 0%,
+      #9e4e34 18%,
+      #68364e 34%,
+      #b56a38 52%,
+      #843928 70%,
+      #5d314a 86%,
+      #8c462c 100%
+    );
+
+  /* Upper mineral faceplate */
   --panel-bg:
-    linear-gradient(90deg, rgba(182,120,255,0.03) 1px, transparent 1px) 0 0 / 24px 24px,
-    linear-gradient(0deg, rgba(255,79,43,0.03) 1px, transparent 1px) 0 0 / 24px 24px,
-    linear-gradient(180deg, #150c14 0%, #0c070c 100%);
-  --panel-border: rgba(255,79,43,0.65);
-  --panel-radius: 4px;
+    var(--hormoz-speckles) 0 0 / 170px 115px repeat,
+    radial-gradient(ellipse at 62% 0%, rgba(228, 145, 70, 0.45) 0%, transparent 48%),
+    radial-gradient(ellipse at 15% 18%, rgba(125, 68, 112, 0.42) 0%, transparent 46%),
+    radial-gradient(ellipse at 94% 72%, rgba(112, 56, 104, 0.48) 0%, transparent 45%),
+    linear-gradient(
+      125deg,
+      #803b2c 0%,
+      #9c4e35 22%,
+      #6d384c 42%,
+      #b36837 62%,
+      #873b29 82%,
+      #663449 100%
+    );
+  --panel-border: #2a1410;
+  --panel-radius: 10px;
   --panel-shadow:
-    0 0 0 1px rgba(182,120,255,0.28),
-    inset 0 0 20px rgba(255,79,43,0.06),
-    0 14px 32px rgba(0,0,0,0.75);
+    inset 0 2px 1px rgba(255, 210, 175, 0.32),
+    inset 0 -2px 3px rgba(0, 0, 0, 0.58),
+    0 2px 8px rgba(0, 0, 0, 0.45);
 
-  --sec-bg: linear-gradient(180deg, rgba(28,16,26,0.92) 0%, rgba(16,9,15,0.95) 100%);
-  --sec-border: rgba(182,120,255,0.55);
-  --sec-radius: 3px;
-  --sec-shadow: inset 0 1px 0 rgba(255,255,255,0.06), 0 0 12px rgba(182,120,255,0.08);
-  --sec-head: #f5b82e;
+  --sec-bg: linear-gradient(180deg, #231918 0%, #181110 100%);
+  --sec-border: #0e0807;
+  --sec-radius: 7px;
+  --sec-shadow:
+    inset 0 2px 4px rgba(0, 0, 0, 0.72),
+    0 1px 0 rgba(255, 190, 145, 0.22);
+  --sec-head: #f5a638;
 
-  --btn-bg: linear-gradient(180deg, #251522 0%, #170d16 100%);
-  --btn-ink: #f8f2fa;
-  --btn-border: rgba(182,120,255,0.55);
-  --ctl-bg: #110910;
-  --ctl-ink: #f8f2fa;
-  --choice-active-bg: linear-gradient(90deg, #ff4f2b 0%, #f5b82e 55%, #b678ff 100%);
-  --choice-active-ink: #120604;
+  --btn-bg: linear-gradient(180deg, #4b3c39 0%, #382c2a 55%, #2b211f 100%);
+  --btn-ink: #f5ece8;
+  --btn-border: #140c0b;
+  --ctl-bg: linear-gradient(180deg, #2a1e1c 0%, #1c1413 100%);
+  --ctl-ink: #f5ece8;
+  --choice-active-bg: linear-gradient(90deg, #ff683b 0%, #ff8c3b 48%, #ffb842 100%);
+  --choice-active-ink: #1c0c04;
 
   --scope-bg:
-    var(--hormoz-led),
-    radial-gradient(ellipse at 50% 50%, #241120 0%, #090509 85%);
-  --scope-border: #ff4f2b;
-  --scope-line: #f5b82e;
-  --scope-grid: rgba(182,120,255,0.22);
+    var(--hormoz-scope-wave) center / 100% 100% no-repeat,
+    radial-gradient(circle, rgba(255, 165, 85, 0.16) 0.85px, transparent 1.2px) 0 0 / 3.5px 3.5px,
+    linear-gradient(180deg, #160e0c 0%, #0d0807 55%, #140c0a 100%);
+  --scope-border: #110908;
+  --scope-line: #ffb84d;
+  --scope-grid: rgba(255, 150, 70, 0.08);
 
   --knob-face:
-    radial-gradient(circle at 38% 30%, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0) 38%),
-    radial-gradient(circle, #180e17 0 48%, #b678ff 49% 52%, #1e121c 53% 100%);
-  --knob-gap: #0c070c;
-  --knob-edge: rgba(245,184,46,0.55);
-  --knob-arc: #ff4f2b;
-  --knob-track: rgba(182,120,255,0.18);
-  --knob-arc-filter: drop-shadow(0 0 4px rgba(255,79,43,0.85));
-  --knob-ind: #f5b82e;
-  --knob-ind-glow: rgba(245,184,46,0.9);
-  --label-ink: #f8f2fa;
-  --value-ink: #f5b82e;
+    radial-gradient(circle at 36% 30%, rgba(255, 235, 220, 0.22) 0%, rgba(255, 255, 255, 0) 38%),
+    radial-gradient(circle, #382927 0 56%, #ff7a45 57% 61%, #241918 62% 100%);
+  --knob-gap: #140c0b;
+  --knob-edge: #6e524b;
+  --knob-arc: #ff7338;
+  --knob-track: rgba(255, 200, 170, 0.16);
+  --knob-arc-filter: drop-shadow(0 0 3px rgba(255, 110, 56, 0.65));
+  --knob-ind: #ffb842;
+  --knob-ind-glow: rgba(255, 184, 66, 0.85);
+  --label-ink: #f5ece8;
+  --value-ink: #ffb842;
 
-  --key-white: linear-gradient(180deg, #f6f0f8 0%, #dfd2e4 100%);
-  --key-white-ink: #5a4661;
-  --key-black: linear-gradient(180deg, #0d080c 0%, #261624 100%);
-  --key-black-ink: #dccce0;
-  --key-line: #ff4f2b;
-  --key-pressed: linear-gradient(180deg, #f5b82e 0%, #ff4f2b 100%);
-  --key-pressed-ink: #120604;
+  --key-white: linear-gradient(180deg, #f6efe9 0%, #dfd2c8 100%);
+  --key-white-ink: #59433d;
+  --key-black: linear-gradient(180deg, #241816 0%, #120b0a 100%);
+  --key-black-ink: #d8c8c0;
+  --key-line: #2a1612;
+  --key-pressed: linear-gradient(180deg, #ffb842 0%, #ff683b 100%);
+  --key-pressed-ink: #1c0c04;
 
-  --kb-white-top: #f6f0f8;
-  --kb-white-bottom: #dfd2e4;
-  --kb-black-top: #2d182b;
-  --kb-black-bottom: #0d080c;
-  --kb-accent: #ff4f2b;
+  --kb-white-top: #f6efe9;
+  --kb-white-bottom: #dfd2c8;
+  --kb-black-top: #332220;
+  --kb-black-bottom: #120b0a;
+  --kb-accent: #ff6e3b;
   --kb-pattern: none;
-  --kb-frame: #180916;
-  --kb-wheel: #261123;
+  --kb-frame: #1c1110;
+  --kb-wheel: #2b1b19;
 
-  --led-off: #2c141d;
-  --led-off-edge: #b678ff;
+  --led-off: #3d2c29;
+  --led-off-edge: #1c1210;
 }
-:is([data-skin="hormoz"], [data-machine="hormoz"]) .synth-brand,
+
+/* ------------------------------------------------------------
+   Hormoz Mineral-Strata Hardware Enclosure (.sy1-shell, .synth-panel, .kb-area)
+   ------------------------------------------------------------ */
+:is([data-skin="hormoz"], [data-machine="hormoz"]) .sy1-shell {
+  position: relative;
+  padding: 6px 16px 8px;
+  border-radius: 14px;
+  border: 2px solid #2a1410;
+  box-shadow:
+    inset 0 2px 2px rgba(255, 215, 180, 0.38),
+    inset 0 -3px 5px rgba(0, 0, 0, 0.65),
+    0 20px 44px rgba(0, 0, 0, 0.72);
+}
+:is([data-skin="hormoz"], [data-machine="hormoz"]) .synth-panel {
+  border-radius: 9px 9px 6px 6px;
+  border: 1.5px solid rgba(32, 14, 10, 0.82);
+  border-bottom: 2px solid #1c0c09;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 210, 175, 0.28),
+    0 1px 0 rgba(255, 195, 150, 0.2);
+}
+:is([data-skin="hormoz"], [data-machine="hormoz"]) .kb-area {
+  position: relative;
+  padding: 6px 8px 10px;
+  border-radius: 4px 4px 10px 10px;
+  border: 1.5px solid rgba(32, 14, 10, 0.75);
+  border-top: 1px solid rgba(255, 195, 150, 0.25);
+  background:
+    var(--hormoz-speckles) 0 0 / 170px 115px repeat,
+    radial-gradient(ellipse at 35% 92%, rgba(118, 60, 112, 0.55) 0%, transparent 48%),
+    radial-gradient(ellipse at 88% 28%, rgba(115, 58, 108, 0.48) 0%, transparent 45%),
+    linear-gradient(
+      130deg,
+      #8e462d 0%,
+      #783625 28%,
+      #63344a 54%,
+      #9c4e30 78%,
+      #7a3724 100%
+    );
+  box-shadow:
+    inset 0 1px 0 rgba(255, 205, 165, 0.22),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.55);
+}
+
+/* ------------------------------------------------------------
+   Hormoz Top Bar: Coral-Orange HORMOZ Selector, Amber Dot-Matrix
+   Oscilloscope, and Volcanic Brown Connections Button
+   ------------------------------------------------------------ */
+:is([data-skin="hormoz"], [data-machine="hormoz"]) .synth-brand-maker {
+  display: none;
+}
 :is([data-skin="hormoz"], [data-machine="hormoz"]) .synth-machine-select {
-  color: #ff6947;
+  background:
+    linear-gradient(45deg, transparent 50%, #ff7a45 50%) right 11px center / 5px 5px no-repeat,
+    linear-gradient(135deg, #ff7a45 50%, transparent 50%) right 6px center / 5px 5px no-repeat,
+    linear-gradient(180deg, #382522 0%, #241715 100%);
+  color: #ff7a45;
+  border: 1.5px solid #120a09;
+  border-radius: 6px;
+  padding: 5px 28px 5px 12px;
+  font-family: var(--font-ui);
+  font-weight: 800;
+  font-size: 0.9rem;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
-  text-shadow: 0 0 8px rgba(255,79,43,0.55);
+  text-shadow: 0 0 8px rgba(255, 110, 59, 0.35);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 210, 185, 0.2),
+    inset 0 -2px 2px rgba(0, 0, 0, 0.55),
+    0 2px 4px rgba(0, 0, 0, 0.5);
 }
+:is([data-skin="hormoz"], [data-machine="hormoz"]) .synth-scope {
+  border-radius: 6px;
+  border: 2.5px solid #110908;
+  box-shadow:
+    inset 0 3px 10px rgba(0, 0, 0, 0.92),
+    inset 0 0 18px rgba(255, 136, 38, 0.16),
+    0 1px 0 rgba(255, 195, 150, 0.28);
+}
+:is([data-skin="hormoz"], [data-machine="hormoz"]) .synth-conn-btn {
+  background: linear-gradient(180deg, #382522 0%, #241715 100%);
+  color: #ebddd6;
+  border: 1.5px solid #120a09;
+  border-radius: 6px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 210, 185, 0.2),
+    inset 0 -2px 2px rgba(0, 0, 0, 0.55),
+    0 2px 4px rgba(0, 0, 0, 0.5);
+}
+:is([data-skin="hormoz"], [data-machine="hormoz"]) .synth-conn-btn .conn-dot.is-unavailable {
+  background: #d98c38;
+  opacity: 0.9;
+}
+
+/* ------------------------------------------------------------
+   Hormoz Subbar: Preset Display, 142BPM Tempo Readout & Coral Active Tab
+   ------------------------------------------------------------ */
+:is([data-skin="hormoz"], [data-machine="hormoz"]) .synth-preset-nav .synth-midi-btn,
+:is([data-skin="hormoz"], [data-machine="hormoz"]) .synth-tempo .synth-midi-btn {
+  background: linear-gradient(180deg, #3f2f2c 0%, #281d1b 100%);
+  color: #f2e7e2;
+  border: 1.5px solid #130b0a;
+  border-radius: 6px;
+  font-weight: 700;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 220, 200, 0.2),
+    inset 0 -2px 2px rgba(0, 0, 0, 0.58),
+    0 2px 4px rgba(0, 0, 0, 0.48);
+}
+:is([data-skin="hormoz"], [data-machine="hormoz"]) .preset-display {
+  background: linear-gradient(180deg, #2b1f1d 0%, #1d1514 100%);
+  border: 1.5px solid #120a09;
+  border-radius: 6px;
+  padding: 3px 10px;
+  box-shadow:
+    inset 0 2px 5px rgba(0, 0, 0, 0.72),
+    0 1px 0 rgba(255, 195, 150, 0.2);
+}
+:is([data-skin="hormoz"], [data-machine="hormoz"]) .preset-display .pd-name {
+  color: #f7efe9;
+  font-family: var(--font-ui);
+  font-weight: 700;
+  font-size: 0.76rem;
+  letter-spacing: 0.01em;
+}
+:is([data-skin="hormoz"], [data-machine="hormoz"]) .preset-display .pd-sub {
+  color: #c2b0a8;
+  font-family: var(--font-ui);
+  font-weight: 600;
+  font-size: 0.56rem;
+  letter-spacing: 0.05em;
+}
+:is([data-skin="hormoz"], [data-machine="hormoz"]) .preset-display .pd-icon {
+  color: #dfd0c8;
+  opacity: 0.92;
+}
+:is([data-skin="hormoz"], [data-machine="hormoz"]) .synth-tempo-val {
+  background: linear-gradient(180deg, #241918 0%, #191110 100%);
+  border-top: 1.5px solid #130b0a;
+  border-bottom: 1.5px solid #130b0a;
+  padding: 3px 7px;
+  border-radius: 4px;
+  color: #f5ece8;
+  font-family: var(--font-ui);
+  font-weight: 700;
+  font-size: 0.76rem;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.72);
+}
+:is([data-skin="hormoz"], [data-machine="hormoz"]) .synth-tempo-val::after {
+  content: "BPM";
+  color: #dfd0c8;
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  margin-left: 1px;
+}
+
+/* Page Tabs: Glowing Coral-Vermilion Active Tab + Dark Volcanic Inactive Tabs */
+:is([data-skin="hormoz"], [data-machine="hormoz"]) .synth-tab {
+  background: linear-gradient(180deg, #3d2e2b 0%, #281d1b 100%);
+  color: #cfc0ba;
+  border: 1.5px solid #140c0b;
+  border-radius: 6px;
+  font-family: var(--font-ui);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 220, 200, 0.18),
+    inset 0 -2px 2px rgba(0, 0, 0, 0.5),
+    0 2px 4px rgba(0, 0, 0, 0.45);
+}
+:is([data-skin="hormoz"], [data-machine="hormoz"]) .synth-tab::before {
+  width: 6px;
+  height: 6px;
+  background: #57433e;
+  border: 1px solid #241816;
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.55);
+}
+:is([data-skin="hormoz"], [data-machine="hormoz"]) .synth-tab.active {
+  background: linear-gradient(180deg, #ff7e4d 0%, #f05a2b 54%, #cf3d14 100%);
+  color: #ffffff;
+  border: 1.5px solid #ffa078;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 235, 220, 0.65),
+    inset 0 -2px 2px rgba(110, 22, 4, 0.5),
+    0 0 12px rgba(255, 92, 43, 0.65),
+    0 2px 5px rgba(0, 0, 0, 0.5);
+}
+:is([data-skin="hormoz"], [data-machine="hormoz"]) .synth-tab.active::before {
+  background: #fff6c8;
+  border-color: #ffffff;
+  box-shadow: 0 0 6px #ffffff, 0 0 10px rgba(255, 210, 90, 0.95);
+}
+
+/* ------------------------------------------------------------
+   Hormoz Section Cards (PATTERN & STEPS) & Full-Width Stacked Layout
+   ------------------------------------------------------------ */
 :is([data-skin="hormoz"], [data-machine="hormoz"]) .synth-sec {
-  border-color: rgba(182,120,255,0.55);
-}
-:is([data-skin="hormoz"], [data-machine="hormoz"]) .synth-sec:nth-child(3n+1) {
-  border-color: rgba(255,79,43,0.65);
-}
-:is([data-skin="hormoz"], [data-machine="hormoz"]) .synth-sec:nth-child(3n+2) {
-  border-color: rgba(245,184,46,0.6);
+  position: relative;
+  border: 2px solid #0e0807;
+  border-radius: 7px;
+  background: linear-gradient(180deg, #231918 0%, #181110 100%);
+  box-shadow:
+    inset 0 2px 4px rgba(0, 0, 0, 0.72),
+    0 1px 0 rgba(255, 190, 145, 0.22);
 }
 :is([data-skin="hormoz"], [data-machine="hormoz"]) .synth-sec h4 {
-  color: #f5b82e;
-  text-shadow: 0 0 6px rgba(245,184,46,0.4);
+  text-transform: uppercase;
+  color: #f5a638;
+  font-family: var(--font-ui);
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  padding: 0 2px;
+  border-bottom: 0;
+  text-shadow: 0 0 6px rgba(245, 166, 56, 0.25);
 }
 :is([data-skin="hormoz"], [data-machine="hormoz"]) .synth-sec:nth-child(even) h4 {
-  color: #d6adff;
-  text-shadow: 0 0 6px rgba(182,120,255,0.45);
+  color: #caa0f5;
+  text-shadow: 0 0 6px rgba(202, 160, 245, 0.28);
 }
-/* Glitchy segmented knob value arcs */
+:is([data-skin="hormoz"], [data-machine="hormoz"]) .synth-hint {
+  display: none;
+}
+
+/* Desktop & Tablet Paged Layout: Stack PATTERN and STEPS full-width */
+@media (min-width: 761px) and (min-height: 561px) {
+  :is([data-skin="hormoz"], [data-machine="hormoz"]) .synth-panel {
+    padding-bottom: calc(var(--pad) + 8px);
+  }
+  .sy1-shell:not(.is-fit-paged) .synth-panel[data-machine="hormoz"] .synth-sec {
+    min-height: 58vh;
+  }
+  .sy1-shell.is-fit-paged .synth-panel[data-machine="hormoz"][data-page="steps"] .synth-sections {
+    grid-template-columns: minmax(0, 1fr) !important;
+    grid-auto-rows: minmax(0, 1fr);
+  }
+  .sy1-shell.is-fit-paged .synth-panel[data-machine="hormoz"]:not([data-page="steps"]) .synth-sections {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    grid-auto-rows: minmax(0, 1fr);
+  }
+}
+
+/* Segmented Glitch Value Arcs on Hormoz Sound & Effects Pages */
 :is([data-skin="hormoz"], [data-machine="hormoz"]) .sk-dial::before {
   background: conic-gradient(
     from 225deg,
-    #ff4f2b 0deg,
-    #f5b82e calc(var(--n) * 180deg),
-    #b678ff calc(var(--n) * 270deg),
+    #ff562b 0deg,
+    #f5a638 calc(var(--n) * 180deg),
+    #b87cff calc(var(--n) * 270deg),
     var(--knob-track) 0 270deg,
     transparent 0
   );
@@ -6934,91 +8159,368 @@
     radial-gradient(closest-side, transparent calc(100% - 3.5px), #000 calc(100% - 2.5px)) intersect,
     repeating-conic-gradient(from 225deg, #000 0deg 6deg, transparent 6deg 9.5deg);
 }
-:is([data-skin="hormoz"], [data-machine="hormoz"]) .synth-midi-bar {
-  background: rgba(10,5,10,0.75);
-  border-color: rgba(182,120,255,0.45);
-}
+
+/* ------------------------------------------------------------
+   Hormoz Sequencer Buttons: Play, A-H, 16/12, ACCENT, CLEAR,
+   8 Voice Selectors, and LED-Matrix Step Pads
+   ------------------------------------------------------------ */
 :is([data-skin="hormoz"], [data-machine="hormoz"]) .synth-choice-btn,
-:is([data-skin="hormoz"], [data-machine="hormoz"]) .synth-midi-btn,
 :is([data-skin="hormoz"], [data-machine="hormoz"]) .drum-slot,
 :is([data-skin="hormoz"], [data-machine="hormoz"]) .drum-voice-btn,
-:is([data-skin="hormoz"], [data-machine="hormoz"]) .drum-play,
-:is([data-skin="hormoz"], [data-machine="hormoz"]) .drum-step,
-:is([data-skin="hormoz"], [data-machine="hormoz"]) .kb-btn,
-:is([data-skin="hormoz"], [data-machine="hormoz"]) .key.pad {
-  border-radius: 2px;
+:is([data-skin="hormoz"], [data-machine="hormoz"]) .drum-play {
+  border-radius: 5px;
+  border: 1.5px solid #140c0b;
+  background: linear-gradient(180deg, #4b3c39 0%, #382c2a 55%, #2b211f 100%);
+  color: #f5ece8;
+  font-family: var(--font-ui);
+  font-weight: 700;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 230, 215, 0.22),
+    inset 0 -2px 2px rgba(0, 0, 0, 0.62),
+    0 2px 4px rgba(0, 0, 0, 0.65);
 }
 :is([data-skin="hormoz"], [data-machine="hormoz"]) .synth-choice-btn.active,
 :is([data-skin="hormoz"], [data-machine="hormoz"]) .drum-slot.active,
 :is([data-skin="hormoz"], [data-machine="hormoz"]) .drum-voice-btn.active,
 :is([data-skin="hormoz"], [data-machine="hormoz"]) .drum-play.active {
-  background: linear-gradient(90deg, #ff4f2b 0%, #f5b82e 100%);
-  color: #120604;
-  border-color: #f5b82e;
-  box-shadow: 0 0 10px rgba(255,79,43,0.65);
+  background: linear-gradient(90deg, #ff683b 0%, #ff8c3b 48%, #ffb842 100%);
+  color: #1c0c04;
+  font-weight: 800;
+  border-color: #ffc978;
+  box-shadow:
+    inset 0 1px 1px rgba(255, 250, 235, 0.75),
+    inset 0 -2px 2px rgba(120, 45, 8, 0.45),
+    0 0 10px rgba(255, 118, 52, 0.58),
+    0 2px 4px rgba(0, 0, 0, 0.55);
 }
+
+/* Step Buttons inside STEPS: Stony Matte Off State & LED Dot-Matrix Lit State */
 :is([data-skin="hormoz"], [data-machine="hormoz"]) .drum-step {
+  border-radius: 5px;
+  border: 1.5px solid #140c0b;
   background:
-    var(--hormoz-led),
-    linear-gradient(180deg, #1b0f1a 0%, #110910 100%);
-  border: 1px solid #4a2a45;
+    radial-gradient(circle at 30% 35%, rgba(255, 225, 205, 0.06) 0%, transparent 55%),
+    linear-gradient(180deg, #4d3e3a 0%, #392d2a 58%, #2c2220 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 230, 215, 0.2),
+    inset 0 -2px 2px rgba(0, 0, 0, 0.62),
+    0 2px 4px rgba(0, 0, 0, 0.65);
 }
-:is([data-skin="hormoz"], [data-machine="hormoz"]) .drum-step.beat {
-  border-color: #9e63b8;
-  box-shadow: inset 0 2px 0 rgba(245,184,46,0.45);
+:is([data-skin="hormoz"], [data-machine="hormoz"]) .drum-step::before {
+  display: none;
+}
+:is([data-skin="hormoz"], [data-machine="hormoz"]) .drum-step.beat:not(.on) {
+  border-color: #261816;
 }
 :is([data-skin="hormoz"], [data-machine="hormoz"]) .drum-step.on {
   background:
-    radial-gradient(circle, #ffe49e 1px, transparent 1.5px) 0 0 / 4px 4px,
-    linear-gradient(180deg, #ff4f2b 0%, #9e1f4e 100%);
-  border-color: #ff7e5f;
+    radial-gradient(circle, #fff8dc 1.05px, rgba(255, 165, 80, 0.35) 1.5px, transparent 1.85px) 0 0 / 3.6px 3.6px,
+    linear-gradient(180deg, #ff6438 0%, #d42c14 100%);
+  border-color: #ff946b;
   opacity: 1;
-  box-shadow: inset 0 0 6px rgba(245,184,46,0.45), 0 0 8px rgba(255,79,43,0.5);
+  box-shadow:
+    inset 0 0 6px rgba(255, 235, 175, 0.55),
+    0 0 10px rgba(255, 86, 42, 0.72),
+    0 2px 4px rgba(0, 0, 0, 0.5);
+}
+:is([data-skin="hormoz"], [data-machine="hormoz"]) .drum-step.on:first-child {
+  background:
+    radial-gradient(circle, #ffffff 1.1px, rgba(255, 215, 130, 0.42) 1.55px, transparent 1.9px) 0 0 / 3.6px 3.6px,
+    linear-gradient(180deg, #ffc258 0%, #e85838 100%);
+  border-color: #ffd898;
+  box-shadow:
+    inset 0 0 6px rgba(255, 250, 215, 0.68),
+    0 0 10px rgba(255, 135, 65, 0.75),
+    0 2px 4px rgba(0, 0, 0, 0.5);
+}
+:is([data-skin="hormoz"], [data-machine="hormoz"]) .drum-step.on:nth-child(even) {
+  background:
+    radial-gradient(circle, #fffdf0 1.05px, rgba(255, 205, 95, 0.38) 1.5px, transparent 1.85px) 0 0 / 3.6px 3.6px,
+    linear-gradient(180deg, #ffb838 0%, #d96b14 100%);
+  border-color: #ffd878;
+  box-shadow:
+    inset 0 0 6px rgba(255, 250, 210, 0.6),
+    0 0 10px rgba(255, 168, 45, 0.72),
+    0 2px 4px rgba(0, 0, 0, 0.5);
 }
 :is([data-skin="hormoz"], [data-machine="hormoz"]) .drum-step.accent {
   background:
-    radial-gradient(circle, #ffffff 1.2px, transparent 1.6px) 0 0 / 4px 4px,
-    linear-gradient(135deg, #f5b82e 0%, #ff4f2b 55%, #b678ff 100%);
+    radial-gradient(circle, #ffffff 1.15px, rgba(255, 220, 145, 0.45) 1.6px, transparent 1.9px) 0 0 / 3.6px 3.6px,
+    linear-gradient(135deg, #ffd468 0%, #ff683b 65%, #e03520 100%);
   border-color: #fff3c4;
   opacity: 1;
-  box-shadow: inset 0 0 8px rgba(255,255,255,0.65), 0 0 14px rgba(245,184,46,0.85);
+  box-shadow:
+    inset 0 0 8px rgba(255, 255, 255, 0.72),
+    0 0 14px rgba(255, 140, 65, 0.85),
+    0 2px 4px rgba(0, 0, 0, 0.5);
 }
 :is([data-skin="hormoz"], [data-machine="hormoz"]) .drum-step.playing {
-  outline: 2px solid #f5b82e;
+  outline: 2px solid #ffffff;
   outline-offset: -2px;
-  box-shadow: 0 0 12px rgba(245,184,46,0.9);
+  box-shadow: 0 0 12px rgba(255, 184, 66, 0.9);
+}
+
+/* ------------------------------------------------------------
+   Hormoz Recessed Dark Pad Bar (.kb-bar) & 4x2 Rainbow Island
+   Mineral-Strata Trigger Pads with Color-Coded Glowing Rims
+   ------------------------------------------------------------ */
+:is([data-skin="hormoz"], [data-machine="hormoz"]) .kb-bar {
+  background: linear-gradient(180deg, #221817 0%, #17100f 100%);
+  border: 1.5px solid #0e0807;
+  border-radius: 6px;
+  padding: 2px 10px;
+  margin: 0 6px;
+  box-shadow:
+    inset 0 2px 4px rgba(0, 0, 0, 0.72),
+    0 1px 0 rgba(255, 190, 145, 0.2);
+}
+:is([data-skin="hormoz"], [data-machine="hormoz"]) .kb-area.is-drums .kb-bar::before {
+  color: #ebdfd9;
+  font-family: var(--font-ui);
+  font-weight: 700;
+  font-size: 0.72rem;
+  letter-spacing: 0.05em;
+}
+:is([data-skin="hormoz"], [data-machine="hormoz"]) .kb.is-pads {
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  grid-template-rows: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  padding: 4px 6px 4px;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
 }
 :is([data-skin="hormoz"], [data-machine="hormoz"]) .kb.is-pads .key.pad {
+  position: relative;
+  border-radius: 7px;
+  border: 2px solid #ff9e3d;
   background:
-    var(--hormoz-led),
-    linear-gradient(180deg, #241322 0%, #130a12 100%);
-  border: 1px solid #ff4f2b;
-  color: #f8f2fa;
-  border-radius: 3px;
-  box-shadow: inset 0 -3px 0 #ff4f2b, 0 3px 8px rgba(0,0,0,0.6);
+    var(--hormoz-speckles) 0 0 / 140px 95px repeat,
+    radial-gradient(ellipse at 25% 20%, rgba(255, 210, 175, 0.14) 0%, transparent 55%),
+    linear-gradient(132deg, #9e4728 0%, #7d331d 48%, #5c2315 100%);
+  color: #ffffff;
+  box-shadow:
+    0 0 10px rgba(255, 132, 42, 0.68),
+    inset 0 0 8px rgba(255, 145, 55, 0.32),
+    0 4px 9px rgba(0, 0, 0, 0.65);
 }
-:is([data-skin="hormoz"], [data-machine="hormoz"]) .kb.is-pads .key.pad:nth-child(3n+2) {
-  border-color: #f5b82e;
-  box-shadow: inset 0 -3px 0 #f5b82e, 0 3px 8px rgba(0,0,0,0.6);
+/* Pad 2 (SNAP / S): Dusty umber-taupe stone + warm sulfur-ochre rim */
+:is([data-skin="hormoz"], [data-machine="hormoz"]) .kb.is-pads .key.pad:nth-child(2) {
+  border-color: #d4b458;
+  background:
+    var(--hormoz-speckles) 20px 10px / 140px 95px repeat,
+    radial-gradient(ellipse at 30% 25%, rgba(255, 235, 190, 0.1) 0%, transparent 55%),
+    linear-gradient(135deg, #7a5448 0%, #5e3f36 52%, #4a3029 100%);
+  box-shadow:
+    0 0 7px rgba(212, 180, 88, 0.38),
+    inset 0 1px 0 rgba(255, 240, 190, 0.25),
+    0 4px 9px rgba(0, 0, 0, 0.65);
 }
-:is([data-skin="hormoz"], [data-machine="hormoz"]) .kb.is-pads .key.pad:nth-child(3n) {
-  border-color: #b678ff;
-  box-shadow: inset 0 -3px 0 #b678ff, 0 3px 8px rgba(0,0,0,0.6);
+/* Pad 3 (ZAP / D): Deep amethyst-violet mineral strata + glowing electric violet rim */
+:is([data-skin="hormoz"], [data-machine="hormoz"]) .kb.is-pads .key.pad:nth-child(3) {
+  border-color: #be84ff;
+  background:
+    var(--hormoz-speckles) 40px 25px / 140px 95px repeat,
+    radial-gradient(ellipse at 70% 25%, rgba(215, 165, 255, 0.16) 0%, transparent 55%),
+    linear-gradient(132deg, #6e466e 0%, #553458 50%, #3f2443 100%);
+  box-shadow:
+    0 0 10px rgba(182, 118, 255, 0.62),
+    inset 0 0 8px rgba(182, 118, 255, 0.28),
+    0 4px 9px rgba(0, 0, 0, 0.65);
+}
+/* Pad 4 (TICK / F): Dark iron-rust & umber stone + warm copper-orange rim */
+:is([data-skin="hormoz"], [data-machine="hormoz"]) .kb.is-pads .key.pad:nth-child(4) {
+  border-color: #d96e3a;
+  background:
+    var(--hormoz-speckles) 15px 45px / 140px 95px repeat,
+    radial-gradient(ellipse at 30% 25%, rgba(255, 195, 155, 0.1) 0%, transparent 55%),
+    linear-gradient(138deg, #744638 0%, #583227 52%, #42241b 100%);
+  box-shadow:
+    0 0 7px rgba(217, 110, 58, 0.4),
+    inset 0 1px 0 rgba(255, 190, 145, 0.22),
+    0 4px 9px rgba(0, 0, 0, 0.65);
+}
+/* Pad 5 (METAL / G): Warm ochre-sandstone + muted bronze-sandstone rim */
+:is([data-skin="hormoz"], [data-machine="hormoz"]) .kb.is-pads .key.pad:nth-child(5) {
+  border-color: #a88266;
+  background:
+    var(--hormoz-speckles) 55px 15px / 140px 95px repeat,
+    radial-gradient(ellipse at 35% 30%, rgba(255, 225, 195, 0.12) 0%, transparent 55%),
+    linear-gradient(135deg, #87634d 0%, #6d4f3d 52%, #553d2f 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 225, 200, 0.25),
+    0 4px 9px rgba(0, 0, 0, 0.65);
+}
+/* Pad 6 (FM TOM / H): Wavy Hormuz rainbow mineral strata + violet-amber rim */
+:is([data-skin="hormoz"], [data-machine="hormoz"]) .kb.is-pads .key.pad:nth-child(6) {
+  border-color: #9e6ec7;
+  background:
+    var(--hormoz-speckles) 10px 30px / 140px 95px repeat,
+    var(--hormoz-rainbow-strata) center / 100% 100% no-repeat;
+  box-shadow:
+    0 0 8px rgba(158, 110, 199, 0.45),
+    inset 0 1px 0 rgba(255, 210, 175, 0.25),
+    0 4px 9px rgba(0, 0, 0, 0.65);
+}
+/* Pad 7 (GLITCH / J): Red-ochre & burnt sienna mineral + glowing tangerine rim */
+:is([data-skin="hormoz"], [data-machine="hormoz"]) .kb.is-pads .key.pad:nth-child(7) {
+  border-color: #ff8236;
+  background:
+    var(--hormoz-speckles) 35px 50px / 140px 95px repeat,
+    radial-gradient(ellipse at 30% 25%, rgba(255, 195, 145, 0.14) 0%, transparent 55%),
+    linear-gradient(130deg, #984829 0%, #7a361e 52%, #5c2614 100%);
+  box-shadow:
+    0 0 9px rgba(255, 125, 50, 0.55),
+    inset 0 0 6px rgba(255, 130, 55, 0.25),
+    0 4px 9px rgba(0, 0, 0, 0.65);
+}
+/* Pad 8 (BLIP / K): Deep crimson-hematite mineral + glowing coral-red rim */
+:is([data-skin="hormoz"], [data-machine="hormoz"]) .kb.is-pads .key.pad:nth-child(8) {
+  border-color: #ff5638;
+  background:
+    var(--hormoz-speckles) 65px 20px / 140px 95px repeat,
+    radial-gradient(ellipse at 30% 25%, rgba(255, 175, 155, 0.14) 0%, transparent 55%),
+    linear-gradient(135deg, #843228 0%, #66231c 54%, #4b1813 100%);
+  box-shadow:
+    0 0 9px rgba(255, 82, 52, 0.55),
+    inset 0 0 6px rgba(255, 86, 56, 0.25),
+    0 4px 9px rgba(0, 0, 0, 0.65);
+}
+:is([data-skin="hormoz"], [data-machine="hormoz"]) .kb.is-pads .key.pad .pad-name {
+  color: #ffffff;
+  font-family: var(--font-ui);
+  font-weight: 700;
+  font-size: clamp(0.62rem, 1.8cqw, 0.76rem);
+  letter-spacing: 0.03em;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.88);
 }
 :is([data-skin="hormoz"], [data-machine="hormoz"]) .kb.is-pads .key.pad .pad-key {
-  color: #dccce0;
+  color: #f2e6e0;
+  font-family: var(--font-ui);
+  font-weight: 600;
+  font-size: 0.64rem;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.85);
 }
 :is([data-skin="hormoz"], [data-machine="hormoz"]) .kb.is-pads .key.pad.is-pressed {
   background:
-    radial-gradient(circle, rgba(255,255,255,0.45) 1px, transparent 1.5px) 0 0 / 4px 4px,
-    linear-gradient(135deg, #f5b82e 0%, #ff4f2b 55%, #b678ff 100%) !important;
-  color: #120604;
+    radial-gradient(circle, rgba(255, 255, 255, 0.45) 1px, transparent 1.5px) 0 0 / 4px 4px,
+    linear-gradient(135deg, #ffb842 0%, #ff683b 55%, #b87cff 100%) !important;
+  color: #1c0c04;
   border-color: #ffffff;
-  box-shadow: 0 0 18px rgba(255,79,43,0.85);
+  box-shadow: 0 0 16px rgba(255, 110, 59, 0.85);
 }
 :is([data-skin="hormoz"], [data-machine="hormoz"]) .kb.is-pads .key.pad.is-pressed .pad-name,
 :is([data-skin="hormoz"], [data-machine="hormoz"]) .kb.is-pads .key.pad.is-pressed .pad-key {
-  color: #120604;
+  color: #1c0c04;
+  text-shadow: none;
+}
+
+/* Short landscape & compact viewport guardrails for Hormoz */
+@media (max-width: 760px), (max-height: 560px) and (orientation: landscape) {
+  :is([data-skin="hormoz"], [data-machine="hormoz"]) .sy1-shell {
+    padding: 0 6px;
+    border-top-width: 0;
+    border-bottom-width: 0;
+  }
+}
+@media (max-height: 560px) and (orientation: landscape) {
+  :is([data-skin="hormoz"], [data-machine="hormoz"]) .synth-panel {
+    border-width: 0;
+  }
+  :is([data-skin="hormoz"], [data-machine="hormoz"]) .synth-machine-select {
+    padding: 1px 18px 1px 6px;
+    font-size: 0.76rem;
+  }
+  :is([data-skin="hormoz"], [data-machine="hormoz"]) .synth-sec,
+  :is([data-skin="hormoz"], [data-machine="hormoz"]) .kb.is-pads .key.pad {
+    border-width: 1px !important;
+  }
+  :is([data-skin="hormoz"], [data-machine="hormoz"]) .kb-area {
+    border-width: 0;
+    padding: 0 4px 2px;
+  }
+  :is([data-skin="hormoz"], [data-machine="hormoz"]) .kb-bar {
+    margin: 0 2px;
+    padding: 1px 6px;
+  }
+  :is([data-skin="hormoz"], [data-machine="hormoz"]) .kb.is-pads {
+    padding: 0 2px;
+    gap: 3px;
+  }
+}
+
+/* ------------------------------------------------------------
+   Hormoz Sound Library (.lib-pop) & Popovers:
+   High-contrast volcanic espresso-charcoal & warm coral-amber
+   ------------------------------------------------------------ */
+:is([data-skin="hormoz"], [data-machine="hormoz"]) .lib-pop {
+  background: #1b1312;
+  border: 1.5px solid #ff7a45;
+  color: #f7efe9;
+}
+:is([data-skin="hormoz"], [data-machine="hormoz"]) .lib-pop::before {
+  background: linear-gradient(180deg, #281b19 0%, #18100f 100%);
+}
+:is([data-skin="hormoz"], [data-machine="hormoz"]) .lib-head {
+  background: rgba(20, 13, 12, 0.85);
+  border-bottom: 1px solid #452e2a;
+}
+:is([data-skin="hormoz"], [data-machine="hormoz"]) .lib-title b {
+  color: #fff6f0;
+}
+:is([data-skin="hormoz"], [data-machine="hormoz"]) .lib-title span {
+  color: #ffb84d;
+}
+:is([data-skin="hormoz"], [data-machine="hormoz"]) .lib-search {
+  background: #120c0b;
+  border: 1px solid #4d332e;
+  color: #d8c4bc;
+}
+:is([data-skin="hormoz"], [data-machine="hormoz"]) .lib-q {
+  color: #fff6f0;
+}
+:is([data-skin="hormoz"], [data-machine="hormoz"]) .lib-done {
+  background: linear-gradient(90deg, #ff683b 0%, #ffb842 100%);
+  color: #1c0c04;
+}
+:is([data-skin="hormoz"], [data-machine="hormoz"]) .lib-cats {
+  border-color: #452e2a;
+}
+:is([data-skin="hormoz"], [data-machine="hormoz"]) .lib-cat {
+  color: #ebddd6;
+}
+:is([data-skin="hormoz"], [data-machine="hormoz"]) .lib-count {
+  color: #b59e96;
+}
+:is([data-skin="hormoz"], [data-machine="hormoz"]) .lib-cat.active {
+  background: #362320;
+  color: #ffffff;
+  box-shadow: inset 3px 0 0 #ff7a45;
+}
+:is([data-skin="hormoz"], [data-machine="hormoz"]) .lib-cat.active .lib-count {
+  color: #ffb84d;
+}
+:is([data-skin="hormoz"], [data-machine="hormoz"]) .lib-tile {
+  background: linear-gradient(180deg, #2d1f1d 0%, #211615 100%);
+  border: 1px solid #4a312c;
+  box-shadow: inset 0 1px 0 rgba(255, 220, 200, 0.08), 0 2px 6px rgba(0, 0, 0, 0.45);
+  color: #f7efe9;
+}
+:is([data-skin="hormoz"], [data-machine="hormoz"]) .lib-tile.active {
+  border-color: #ff7a45;
+  box-shadow: 0 0 0 1px #ff7a45, 0 0 14px rgba(255, 110, 59, 0.38);
+}
+:is([data-skin="hormoz"], [data-machine="hormoz"]) .lib-name {
+  color: #fff6f0;
+}
+:is([data-skin="hormoz"], [data-machine="hormoz"]) .lib-sub {
+  color: #ffb84d;
+}
+:is([data-skin="hormoz"], [data-machine="hormoz"]) .lib-fav {
+  color: #b59e96;
+}
+:is([data-skin="hormoz"], [data-machine="hormoz"]) .lib-fav.on {
+  color: #ffb84d;
 }
 
 
@@ -9128,28 +10630,38 @@
   letter-spacing: 0.02em;
 }
 
-/* 12. KERMAN — Swiss minimal matte off-white + bold orange dot + monospace */
+/* 12. KERMAN — Bevelled off-white plaque + glowing orange ring emblem + monospace */
 :is([data-skin="kerman"], [data-machine="kerman"]) .kb-machine-badge {
-  background: #eceae4;
-  border: 1px solid #1e1e1c;
-  border-radius: 3px;
-  box-shadow: none;
+  background: linear-gradient(180deg, #e4e2d9 0%, #d4d2c8 100%);
+  border: 1.5px solid #383733;
+  border-radius: 5px;
+  padding: 4px 12px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.8),
+    0 1px 2px rgba(0, 0, 0, 0.14);
 }
 :is([data-skin="kerman"], [data-machine="kerman"]) .kb-machine-emblem {
   width: 9px;
   height: 9px;
   border-radius: 50%;
-  background: #ff4f14;
-  box-shadow: none;
+  background: #fff2d6;
+  border: 2px solid #ff5a1f;
+  box-shadow: 0 0 6px rgba(255, 90, 31, 0.78);
 }
 :is([data-skin="kerman"], [data-machine="kerman"]) .kb-machine-name {
-  color: #161615;
-  font-family: "SF Mono", Menlo, Consolas, monospace;
-  letter-spacing: 0.1em;
+  color: #141413;
+  font-family: var(--font-ui);
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  text-transform: none;
+}
+:is([data-skin="kerman"], [data-machine="kerman"]) .kb-machine-sep {
+  color: #2b2a27;
 }
 :is([data-skin="kerman"], [data-machine="kerman"]) .kb-machine-role {
-  color: #575652;
-  font-family: "SF Mono", Menlo, Consolas, monospace;
+  color: #262522;
+  font-family: var(--font-ui);
+  font-weight: 600;
 }
 
 /* 13. BUSHEHR — Sun-bleached Persian Gulf terracotta, deep teal & brass zang ring */
@@ -9173,46 +10685,68 @@
   color: #0e6b73;
 }
 
-/* 14. RASHT — Caspian moss slate, rain-ripple ring & warm amber wood */
+/* 14. RASHT — Recessed forest-green badge with glowing warm white-gold LED & gold name */
 :is([data-skin="rasht"], [data-machine="rasht"]) .kb-machine-badge {
-  background: linear-gradient(180deg, #1b2824 0%, #131d1a 100%);
-  border: 1px solid rgba(116, 198, 157, 0.45);
-  border-radius: 8px;
+  background: linear-gradient(180deg, #1b3325 0%, #14261b 100%);
+  border: 1px solid #3d5e4a;
+  border-radius: 6px;
+  box-shadow:
+    inset 0 1px 2px rgba(0, 0, 0, 0.55),
+    0 1px 0 rgba(165, 210, 180, 0.18);
 }
 :is([data-skin="rasht"], [data-machine="rasht"]) .kb-machine-emblem {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: transparent;
-  border: 2px solid #74c69d;
-  box-shadow: 0 0 0 2px rgba(217, 155, 78, 0.45);
-}
-:is([data-skin="rasht"], [data-machine="rasht"]) .kb-machine-name {
-  color: #e0a458;
-}
-:is([data-skin="rasht"], [data-machine="rasht"]) .kb-machine-role {
-  color: #95d5b2;
-}
-
-/* 15. HORMOZ — Volcanic obsidian, red ochre & crystalline salt-cyan diamond */
-:is([data-skin="hormoz"], [data-machine="hormoz"]) .kb-machine-badge {
-  background: linear-gradient(180deg, #1c1110 0%, #110a09 100%);
-  border: 1px solid rgba(232, 93, 52, 0.55);
-  border-radius: 4px;
-}
-:is([data-skin="hormoz"], [data-machine="hormoz"]) .kb-machine-emblem {
   width: 9px;
   height: 9px;
-  border-radius: 1px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 1.5px solid #f5cf70;
+  box-shadow: 0 0 7px rgba(255, 232, 158, 0.92);
+}
+:is([data-skin="rasht"], [data-machine="rasht"]) .kb-machine-name {
+  color: #eab84b;
+  font-family: var(--font-ui);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: none;
+}
+:is([data-skin="rasht"], [data-machine="rasht"]) .kb-machine-sep {
+  color: #cbbfa2;
+}
+:is([data-skin="rasht"], [data-machine="rasht"]) .kb-machine-role {
+  color: #e4decb;
+  font-family: var(--font-ui);
+  font-weight: 600;
+}
+
+/* 15. HORMOZ — Volcanic capsule with glowing white-orange diamond, coral name & salt-cyan role */
+:is([data-skin="hormoz"], [data-machine="hormoz"]) .kb-machine-badge {
+  background: linear-gradient(180deg, #2b1d1b 0%, #1c1312 100%);
+  border: 1px solid rgba(255, 118, 62, 0.55);
+  border-radius: 5px;
+  box-shadow: inset 0 1px 0 rgba(255, 210, 180, 0.14);
+}
+:is([data-skin="hormoz"], [data-machine="hormoz"]) .kb-machine-emblem {
+  width: 8px;
+  height: 8px;
+  border-radius: 1.5px;
   transform: rotate(45deg);
-  background: linear-gradient(135deg, #e85d34 0%, #48cae4 100%);
-  box-shadow: 0 0 7px rgba(232, 93, 52, 0.75);
+  background: radial-gradient(circle, #ffffff 0%, #ffa64d 58%, #e85820 100%);
+  box-shadow: 0 0 7px rgba(255, 138, 56, 0.92);
 }
 :is([data-skin="hormoz"], [data-machine="hormoz"]) .kb-machine-name {
-  color: #ff784f;
+  color: #ff7e47;
+  font-family: var(--font-ui);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: none;
+}
+:is([data-skin="hormoz"], [data-machine="hormoz"]) .kb-machine-sep {
+  color: #b8a49c;
 }
 :is([data-skin="hormoz"], [data-machine="hormoz"]) .kb-machine-role {
-  color: #72ddf0;
+  color: #5ce1e6;
+  font-family: var(--font-ui);
+  font-weight: 600;
 }
 
 
