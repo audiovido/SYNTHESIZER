@@ -59,6 +59,48 @@ export interface PresetDef {
   patterns?: import("../engine/drums").DrumPattern[];
 }
 
+type DrumSlot = "kick" | "snare" | "clap" | "ch" | "oh" | "tom" | "rim" | "bell";
+
+/** A drum kit: the sound of the 8 slots (models, tuning, mix, effects), separate from the rhythm. */
+export interface DrumKitDef {
+  id: string;
+  name: string;
+  /** Library group (e.g. "Classic machines", "Hybrid"). */
+  group: string;
+  /** One line on the kit's character and what it suits. */
+  desc: string;
+  /** Short tag shown on the tile: how it makes sound (e.g. "Analog", "6-bit samples", "Acoustic"). */
+  tag: string;
+  patch: Record<string, unknown>;
+  /** Slot names when this kit's sounds differ from the machine's (e.g. BONGO, COWBELL). */
+  labels?: Partial<Record<DrumSlot, string>>;
+}
+
+/** A rhythm style: tempo, swing and 4+ patterns, played on whichever kit is loaded. */
+export interface DrumStyleDef {
+  id: string;
+  name: string;
+  /** Genre group (Funk, Jazz, House, Persian...). */
+  group: string;
+  bpm: number;
+  patterns: import("../engine/drums").DrumPattern[];
+  /** The kit this style was written for (loaded with it unless "Keep kit" is on). */
+  kit: string;
+  swing?: number;
+  accent?: number;
+}
+
+/** How the instrument browser draws a machine: its panel colours and front-panel layout. */
+export interface MachineArt {
+  body: string;
+  panel: string;
+  accent: string;
+  accent2: string;
+  ink: string;
+  /** Front-panel layout drawn on the card. */
+  face: "keys" | "pads" | "steps" | "strings" | "rings" | "vector" | "fm" | "drone" | "bass" | "arp" | "frame" | "kit" | "perc" | "lead" | "pad";
+}
+
 export interface MachineDef {
   id: string;
   name: string;
@@ -74,6 +116,14 @@ export interface MachineDef {
   tempo?: boolean;
   pages: { id: string; label: string }[];
   sections: SectionDef[];
+  /** One or two sentences for the instrument browser: what it is and what it is for. */
+  blurb?: string;
+  /** Highlights shown as chips in the instrument browser. */
+  tags?: string[];
+  art?: MachineArt;
+  /** Drum machines: kits (sounds) and styles (rhythms), chosen separately. */
+  kits?: DrumKitDef[];
+  styles?: DrumStyleDef[];
   /** Overrides shared by every preset of this machine. */
   base: Record<string, unknown>;
   presets: PresetDef[];

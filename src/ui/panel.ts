@@ -29,6 +29,7 @@ import { escapeHtml } from "../engine/params";
 import {
   allNotesOff,
   applySynthPreset,
+  getDrumKitDef,
   getMachine,
   getMachines,
   getModWheel,
@@ -36,6 +37,8 @@ import {
   getSynthPresetId,
   noteOff,
   noteOn,
+  isDrumKitEdited,
+  onDrumKitChange,
   onMachineChange,
   onParamChange,
   onPresetChange,
@@ -73,7 +76,7 @@ import {
 } from "../engine/drums";
 import type { ControlDef, SectionDef } from "../machines/types";
 import { euclidHit, onArpStep } from "../engine/arp";
-import { getBaseMidi } from "./keyboard";
+import { getBaseMidi, renderKeyboard } from "./keyboard";
 import { renderSynthKnob, updateMidiLearnDOM, updateSynthControlDOM } from "./knob";
 
 // ------------------------------------------------------------ controls ----
@@ -541,9 +544,19 @@ function renderDeviceOptions(): string {
 /** The preset name in the top bar: tap it to open the sound library. */
 function renderPresetButton(): string {
   const m = getMachine();
-  const cur = m.presets.find((p) => p.id === getSynthPresetId());
-  const name = cur ? cur.name : "Custom";
-  const sub = cur ? cur.group : "Edited sound";
+  let name: string;
+  let sub: string;
+  if (m.kind === "drums" && m.styles) {
+    // drum machines: STYLE on top, the KIT it plays below
+    const st = m.styles.find((x) => x.id === getSynthPresetId());
+    const kit = getDrumKitDef();
+    name = st ? st.name : "My pattern";
+    sub = (kit ? kit.name : "Custom kit") + (isDrumKitEdited() ? " · edited" : "");
+  } else {
+    const cur = m.presets.find((p) => p.id === getSynthPresetId());
+    name = cur ? cur.name : "Custom";
+    sub = cur ? cur.group : "Edited sound";
+  }
   return `<span class="pd-text"><span class="pd-name">${escapeHtml(name)}</span><span class="pd-sub">${escapeHtml(sub)}</span></span>` +
     `<svg class="pd-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="4" y="4" width="7" height="7" rx="1.5" /><rect x="13" y="4" width="7" height="7" rx="1.5" /><rect x="4" y="13" width="7" height="7" rx="1.5" /><rect x="13" y="13" width="7" height="7" rx="1.5" /></svg>`;
 }
@@ -654,7 +667,7 @@ export function renderSynthPanelHtml(): string {
   return `
     <div class="synth-panel" dir="ltr" data-machine="${m.id}">
       <div class="synth-top">
-        <label class="synth-brand"><span class="synth-brand-maker">SY-1 </span><select class="synth-machine-select" id="machine-select" aria-label="Instrument">${renderMachineOptions()}</select></label>
+        <div class="synth-brand"><span class="synth-brand-maker">SY-1 </span><button type="button" class="synth-machine-select" id="machine-btn" aria-haspopup="dialog" aria-expanded="false" title="Choose an instrument">${escapeHtml(m.name)}</button><select class="sr-only" id="machine-select" aria-hidden="true" tabindex="-1">${renderMachineOptions()}</select></div>
         <canvas class="synth-scope" width="320" height="56" aria-hidden="true"></canvas>
         <div class="synth-conn-wrap">
           <button type="button" class="synth-conn-btn${connOpen ? " is-open" : ""}" id="conn-btn" data-action="conn-toggle" aria-label="Connections" aria-haspopup="dialog" aria-expanded="${connOpen ? "true" : "false"}" title="Connections">
@@ -874,6 +887,12 @@ export function initPanelInteractions(): void {
     else if (key === "vecX" || key === "vecY" || key.startsWith("orbit")) updateVectorPadDOM(true);
   });
   onPresetChange(() => updateSynthPresetDOM());
+  // a new kit can rename the slots (BONGO, COWBELL...): update every slot name in place
+  onDrumKitChange(() => {
+    refreshCustom("drum-steps");
+    refreshCustom("drum-voice");
+    renderKeyboard();
+  });
   onMidiStateChange(() => updateMidiBarDOM());
   onEngineChange(updateEngineDOM);
   onMachineChange(() => { connOpen = false; renderPanel(); });

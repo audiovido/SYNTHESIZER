@@ -1,6 +1,6 @@
 import { patternFrom as P } from "../engine/drums";
-import { DRUM_PAGES, drumSections, KitVoices, kitPatch, pats } from "./drumkit";
-import { MachineDef } from "./types";
+import { DRUM_PAGES, drumPresets, drumSections, kitFromSource, KitVoices, kitPatch, pats, stylesFrom } from "./drumkit";
+import { DrumKitDef, DrumStyleDef, MachineDef, PresetDef } from "./types";
 
 /**
  * HORMOZ — minimal, chill and ambient electronics with hand percussion.
@@ -15,24 +15,13 @@ const DEF: KitVoices = {
   kick: [0, 1, 0.3, 0.9], snare: [0, 1, 0.5, 0.6], clap: [0, 1, 0.4, 0.55], ch: [0, 1, 0.5, 0.4],
   oh: [0, 1, 0.4, 0.35], tom: [0, 1, 0.3, 0.6], rim: [0, 1, 0.6, 0.45], bell: [0, 1, 0.3, 0.45]
 };
-const kit = (over: KitVoices, fx: Record<string, number> = {}) => kitPatch(DEF, over, fx);
+const kit = (over: KitVoices, fx: Record<string, number | string> = {}) => kitPatch(DEF, over, fx);
 
 /** A typical percussion stage: shaker right, conga left, clave and kalimba a little apart. */
 const STAGE = { chPan: 0.35, tomPan: -0.3, rimPan: 0.2, bellPan: -0.15, ohPan: 0.15, kickSend: 0.1, bellSend: 1, tomSend: 0.8 };
 
-export const HORMOZ: MachineDef = {
-  id: "hormoz",
-  name: "Hormoz",
-  role: "Minimal, chill & percussion",
-  skin: "hormoz",
-  kind: "drums",
-  drumModel: "minimal",
-  drumLabels: { kick: "KICK", snare: "SNAP", clap: "CLAP", ch: "SHAKER", oh: "HAT", tom: "CONGA", rim: "CLAVE", bell: "KALIMBA" },
-  tempo: true,
-  pages: DRUM_PAGES,
-  sections: drumSections(),
-  base: { drumSwing: 0, drumAccent: 0.45, drumGlue: 0.3, delayMix: 0.18, delayTime: 0.375, delayFb: 0.35, revMix: 0.28, revSize: 2.4, drive: 0, eqLow: 1, volume: 0.82 },
-  presets: [
+/** Rhythm sources: each one becomes a style (and some lend their sound to a kit). */
+const SRC: PresetDef[] = [
     // ------------------------------------------------------------ Minimal ----
     {
       id: "minimalTech", name: "Minimal Tech", group: "Minimal", bpm: 124,
@@ -161,5 +150,56 @@ export const HORMOZ: MachineDef = {
         P(16, { tom: "..x...x...x..x..", rim: "x..x...x..x.....", bell: "x.....x.....x..." })
       ])
     }
-  ]
+  ];
+
+const k = (from: string, id: string, name: string, group: string, tag: string, desc: string, extra: Partial<DrumKitDef> = {}) =>
+  kitFromSource(SRC, from, { id, name, group, tag, desc, ...extra });
+
+const KITS: DrumKitDef[] = [
+  k("minimalTech", "minimal", "Minimal Clicks", "Minimal", "Electronic", "Round kick, tiny clicks, shaker and clave, everything tight and dry. Minimal techno."),
+  k("microhouse", "micro", "Micro Glitch", "Minimal", "Electronic", "Snaps, high clicks and a tuned kalimba ping. Microhouse and glitchy minimal."),
+  k("deepMinimal", "deep", "Deep Dub", "Minimal", "Electronic, deep", "Low long kick and dark claps sent into a deep room. Deep minimal and dub house."),
+  k("lofiChill", "lofi", "Lo-fi Tape", "Chill", "Warm, dark", "Soft snaps and a sleepy kalimba through worn tape. Lo-fi and bedroom beats."),
+  k("downtempo", "downtempo", "Downtempo", "Chill", "Warm", "Big soft claps, deep congas, a lazy shaker. Downtempo and trip-hop."),
+  k("chillHouse", "chill", "Chill House", "Chill", "Electronic, warm", "Warm round kick, soft claps and hats with a kalimba hook. Chill and Balearic house."),
+  k("ambientPulse", "ambient", "Ambient Glass", "Ambient", "Spacious", "Barely-there pulse and glassy kalimba in a huge space. Ambient and meditation."),
+  k("rainGarden", "rain", "Rain Garden", "Ambient", "Spacious", "Drops of clave, shaker rain and a high kalimba, no kick. Ambient textures."),
+  k("afroHouse", "afro", "Afro Perc", "Percussion", "Hand percussion", "Congas, shaker and clave around a solid kick. Afro house and organic house."),
+  k("latinPerc", "latin", "Latin Perc", "Percussion", "Hand percussion", "Bright clave, open congas and shaker. Son, salsa and Latin grooves."),
+  k("persianFusion", "persian", "Persian Fusion", "Percussion", "Hand percussion", "Deep congas tuned like a dom, clave and kalimba in 6/8. Persian and world fusion."),
+  k("tropical", "tropical", "Tropical", "Percussion", "Hand percussion", "High bright congas, claves and a sunny kalimba. Tropical house and dancehall."),
+  { id: "vintageBox", name: "Vintage Box", group: "Fusion", tag: "CR-78 + kalimba",
+    desc: "The 1978 rhythm box (pup kick, bongo, guiro, clave) with Hormoz's kalimba on top. Retro chill and lo-fi.",
+    labels: { clap: "GUIRO", ch: "HAT", oh: "CYMBAL", tom: "BONGO", rim: "CLAVE", snare: "SNARE" },
+    patch: kit({ kick: [0, 1.3, 0.4, 1], snare: [0, 1, 0.5, 0.55], clap: [0, 1, 0.5, 0.8], ch: [0, 1, 0.5, 0.4], oh: [0, 1, 0.5, 0.22], tom: [0, 1, 0.4, 0.55], rim: [0, 1, 0.5, 0.42], bell: [0, 1, 0.3, 0.45] },
+      { ...STAGE, kitModel: "cr78", bellModel: "minimal", volume: 1 }) },
+  { id: "persianPerc", name: "Tombak Perc", group: "Fusion", tag: "Hybrid",
+    desc: "Hormoz's kick, shaker and kalimba with Bushehr's tombak DOM, TAK and daf. Persian chill and fusion.",
+    labels: { snare: "TAK", clap: "DAF", tom: "DOM", rim: "PELANG" },
+    patch: kit({ snare: [0, 0.9, 0.55, 0.28], clap: [0, 0.9, 0.5, 0.24], tom: [-1, 1, 0.5, 0.55], rim: [0, 0.9, 0.5, 0.45] },
+      { ...STAGE, snareModel: "persian", clapModel: "persian", tomModel: "persian", rimModel: "persian", clapPan: -0.3 }) }
+];
+
+const KIT_OF: Record<string, string> = {
+  minimalTech: "minimal", microhouse: "micro", deepMinimal: "deep", lofiChill: "lofi", downtempo: "downtempo", chillHouse: "chill",
+  ambientPulse: "ambient", rainGarden: "rain", afroHouse: "afro", latinPerc: "latin", persianFusion: "persian", tropical: "tropical"
+};
+
+const STYLES: DrumStyleDef[] = stylesFrom(SRC, KIT_OF, "minimal");
+
+export const HORMOZ: MachineDef = {
+  id: "hormoz",
+  name: "Hormoz",
+  role: "Minimal, chill & percussion",
+  skin: "hormoz",
+  kind: "drums",
+  drumModel: "minimal",
+  drumLabels: { kick: "KICK", snare: "SNAP", clap: "CLAP", ch: "SHAKER", oh: "HAT", tom: "CONGA", rim: "CLAVE", bell: "KALIMBA" },
+  tempo: true,
+  pages: DRUM_PAGES,
+  sections: drumSections(),
+  base: { drumSwing: 0, drumAccent: 0.45, drumGlue: 0.3, delayMix: 0.18, delayTime: 0.375, delayFb: 0.35, revMix: 0.28, revSize: 2.4, drive: 0, eqLow: 1, volume: 0.82 },
+  kits: KITS,
+  styles: STYLES,
+  presets: drumPresets(KITS, STYLES)
 };

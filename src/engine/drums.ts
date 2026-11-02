@@ -8,7 +8,7 @@
  */
 
 import { getAudioCtxIfAny, getSharedNoiseBuffer } from "./bus";
-import { acousticHit, driveCurve, HAT808, HitCtx, minimalHit, persianHit } from "./drum-models";
+import { acousticHit, classicHit, ClassicModel, driveCurve, HAT808, HitCtx, minimalHit, persianHit } from "./drum-models";
 
 export const DRUM_VOICES = ["kick", "snare", "clap", "ch", "oh", "tom", "rim", "bell"] as const;
 export type DrumVoice = (typeof DRUM_VOICES)[number];
@@ -17,7 +17,12 @@ export const DRUM_LABELS: Record<DrumVoice, string> = {
   kick: "KICK", snare: "SNARE", clap: "CLAP", ch: "HAT", oh: "OPEN", tom: "TOM", rim: "RIM", bell: "BELL"
 };
 
-export type DrumModel = "analog" | "persian" | "acoustic" | "minimal";
+export type DrumModel = "analog" | "persian" | "acoustic" | "minimal" | ClassicModel;
+/** Every sound model a kit (or a single slot of a kit) can use. */
+export const DRUM_MODELS: DrumModel[] = ["analog", "tr909", "tr707", "tr606", "cr78", "lm80", "acoustic", "persian", "minimal"];
+const CLASSIC = new Set<string>(["tr909", "tr707", "tr606", "cr78", "lm80"]);
+/** Models whose closed hat chokes a ringing open hat (drum machines with a hi-hat pair). */
+const CHOKES = new Set<string>(["analog", "tr909", "tr707", "tr606", "cr78", "lm80"]);
 let drumModel: DrumModel = "analog";
 let drumLabels: Record<DrumVoice, string> = { ...DRUM_LABELS };
 
@@ -102,7 +107,7 @@ let getPatch: () => Patch = () => ({});
 /** Where hits go: `main` = the FX bus input (dry path), `send` = its effects-only input. */
 export interface DrumDest { main: AudioNode; send: AudioNode }
 let getDest: () => DrumDest | null = () => null;
-let openHatGain: GainNode | null = null;
+let openHatOut: GainNode | null = null;
 
 export function configureDrums(patchGetter: () => Patch, destGetter: () => DrumDest | null): void {
   getPatch = patchGetter;
@@ -192,8 +197,23 @@ const FEEL: Record<DrumModel, { vel: number; human: number }> = {
   persian: { vel: 1, human: 1 },
   acoustic: { vel: 1, human: 1 },
   analog: { vel: 0.6, human: 0.4 },
-  minimal: { vel: 0.8, human: 0.6 } // hand percussion breathes; the electronic voices stay tight enough
+  minimal: { vel: 0.8, human: 0.6 }, // hand percussion breathes; the electronic voices stay tight enough
+  tr909: { vel: 0.6, human: 0.35 },
+  tr707: { vel: 0.4, human: 0.15 },  // samples: the same hit every time, only louder or softer
+  tr606: { vel: 0.5, human: 0.35 },
+  cr78: { vel: 0.5, human: 0.4 },
+  lm80: { vel: 0.45, human: 0.2 }
 };
+
+/** The model that plays slot `v`: the slot's own MODEL, else the kit's, else the machine's. */
+export function drumModelFor(v: DrumVoice): DrumModel {
+  const p = getPatch();
+  const own = p[v + "Model"];
+  if (typeof own === "string" && own && (DRUM_MODELS as string[]).includes(own)) return own as DrumModel;
+  const kit = p.kitModel;
+  if (typeof kit === "string" && kit && (DRUM_MODELS as string[]).includes(kit)) return kit as DrumModel;
+  return drumModel;
+}
 
 /** Play one drum hit at audio time `at` with velocity 0..1. */
 export function triggerDrum(v: DrumVoice, vel: number, at?: number): void {
@@ -204,7 +224,8 @@ export function triggerDrum(v: DrumVoice, vel: number, at?: number): void {
   // schedule a few ms later so the attack of the very first hit is not lost.
   const warmup = ctx.state !== "running" || ctx.currentTime < 0.3 ? 0.04 : 0;
   const t = Math.max(ctx.currentTime + warmup, at || 0);
-  const feel = FEEL[drumModel] || FEEL.analog;
+  const model = drumModelFor(v);
+  const feel = FEEL[model] || FEEL.analog;
   const velC = Math.max(0, Math.min(1, vel));
   const soft = feel.vel * (1 - velC);                   // 0 at full velocity
   const jit = () => (Math.random() * 2 - 1) * feel.human; // -human..+human
@@ -272,10 +293,20 @@ export function triggerDrum(v: DrumVoice, vel: number, at?: number): void {
     for (const n of chain) { try { n.disconnect(); } catch (e) {} }
   }, (t - ctx.currentTime + life) * 1000 + 100);
 
-  if (drumModel !== "analog") {
+  // hi-hat pair: the closed hat chokes a ringing open hat (on machines that have one)
+  if (CHOKES.has(model)) {
+    if (v === "ch" && openHatOut) {
+      openHatOut.gain.cancelScheduledValues(t);
+      openHatOut.gain.setTargetAtTime(0.0001, t, 0.004);
+      openHatOut = null;
+    } else if (v === "oh") openHatOut = out;
+  }
+
+  if (model !== "analog") {
     const h: HitCtx = { ctx, out, t, tune, dec, tone, vel, life, strike };
-    if (drumModel === "persian") persianHit(v, h);
-    else if (drumModel === "acoustic") acousticHit(v, h);
+    if (CLASSIC.has(model)) classicHit(model as ClassicModel, v, h);
+    else if (model === "persian") persianHit(v, h);
+    else if (model === "acoustic") acousticHit(v, h);
     else minimalHit(v, h);
     return;
   }
@@ -337,18 +368,8 @@ export function triggerDrum(v: DrumVoice, vel: number, at?: number): void {
     const hp = ctx.createBiquadFilter(); hp.type = "highpass"; hp.frequency.value = 6000 + 3000 * tone;
     const bp = ctx.createBiquadFilter(); bp.type = "bandpass"; bp.frequency.value = 10000; bp.Q.value = 0.8;
     const g = ctx.createGain();
-    if (v === "ch") {
-      env(g, t, 1, 0.06 * dec);
-      if (openHatGain) {
-        // closed hat chokes a ringing open hat
-        openHatGain.gain.cancelScheduledValues(t);
-        openHatGain.gain.setTargetAtTime(0.0001, t, 0.004);
-        openHatGain = null;
-      }
-    } else {
-      env(g, t, 0.9, 0.42 * dec);
-      openHatGain = g;
-    }
+    if (v === "ch") env(g, t, 1, 0.06 * dec);
+    else env(g, t, 0.9, 0.42 * dec);
     sum.connect(hp); hp.connect(bp); bp.connect(g); g.connect(out);
   } else if (v === "tom") {
     const o = ctx.createOscillator(); o.type = "sine";

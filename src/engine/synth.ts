@@ -37,7 +37,7 @@ import {
   triggerDrum
 } from "./drums";
 import { getMachineDef, MACHINES } from "../machines";
-import type { MachineDef, PresetDef } from "../machines/types";
+import type { DrumKitDef, MachineDef, PresetDef } from "../machines/types";
 
 export const NOTE_NAMES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
 
@@ -96,6 +96,69 @@ export function getMachines(): MachineDef[] {
   return MACHINES;
 }
 
+// ------------------------------------------------- drum kits and styles ----
+// Drum machines choose a KIT (the sound of the 8 slots) and a STYLE (tempo,
+// swing, patterns) separately. The preset id of a drum machine is its style.
+const kitKey = (id: string) => `sy1.m.${id}.kit`;
+const KEEP_KIT_KEY = "sy1.drums.keepKit";
+let drumKitId = "";
+let drumKitEdited = false;
+const kitListeners = new Set<() => void>();
+
+export function getDrumKitId(): string { return drumKitId; }
+export function isDrumKitEdited(): boolean { return drumKitEdited; }
+export function getDrumKitDef(): DrumKitDef | undefined { return machine.kits?.find((k) => k.id === drumKitId); }
+export function onDrumKitChange(cb: () => void): () => void { kitListeners.add(cb); return () => kitListeners.delete(cb); }
+
+/** "Keep kit": choosing a style keeps the loaded kit instead of loading the style's own. */
+export function getKeepKit(): boolean {
+  try { return localStorage.getItem(KEEP_KIT_KEY) === "1"; } catch (e) { return false; }
+}
+export function setKeepKit(on: boolean): void {
+  try { localStorage.setItem(KEEP_KIT_KEY, on ? "1" : "0"); } catch (e) {}
+}
+
+function syncDrumLabels(): void {
+  const kit = getDrumKitDef();
+  setDrumKit(machine.drumModel, { ...(machine.drumLabels || {}), ...(kit?.labels || {}) });
+}
+
+function saveKitSoon(): void {
+  try { localStorage.setItem(kitKey(machine.id), JSON.stringify({ id: drumKitId, edited: drumKitEdited })); } catch (e) {}
+}
+
+/** Load a kit's sound; the pattern bank, tempo, swing and accent stay as they are. */
+export function applyDrumKit(id: string): void {
+  const kit = machine.kits?.find((k) => k.id === id);
+  if (!kit) return;
+  const groove = { drumSwing: synthPatch.drumSwing, drumAccent: synthPatch.drumAccent };
+  const next = Object.assign(synthDefaults(), machine.base, kit.patch, groove);
+  next.hold = "off";
+  applyPatchObject(next);
+  drumKitId = kit.id;
+  drumKitEdited = false;
+  syncDrumLabels();
+  saveKitSoon();
+  kitListeners.forEach((cb) => cb());
+  presetChangeListeners.forEach((cb) => cb(synthPresetId));
+  savePatchSoon();
+}
+
+/** Load a style: tempo, swing, accent and its patterns (and its own kit unless keepKit). */
+export function applyDrumStyle(id: string, keepKit = getKeepKit()): void {
+  const st = machine.styles?.find((x) => x.id === id);
+  if (!st) return;
+  if (!keepKit || !drumKitId) applyDrumKit(st.kit);
+  const base = machine.base as Record<string, any>;
+  setSynthParam("drumSwing", st.swing ?? base.drumSwing ?? 0, { fromPreset: true });
+  setSynthParam("drumAccent", st.accent ?? base.drumAccent ?? 0.5, { fromPreset: true });
+  loadBank(st.patterns);
+  setTempo(st.bpm);
+  synthPresetId = st.id;
+  presetChangeListeners.forEach((cb) => cb(synthPresetId));
+  savePatchSoon();
+}
+
 export type ParamChangeCallback = (key: string, value: any) => void;
 export type PresetChangeCallback = (presetId: string) => void;
 const paramChangeListeners = new Set<ParamChangeCallback>();
@@ -143,8 +206,17 @@ export function setSynthParam(
   }
 
   if (!fromPreset && !internal && key !== "hold" && key !== "oriental") {
-    synthPresetId = "custom";
-    presetChangeListeners.forEach((cb) => cb(synthPresetId));
+    if (machine.kind === "drums" && machine.styles) {
+      // drum machines: turning a knob edits the kit (or the groove), the style keeps its name
+      if (key !== "drumSwing" && key !== "drumAccent" && !drumKitEdited) {
+        drumKitEdited = true;
+        saveKitSoon();
+        presetChangeListeners.forEach((cb) => cb(synthPresetId));
+      }
+    } else {
+      synthPresetId = "custom";
+      presetChangeListeners.forEach((cb) => cb(synthPresetId));
+    }
   }
 
   if (key === "hold" && synthPatch.hold !== "on" && before === "on") {
@@ -241,6 +313,11 @@ function findPreset(id: string): PresetDef | undefined {
 }
 
 export function applySynthPreset(id: string): void {
+  // drum machines: a preset is a style played on its own kit
+  if (machine.kind === "drums" && machine.styles) {
+    applyDrumStyle(id, false);
+    return;
+  }
   const preset = findPreset(id);
   if (!preset) return;
   setSynthParam("hold", "off", { internal: true });
@@ -264,7 +341,8 @@ export function stepPreset(dir: number): void {
   const list = machine.presets;
   const i = list.findIndex((p) => p.id === synthPresetId);
   const next = list[(Math.max(0, i) + dir + list.length) % list.length];
-  if (next) applySynthPreset(next.id);
+  if (next && machine.kind === "drums" && machine.styles) applyDrumStyle(next.id);
+  else if (next) applySynthPreset(next.id);
 }
 
 /** Switch instrument: stop everything, load its saved patch (or first preset). */
@@ -274,6 +352,8 @@ export function setMachine(id: string): void {
   releaseEverything();
   stopDrums();
   machine = next;
+  drumKitId = "";
+  drumKitEdited = false;
   // drum machines feed delay/reverb only through per-voice sends; synths feed them directly
   setMainToFx(machine.kind !== "drums");
   if (machine.kind === "drums") {
@@ -291,6 +371,20 @@ export function setMachine(id: string): void {
       applyPatchObject(full);
       synthPresetId = localStorage.getItem(presetKey(machine.id)) || "custom";
       restored = true;
+      if (machine.kind === "drums" && machine.kits) {
+        let saved: { id?: string; edited?: boolean } = {};
+        try { saved = JSON.parse(localStorage.getItem(kitKey(machine.id)) || "{}") || {}; } catch (e) {}
+        const style = machine.styles?.find((x) => x.id === synthPresetId);
+        if (machine.kits.some((k) => k.id === saved.id)) {
+          drumKitId = String(saved.id);
+          drumKitEdited = !!saved.edited;
+          syncDrumLabels();
+        } else {
+          // a sound saved before kits existed: name it after its style's kit, marked as edited
+          drumKitId = style?.kit || machine.kits[0].id;
+          drumKitEdited = true;
+        }
+      }
     }
   } catch (e) {}
   if (!restored) {

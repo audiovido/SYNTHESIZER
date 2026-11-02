@@ -5,7 +5,7 @@
 import { keyMap, SCALES } from "./scales";
 
 export interface ParamDef {
-  type?: "wave" | "filter" | "lfo" | "poly" | "onoff" | "lfoShape" | "arpMode" | "tuning" | "micro" | "strModel" | "fmAlgo" | "wave3" | "orbitMode";
+  type?: "wave" | "filter" | "lfo" | "poly" | "onoff" | "lfoShape" | "arpMode" | "tuning" | "micro" | "strModel" | "fmAlgo" | "wave3" | "orbitMode" | "drumModel";
   min?: number;
   max?: number;
   step?: number;
@@ -29,7 +29,9 @@ export const PARAM_CHOICES: Record<string, string[]> = {
   micro: ["24tet", "practice"],
   strModel: ["santur", "setar", "tar", "kanun", "oud", "harp"],
   fmAlgo: ["1", "2", "3", "4", "5", "6", "7", "8"],
-  orbitMode: ["off", "circle", "figure8", "drawn"]
+  orbitMode: ["off", "circle", "figure8", "drawn"],
+  // "" = the drum machine's own model
+  drumModel: ["", "analog", "tr909", "tr707", "tr606", "cr78", "lm80", "acoustic", "persian", "minimal"]
 };
 
 /** Musical note divisions used by tempo-synced LFO and arpeggiator (beats per step). */
@@ -220,6 +222,9 @@ DRUM_PARAM_VOICES.forEach((v) => {
   // the kick stays mostly dry by default: reverb on the kick muddies the low end
   SYNTH_PARAMS[v + "Send"] = { min: 0, max: 1, def: v === "kick" ? 0.2 : 1, fmt: (x) => Math.round(x * 100) + "%" };
 });
+// Sound model of the loaded kit, and of single slots in fusion kits ("" = the machine's own)
+SYNTH_PARAMS.kitModel = { type: "drumModel", def: "" };
+DRUM_PARAM_VOICES.forEach((v) => { SYNTH_PARAMS[v + "Model"] = { type: "drumModel", def: "" }; });
 // Drum bus GLUE: bus compression + gentle saturation that makes the kit sound like one instrument
 SYNTH_PARAMS.drumGlue = { min: 0, max: 1, def: 0.35, fmt: (x) => Math.round(x * 100) + "%" };
 SYNTH_PARAMS.drumSwing = { min: 0, max: 0.6, def: 0, fmt: (x) => Math.round(x * 100) + "%" };

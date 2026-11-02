@@ -36,6 +36,7 @@ import { startSynthScope } from "./ui/scope";
 import { initArpPanel } from "./ui/arp-panel";
 import { initOrientalPanel } from "./ui/oriental-panel";
 import { initLibrary } from "./ui/library";
+import { initMachineBrowser } from "./ui/machine-browser";
 
 function initApp(): void {
   // skin and keyboard follow the machine
@@ -48,6 +49,7 @@ function initApp(): void {
   initArpPanel();
   initOrientalPanel();
   initLibrary();
+  initMachineBrowser();
   initMachine();          // loads the remembered machine and its patch
   applySkin(getMachine().skin);
   renderPanel();
