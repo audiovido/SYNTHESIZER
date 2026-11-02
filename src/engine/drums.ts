@@ -44,7 +44,30 @@ export function drumVoiceForNote(midi: number): DrumVoice | null {
 
 export interface DrumPattern {
   len: number; // 16 or 12
-  steps: Record<DrumVoice, number[]>; // 0 off, 1 on, 2 accent
+  steps: Record<DrumVoice, number[]>; // 0 off, 1 on, 2 accent, 3 ghost
+  /** Per step: hits inside the step (1 = normal, 2-4 = roll / riz). Missing = 1. */
+  roll?: Partial<Record<DrumVoice, number[]>>;
+  /** Per step: 1 = flam (a soft grace note just before the hit). Missing = 0. */
+  flam?: Partial<Record<DrumVoice, number[]>>;
+  /** Per step: chance to play, in % (25-100). Missing = 100. */
+  prob?: Partial<Record<DrumVoice, number[]>>;
+}
+
+/** What tapping a step does (the EDIT button cycles through these). */
+export type StepEdit = "hit" | "accent" | "ghost" | "roll" | "flam" | "chance";
+export const STEP_EDITS: StepEdit[] = ["hit", "accent", "ghost", "roll", "flam", "chance"];
+
+const getArr = (rec: Partial<Record<DrumVoice, number[]>> | undefined, v: DrumVoice, i: number, def: number) => {
+  const a = rec?.[v];
+  return a && typeof a[i] === "number" ? a[i] : def;
+};
+export const stepRoll = (p: DrumPattern, v: DrumVoice, i: number) => getArr(p.roll, v, i, 1);
+export const stepFlam = (p: DrumPattern, v: DrumVoice, i: number) => getArr(p.flam, v, i, 0);
+export const stepProb = (p: DrumPattern, v: DrumVoice, i: number) => getArr(p.prob, v, i, 100);
+function setArr(p: DrumPattern, key: "roll" | "flam" | "prob", v: DrumVoice, i: number, val: number, def: number): void {
+  const rec = (p[key] = p[key] || {});
+  const a = (rec[v] = rec[v] || new Array(16).fill(def));
+  a[i] = val;
 }
 
 export function emptyPattern(len = 16): DrumPattern {
@@ -53,12 +76,22 @@ export function emptyPattern(len = 16): DrumPattern {
   return { len, steps };
 }
 
-/** Pattern from compact strings: "X" accent, "x" hit, anything else off. */
+/**
+ * Pattern from compact strings, one character per step:
+ *   "x" hit · "X" accent · "g" ghost · "2" "3" "4" roll (riz) of that many hits
+ *   "f" flam · "F" accented flam · "?" hit with a 50% chance · anything else off
+ */
 export function patternFrom(len: number, rows: Partial<Record<DrumVoice, string>>): DrumPattern {
   const p = emptyPattern(len);
   (Object.keys(rows) as DrumVoice[]).forEach((v) => {
     const s = rows[v] || "";
-    for (let i = 0; i < 16 && i < s.length; i++) p.steps[v][i] = s[i] === "X" ? 2 : s[i] === "x" ? 1 : 0;
+    for (let i = 0; i < 16 && i < s.length; i++) {
+      const c = s[i];
+      p.steps[v][i] = c === "X" || c === "F" ? 2 : c === "g" ? 3 : "x234f?".includes(c) ? 1 : 0;
+      if (c === "2" || c === "3" || c === "4") setArr(p, "roll", v, i, Number(c), 1);
+      if (c === "f" || c === "F") setArr(p, "flam", v, i, 1, 0);
+      if (c === "?") setArr(p, "prob", v, i, 50, 100);
+    }
   });
   return p;
 }
@@ -401,10 +434,19 @@ export function loadBank(patterns: DrumPattern[]): void {
   notify();
 }
 
-export function toggleStep(v: DrumVoice, i: number, accentMode: boolean): void {
-  const s = bank[current].steps[v];
-  if (accentMode) s[i] = s[i] === 2 ? 1 : s[i] === 1 ? 2 : 2;
-  else s[i] = s[i] ? 0 : 1;
+/** Tap on a step, by edit mode. Turning a step off also clears its roll, flam and chance. */
+export function editStep(v: DrumVoice, i: number, mode: StepEdit): void {
+  const p = bank[current];
+  const s = p.steps[v];
+  const clearMods = () => { setArr(p, "roll", v, i, 1, 1); setArr(p, "flam", v, i, 0, 0); setArr(p, "prob", v, i, 100, 100); };
+  switch (mode) {
+    case "hit": s[i] = s[i] ? 0 : 1; if (!s[i]) clearMods(); break;
+    case "accent": s[i] = s[i] === 2 ? 1 : 2; break;
+    case "ghost": s[i] = s[i] === 3 ? 1 : 3; break;
+    case "roll": { if (!s[i]) s[i] = 1; const r = stepRoll(p, v, i); setArr(p, "roll", v, i, r >= 4 ? 1 : r + 1, 1); break; }
+    case "flam": if (!s[i]) s[i] = 1; setArr(p, "flam", v, i, stepFlam(p, v, i) ? 0 : 1, 0); break;
+    case "chance": { if (!s[i]) s[i] = 1; const c = stepProb(p, v, i); setArr(p, "prob", v, i, c <= 25 ? 100 : c - 25, 100); break; }
+  }
   saveBank();
   notify();
 }
@@ -434,7 +476,13 @@ function scheduler(): void {
     const at = nextTime + (step % 2 === 1 ? swing * stepDur : 0);
     DRUM_VOICES.forEach((v) => {
       const s = pat.steps[v][step];
-      if (s) triggerDrum(v, s === 2 ? 1 : 1 - 0.5 * accentAmt, at);
+      if (!s) return;
+      const prob = stepProb(pat, v, step);
+      if (prob < 100 && Math.random() * 100 >= prob) return;
+      const vel = s === 2 ? 1 : s === 3 ? 0.3 : 1 - 0.5 * accentAmt;
+      if (stepFlam(pat, v, step)) triggerDrum(v, vel * 0.45, at - 0.022); // grace note just before
+      const n = Math.max(1, Math.min(4, stepRoll(pat, v, step)));
+      for (let k = 0; k < n; k++) triggerDrum(v, k === 0 ? vel : vel * 0.82, at + (k * stepDur) / n);
     });
     const shown = step;
     setTimeout(() => stepListeners.forEach((cb) => cb(shown)), Math.max(0, (at - ctx.currentTime) * 1000));

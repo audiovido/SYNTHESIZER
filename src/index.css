@@ -1408,6 +1408,31 @@ body {
   outline-offset: -2px;
 }
 
+/* Ghost notes: a faint step (higher specificity than the skins' .on rules) */
+.synth-panel .drum-step.on.ghost {
+  opacity: 0.42;
+  box-shadow: none;
+}
+
+/* Roll / flam / chance marks, small at the bottom of the step */
+.drum-step[data-mark]::after {
+  content: attr(data-mark);
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 2px;
+  font-size: 0.5rem;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  color: #ffffff;
+  text-shadow: 0 0 3px rgba(0, 0, 0, 0.8);
+  pointer-events: none;
+}
+
 .drum-voice-name {
   font-size: var(--fs-label);
   font-weight: 800;

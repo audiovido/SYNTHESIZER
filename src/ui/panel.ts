@@ -63,7 +63,12 @@ import {
   setPatternLength,
   startDrums,
   stopDrums,
-  toggleStep,
+  editStep,
+  STEP_EDITS,
+  StepEdit,
+  stepFlam,
+  stepProb,
+  stepRoll,
   triggerDrum
 } from "../engine/drums";
 import type { ControlDef, SectionDef } from "../machines/types";
@@ -120,7 +125,16 @@ export function renderControl(c: ControlDef): string {
 
 // --------------------------------------------------------- drum sections ----
 let drumVoice: DrumVoice = "kick";
-let accentMode = false;
+let stepEdit: StepEdit = "hit";
+const EDIT_LABEL: Record<StepEdit, string> = { hit: "HIT", accent: "ACCENT", ghost: "GHOST", roll: "ROLL", flam: "FLAM", chance: "CHANCE" };
+const EDIT_HELP: Record<StepEdit, string> = {
+  hit: "Tap steps to add or remove hits",
+  accent: "Tap steps to make them accents (louder, brighter)",
+  ghost: "Tap steps to make them ghost notes (very soft)",
+  roll: "Tap steps to cycle a roll / riz: 2, 3 or 4 fast hits in one step",
+  flam: "Tap steps to add a flam (a soft grace note just before)",
+  chance: "Tap steps to cycle the chance they play: 75%, 50%, 25%"
+};
 
 function renderDrumTransport(): string {
   const pat = getPattern();
@@ -136,7 +150,7 @@ function renderDrumTransport(): string {
         <button type="button" class="synth-choice-btn ${pat.len === 16 ? "active" : ""}" data-action="drum-len" data-len="16" title="16 steps (4/4)">16</button>
         <button type="button" class="synth-choice-btn ${pat.len === 12 ? "active" : ""}" data-action="drum-len" data-len="12" title="12 steps (6/8)">12</button>
       </div>
-      <button type="button" class="synth-choice-btn drum-acc ${accentMode ? "active" : ""}" data-action="drum-accent" aria-pressed="${accentMode}" title="Tap steps to add or remove accents">ACCENT</button>
+      <button type="button" class="synth-choice-btn drum-acc ${stepEdit !== "hit" ? "active" : ""}" data-action="drum-edit" title="EDIT mode: ${EDIT_HELP[stepEdit]} (tap to change mode)">✎ ${EDIT_LABEL[stepEdit]}</button>
       <button type="button" class="synth-choice-btn" data-action="drum-clear" title="Clear this pattern">CLEAR</button>
     </div>`;
 }
@@ -148,7 +162,17 @@ function renderDrumSteps(): string {
     `<button type="button" class="drum-voice-btn ${v === drumVoice ? "active" : ""}" data-action="drum-voice" data-voice="${v}">${drumLabel(v)}</button>`).join("")}</div>`;
   const steps = `<div class="drum-steps" style="--len:${pat.len}">${Array.from({ length: pat.len }, (_, i) => {
     const s = row[i];
-    return `<button type="button" class="drum-step${s ? " on" : ""}${s === 2 ? " accent" : ""}${i % (pat.len === 12 ? 3 : 4) === 0 ? " beat" : ""}" data-action="drum-step" data-index="${i}" aria-pressed="${!!s}" aria-label="Step ${i + 1}"></button>`;
+    // marks: roll count, flam, chance (shown small at the bottom of the step)
+    const marks: string[] = [];
+    if (s) {
+      const r = stepRoll(pat, drumVoice, i);
+      if (r > 1) marks.push("×" + r);
+      if (stepFlam(pat, drumVoice, i)) marks.push("FL");
+      const c = stepProb(pat, drumVoice, i);
+      if (c < 100) marks.push(c + "%");
+    }
+    const mark = marks.join(" ");
+    return `<button type="button" class="drum-step${s ? " on" : ""}${s === 2 ? " accent" : ""}${s === 3 ? " ghost" : ""}${i % (pat.len === 12 ? 3 : 4) === 0 ? " beat" : ""}"${mark ? ` data-mark="${mark}"` : ""} data-action="drum-step" data-index="${i}" aria-pressed="${!!s}" aria-label="Step ${i + 1}${s === 2 ? ", accent" : s === 3 ? ", ghost" : ""}${mark ? ", " + mark : ""}"></button>`;
   }).join("")}</div>`;
   return voices + steps;
 }
@@ -937,7 +961,7 @@ export function initPanelInteractions(): void {
         break;
       case "drum-pattern": selectPattern(Number(btn.getAttribute("data-index"))); break;
       case "drum-len": setPatternLength(Number(btn.getAttribute("data-len"))); break;
-      case "drum-accent": accentMode = !accentMode; refreshCustom("drum-transport"); break;
+      case "drum-edit": stepEdit = STEP_EDITS[(STEP_EDITS.indexOf(stepEdit) + 1) % STEP_EDITS.length]; refreshCustom("drum-transport"); break;
       case "drum-clear": clearPattern(); break;
       case "drum-voice": {
         drumVoice = btn.getAttribute("data-voice") as DrumVoice;
@@ -946,7 +970,7 @@ export function initPanelInteractions(): void {
         triggerDrum(drumVoice, 0.9);
         break;
       }
-      case "drum-step": toggleStep(drumVoice, Number(btn.getAttribute("data-index")), accentMode); break;
+      case "drum-step": editStep(drumVoice, Number(btn.getAttribute("data-index")), stepEdit); break;
       default: break;
     }
   });
