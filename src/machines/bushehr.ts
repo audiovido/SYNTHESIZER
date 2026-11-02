@@ -27,15 +27,17 @@ export const BUSHEHR: MachineDef = {
   tempo: true,
   pages: DRUM_PAGES,
   sections: drumSections(),
-  base: { drumSwing: 0, drumAccent: 0.55, delayMix: 0, revMix: 0.16, revSize: 1.6, drive: 0.05, volume: 0.82 },
+  // stereo stage like an ensemble: tombak (DOM/TAK) centre, daf left, zang right, dohol centre with some room
+  base: { drumSwing: 0, drumAccent: 0.55, delayMix: 0, revMix: 0.16, revSize: 1.6, drive: 0.05, volume: 0.82, drumGlue: 0.25,
+    clapPan: -0.25, chPan: 0.4, ohPan: -0.35, bellPan: 0.3, rimPan: 0.15, kickSend: 0.25, tomSend: 0.6 },
   presets: [
     {
       id: "tombakSolo", name: "Tombak Zarbi", group: "Persian", bpm: 96,
       patch: kit({ tom: [0, 1.1, 0.6, 0.95], snare: [0, 1, 0.6, 0.75], rim: [0, 0.9, 0.6, 0.6] }),
       patterns: pats([
-        P(16, { tom: "X.......X.......", snare: "....X..x....X.x.", rim: "..x.......x....." }),
-        P(16, { tom: "X..x....X.......", snare: "....X..x....XxX.", rim: "..x...x...x....x" }),
-        P(16, { tom: "X.x.X.x.X.......", snare: "........XxXxXxXX", rim: "...x...x........" }),
+        P(16, { tom: "X.......X.......", snare: "..g.X..x.g..X.x.", rim: "..x.......x....." }),
+        P(16, { tom: "X..x....X.......", snare: "..g.X..x.g..X3X.", rim: "..x...x...x....x" }),
+        P(16, { tom: "X.x.X.x.X.......", snare: "........X4X4X4XX", rim: "...x...x........" }),
         P(16, { tom: "X.......X.......", rim: "..x.x.x...x.x.x." })
       ])
     },
@@ -63,9 +65,9 @@ export const BUSHEHR: MachineDef = {
       id: "sufiDaf", name: "Sufi Daf (Sama)", group: "Persian", bpm: 88,
       patch: kit({ clap: [-2, 1.4, 0.7, 0.9], kick: [-3, 1.3, 0.3, 0.7], oh: [-1, 1.2, 0.5, 0.45] }, { revMix: 0.32, revSize: 3 }),
       patterns: pats([
-        P(16, { kick: "X.......X.......", clap: "....X.......X...", oh: "..x.......x....." }),
-        P(16, { kick: "X.......X.......", clap: "....X..x....X.x.", oh: "..x...x...x...x." }),
-        P(16, { kick: "X...X...X...X...", clap: "..X...X...X.XXXX", oh: "x.x.x.x.x.x....." }),
+        P(16, { kick: "X.......X.......", clap: "....F.......F...", oh: "..x.......x....." }),
+        P(16, { kick: "X.......X.......", clap: "....F..x....F.x.", oh: "..x...x...x...x." }),
+        P(16, { kick: "X...X...X...X...", clap: "..X...X...X.F334", oh: "x.x.x.x.x.x....." }),
         P(16, { kick: "X...............", clap: "....X.......X...", oh: "x.x.x.x.x.x.x.x." })
       ])
     },
@@ -167,6 +169,59 @@ export const BUSHEHR: MachineDef = {
         P(16, { kick: "X......X.X....x.", snare: "........X.......", ch: "x.xxx.x.x.xxx.xx", tom: "...x...x.....x.." }),
         P(16, { kick: "X......X..X.....", snare: "........X...XXXX", ch: "xxxxxxxxxxxxxxxx" }),
         P(16, { kick: "X...............", tom: "...x.x...x.x.x.." })
+      ])
+    },
+    // ------------------------------------------------- folk, chill, riz ----
+    {
+      id: "tombakRiz", name: "Tombak Riz", group: "Persian", bpm: 100,
+      patch: kit({ tom: [0, 1.1, 0.55, 0.95], snare: [0, 0.9, 0.65, 0.75], rim: [0, 0.9, 0.6, 0.55] }),
+      patterns: pats([
+        P(16, { tom: "X.......X.......", snare: "..g.X.g...g.X.4.", rim: "......x.......x." }),
+        P(16, { tom: "X.....x.X.......", snare: "..g.X.g.g.g.X44.", rim: "......x.......x." }),
+        P(16, { tom: "X.......X.......", snare: "44444444X.X.4444" }),
+        P(16, { tom: "X.......X.x.....", snare: "..g.X.g...g.X...", rim: "..x...x...x...x." })
+      ])
+    },
+    {
+      id: "kurdishDaf", name: "Kurdish Daf", group: "Folk", bpm: 112,
+      patch: kit({ clap: [0, 1.1, 0.75, 0.9], kick: [-2, 1, 0.3, 0.65], oh: [0, 1, 0.55, 0.4] }, { revMix: 0.22, revSize: 2 }),
+      patterns: pats([
+        P(12, { kick: "X.....X.....", clap: "..x.x...x.x.", oh: "x..x..x..x.." }),
+        P(12, { kick: "X.....X.....", clap: "..F.x...F.x.", oh: "x..x..x..x.." }),
+        P(12, { kick: "X..X..X..X..", clap: "..x.x.333444", oh: "x..x..x....." }),
+        P(12, { clap: "F.....F.....", oh: "x..x..x..x.." })
+      ])
+    },
+    {
+      id: "lori", name: "Lori 6/8", group: "Folk", bpm: 120,
+      patch: kit({ kick: [0, 1, 0.45, 0.9], snare: [0, 0.9, 0.6, 0.6], tom: [-1, 1, 0.5, 0.65], bell: [0, 0.9, 0.5, 0.35] }, { revMix: 0.18 }),
+      patterns: pats([
+        P(12, { kick: "X.....X.....", tom: "..x..x..x..x", snare: "...x.....x..", bell: "x.....x....." }),
+        P(12, { kick: "X..x..X.....", tom: "..x..x..x.xx", snare: "...x.....x..", bell: "x.....x....." }),
+        P(12, { kick: "X.....X..X..", tom: "..x..x..3.44", snare: "...x..g..x.g" }),
+        P(12, { tom: "..x..x..x..x", bell: "x.....x....." })
+      ])
+    },
+    {
+      id: "ambientDaf", name: "Ambient Daf", group: "Chill", bpm: 72,
+      patch: kit({ clap: [-3, 1.6, 0.6, 0.75], ch: [0, 1.4, 0.4, 0.3], tom: [-4, 1.4, 0.3, 0.55], bell: [-2, 1.6, 0.3, 0.22] },
+        { revMix: 0.42, revSize: 4.5, delayMix: 0.22, delayTime: 0.62, delayFb: 0.45, drumGlue: 0.15, clapSend: 1, chSend: 1 }),
+      patterns: pats([
+        P(16, { clap: "F.......x.......", tom: "X.......X.......", ch: "....x.......x..?" }),
+        P(16, { clap: "F.......x...x...", tom: "X.......X.......", ch: "....x...?...x..?" }),
+        P(16, { clap: "F.......x...3344", tom: "X.......X.......", ch: "....x.......x..." }),
+        P(16, { ch: "....x.......x..?", bell: "X..............." })
+      ])
+    },
+    {
+      id: "persianChill", name: "Persian Chill", group: "Chill", bpm: 88,
+      patch: kit({ tom: [-2, 1.2, 0.4, 0.85], snare: [-1, 0.9, 0.5, 0.6], ch: [0, 1.1, 0.4, 0.3], rim: [0, 0.9, 0.5, 0.45], kick: [-3, 1.2, 0.2, 0.6] },
+        { drumSwing: 0.16, revMix: 0.3, revSize: 2.8, drumGlue: 0.4, snareColor: -0.2, chSend: 1, volume: 0.72 }),
+      patterns: pats([
+        P(16, { kick: "X.........X.....", tom: "X.....x...X.....", snare: "....X..g....X...", ch: "..x...x...x...x.", rim: ".......x......x." }),
+        P(16, { kick: "X.........X.....", tom: "X.....x...X..x..", snare: "....X..g.g..X...", ch: "..x...x...x...x.", rim: ".......x......x." }),
+        P(16, { kick: "X.........X.....", tom: "X.....x...X.....", snare: "....X..g....3344", ch: "..x...x...x....." }),
+        P(16, { tom: "X.....x...X.....", ch: "..x...x...x...x." })
       ])
     }
   ]

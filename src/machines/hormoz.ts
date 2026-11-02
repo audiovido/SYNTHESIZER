@@ -101,7 +101,7 @@ export const HORMOZ: MachineDef = {
     {
       id: "ambientPulse", name: "Ambient Pulse", group: "Ambient", bpm: 90,
       patch: kit({ kick: [-3, 1.6, 0.1, 0.75], ch: [0, 1.3, 0.3, 0.28], bell: [0, 2.2, 0.15, 0.45], rim: [-5, 1.4, 0.2, 0.3] },
-        { ...STAGE, revMix: 0.5, revSize: 4.5, delayMix: 0.3, delayTime: 0.5, delayFb: 0.45, drumGlue: 0.15 }),
+        { ...STAGE, revMix: 0.5, revSize: 4.5, delayMix: 0.3, delayTime: 0.5, delayFb: 0.45, drumGlue: 0.15, volume: 0.7 }),
       patterns: pats([
         P(16, { kick: "X.......x.......", ch: "..x...x...x...x.", bell: "X.....x.....x...", rim: "..........x....." }),
         P(16, { kick: "X.......x.......", ch: "..x...x...x...x.", bell: "X..x..x.....x...", rim: "......x...x....." }),

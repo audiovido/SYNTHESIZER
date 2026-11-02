@@ -28,6 +28,9 @@ export interface SynthFXBus {
   sum: GainNode;
   master: GainNode;
   limiter: DynamicsCompressorNode;
+  /** Soft clipper after the limiter: transparent below 0.9, never above 1.0 (same curve as native fx.hpp). */
+  clipIn: GainNode;
+  clip: WaveShaperNode;
   analyser: AnalyserNode;
   chorusWet: GainNode;
   chorusLfo: OscillatorNode;
@@ -131,6 +134,20 @@ export function makeDriveCurve(amount: number): Float32Array {
 }
 
 /** Gentle fixed tanh soft-clip used in the delay feedback loop so hot repeats warm up instead of distorting harshly. */
+const CLIP_RANGE = 4;
+/** soft(x): identity up to 0.9, then 0.9 + 0.1*tanh((|x|-0.9)/0.1): never above 1.0. Over x in +-CLIP_RANGE. */
+function makeSoftClipCurve(): Float32Array {
+  const n = 8193; // odd: exact 0 in the middle
+  const c = new Float32Array(n);
+  for (let i = 0; i < n; i++) {
+    const x = ((i / (n - 1)) * 2 - 1) * CLIP_RANGE;
+    const a = Math.abs(x);
+    const y = a <= 0.9 ? a : 0.9 + 0.1 * Math.tanh((a - 0.9) / 0.1);
+    c[i] = x < 0 ? -y : y;
+  }
+  return c;
+}
+
 function makeTanhCurve(): Float32Array {
   const n = 1024;
   const curve = new Float32Array(n);
@@ -379,7 +396,17 @@ export function getSynthBus(ctx: AudioContext, synthPatch: Record<string, any>):
   chorusWet.connect(sum);
   sum.connect(master);
   master.connect(limiter);
-  limiter.connect(analyser);
+  // Soft clipper: the limiter's 3 ms attack lets the sharpest transients (acoustic drums)
+  // slip past; this catches them smoothly instead of hard digital clipping. Input is
+  // pre-scaled by 1/4 so the curve covers +-4 (a WaveShaper clamps beyond +-1).
+  const clipIn = ctx.createGain();
+  clipIn.gain.value = 1 / CLIP_RANGE;
+  const clip = ctx.createWaveShaper();
+  clip.curve = makeSoftClipCurve() as any;
+  clip.oversample = "none"; // oversampling's filters ring ~5% past the curve; "none" keeps the 1.0 ceiling exact
+  limiter.connect(clipIn);
+  clipIn.connect(clip);
+  clip.connect(analyser);
   analyser.connect(ctx.destination);
 
   bus = {
@@ -410,7 +437,9 @@ export function getSynthBus(ctx: AudioContext, synthPatch: Record<string, any>):
     dampPeakGain,
     fxIn,
     mainToFx,
-    sendIn
+    sendIn,
+    clipIn,
+    clip
   };
 
   synthBuses.set(ctx, bus);

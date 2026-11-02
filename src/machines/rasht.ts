@@ -25,7 +25,10 @@ export const RASHT: MachineDef = {
   tempo: true,
   pages: DRUM_PAGES,
   sections: drumSections(),
-  base: { drumSwing: 0, drumAccent: 0.5, delayMix: 0, revMix: 0.18, revSize: 1.4, drive: 0, eqHigh: 0, volume: 0.82 },
+  // a drum kit as the audience hears it: hi-hat left, ride and tom right, shaker further right;
+  // kick nearly dry, cymbals and toms in the room
+  base: { drumSwing: 0, drumAccent: 0.5, delayMix: 0, revMix: 0.18, revSize: 1.4, drive: 0, eqHigh: 0, volume: 1, drumGlue: 0.5,
+    chPan: -0.3, ohPan: 0.35, tomPan: 0.25, bellPan: 0.45, kickSend: 0.15, chSend: 0.5, ohSend: 0.8, tomSend: 0.8, bellSend: 0.7 },
   presets: [
     {
       id: "jazzBrushes", name: "Jazz Brushes", group: "Jazz", bpm: 132,
@@ -71,9 +74,9 @@ export const RASHT: MachineDef = {
       id: "funk", name: "Funk Pocket", group: "Funk & Soul", bpm: 98,
       patch: kit({ snare: [1, 0.8, 0.7, 0.75], ch: [1, 0.7, 0.55, 0.45], kick: [0, 0.8, 0.5, 0.9] }, { drumSwing: 0.06, revMix: 0.12 }),
       patterns: pats([
-        P(16, { kick: "X.....x...X..x..", snare: "....X..x.x..X...", ch: "xxxxxxxxxxxxxxxx" }),
-        P(16, { kick: "X.x...x...X..x..", snare: "....X..x.x..X..x", ch: "xxxxxxx.xxxxxxx.", oh: ".......x.......x" }),
-        P(16, { kick: "X.....x...X.....", snare: "....X..x.x..XxXX", tom: "..........x.x..." }),
+        P(16, { kick: "X.....x...X..x..", snare: "..g.X..g.g..X.g.", ch: "xgxgxgxgxgxgxgxg" }),
+        P(16, { kick: "X.x...x...X..x..", snare: "g.g.X..g.g.gX..x", ch: "xgxgxgx.xgxgxgx.", oh: ".......x.......x" }),
+        P(16, { kick: "X.....x...X.....", snare: "..g.X..g.g..F3X4", tom: "..........x.x..." }),
         P(16, { kick: "X.........X.....", ch: "xxxxxxxxxxxxxxxx" })
       ])
     },
@@ -155,6 +158,60 @@ export const RASHT: MachineDef = {
         P(16, { clap: "x.x.x.x.x.x.x.x.", rim: "....x.......x...", kick: "X.......X......." }),
         P(16, { clap: "x...x...x.x.xxxx", tom: "............x.x." }),
         P(16, { clap: "x...x...x...x..." })
+      ])
+    },
+    // --------------------------------------------------- chill & fusion ----
+    {
+      id: "liveLofi", name: "Live Lo-fi", group: "Chill & Fusion", bpm: 82,
+      patch: kit({ kick: [-1, 0.9, 0.3, 0.9], snare: [-2, 1, 0.35, 0.7], ch: [0, 0.8, 0.35, 0.36], bell: [0, 0.9, 0.35, 0.3] },
+        { drumSwing: 0.2, revMix: 0.16, drumGlue: 0.5, snareColor: -0.25, chColor: -0.3, kickColor: -0.15 }),
+      patterns: pats([
+        P(16, { kick: "X......x..X.....", snare: "....X..g.g..X...", ch: "x.x.x.x.x.x.x.x.", bell: "..x...x...x...x." }),
+        P(16, { kick: "X......x..X..x..", snare: "....X..g.g..X..g", ch: "x.x.x.x.x.x.xxx.", bell: "..x...x...x...x." }),
+        P(16, { kick: "X......x..X.....", snare: "....X..g.g..F.3X", ch: "x.x.x.x.x.x....." }),
+        P(16, { ch: "x.x.x.x.x.x.x.x.", bell: "..x...x...x...x." })
+      ])
+    },
+    {
+      id: "tripHopLive", name: "Trip-hop Live", group: "Chill & Fusion", bpm: 84,
+      patch: kit({ kick: [-2, 1.1, 0.45, 1], snare: [-1, 1.2, 0.5, 0.75], ch: [0, 0.9, 0.4, 0.38], oh: [-1, 1.2, 0.4, 0.3] },
+        { drumSwing: 0.14, revMix: 0.26, revSize: 2.2, drumGlue: 0.55 }),
+      patterns: pats([
+        P(16, { kick: "X.......x.X.....", snare: "....X..g....X...", ch: "x.x.x.x.x.x.x.x." }),
+        P(16, { kick: "X.......x.X..x..", snare: "....X..g....X.g.", ch: "x.x.x.x.x.x.x.x.", oh: "..............x." }),
+        P(16, { kick: "X.......x.X.....", snare: "....X..g...gF333", tom: "..........x....." }),
+        P(16, { kick: "X.........X.....", oh: "x.......x......." })
+      ])
+    },
+    {
+      id: "ambientBrushes", name: "Ambient Brushes", group: "Chill & Fusion", bpm: 66,
+      patch: kit({ clap: [0, 1.4, 0.35, 0.55], oh: [-1, 1.4, 0.3, 0.32], kick: [-2, 1, 0.2, 0.55], rim: [0, 1, 0.3, 0.32] },
+        { revMix: 0.38, revSize: 3.6, delayMix: 0.15, delayTime: 0.45, drumGlue: 0.2, clapSend: 1 }),
+      patterns: pats([
+        P(16, { clap: "x...x...x...x...", oh: "x..?..x...x..?..", kick: "X.......x.......", rim: "......x.......x." }),
+        P(16, { clap: "x...x...x...x.x.", oh: "x..x..x...x..x..", kick: "X.......x.......", rim: "......x.......x." }),
+        P(16, { clap: "x...x...x.x.x3x3", oh: "x..x..x...x.....", kick: "X.......x...x..." }),
+        P(16, { clap: "x...x...x...x...", oh: "x..?..x...x..?.." })
+      ])
+    },
+    {
+      id: "jazzHop", name: "Jazz Hop", group: "Chill & Fusion", bpm: 90,
+      patch: kit({ kick: [-1, 0.9, 0.35, 0.9], snare: [0, 0.9, 0.5, 0.65], oh: [0, 1, 0.45, 0.36], rim: [0, 0.9, 0.4, 0.45] }, { drumSwing: 0.24, revMix: 0.18 }),
+      patterns: pats([
+        P(16, { kick: "X.......x.X.....", rim: "....X.......X...", oh: "x.x.x.xxx.x.x.xx", snare: "......g.......g." }),
+        P(16, { kick: "X.......x.X..x..", rim: "....X.......X...", oh: "x.x.x.xxx.x.x.xx", snare: "...g..g...g...g." }),
+        P(16, { kick: "X.......x.X.....", snare: "....X...g.g.F33X", oh: "x.x.x.xxx.x....." }),
+        P(16, { oh: "x.x.x.xxx.x.x.xx", rim: "....X.......X..." })
+      ])
+    },
+    {
+      id: "persianKit", name: "Persian 6/8 on a Kit", group: "Chill & Fusion", bpm: 108,
+      patch: kit({ kick: [0, 0.9, 0.4, 0.9], snare: [0, 0.9, 0.55, 0.7], ch: [0, 0.8, 0.5, 0.38], tom: [-2, 1, 0.45, 0.6], bell: [0, 0.9, 0.5, 0.32] }, { revMix: 0.2 }),
+      patterns: pats([
+        P(12, { kick: "X.....X.....", snare: "...X..g..X..", ch: "x.xx.xx.xx.x", bell: "xxxxxxxxxxxx" }),
+        P(12, { kick: "X.....X..x..", snare: "...X..g..X.g", ch: "x.xx.xx.xx.x", tom: "..........x." }),
+        P(12, { kick: "X.....X.....", snare: "...X..g..X..", tom: "......x.x333" }),
+        P(12, { kick: "X.....X.....", ch: "x.xx.xx.xx.x", bell: "xxxxxxxxxxxx" })
       ])
     }
   ]

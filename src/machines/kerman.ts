@@ -44,7 +44,9 @@ export const KERMAN: MachineDef = {
     SEC.driveEq("fx"),
     SEC.space("fx")
   ],
-  base: { drumSwing: 0, drumAccent: 0.5, delayMix: 0, revMix: 0.1, revSize: 1.2, drive: 0.1, volume: 0.8 },
+  // stereo stage + sends: kick dry and centred, hats and percussion spread a little
+  base: { drumSwing: 0, drumAccent: 0.5, delayMix: 0, revMix: 0.1, revSize: 1.2, drive: 0.1, volume: 0.8, drumGlue: 0.4,
+    chPan: 0.15, ohPan: 0.2, clapPan: -0.1, tomPan: -0.2, rimPan: 0.25, bellPan: -0.3, kickSend: 0.1, chSend: 0.4 },
   presets: [
     {
       id: "k808", name: "808 Classic", group: "Classic", bpm: 100,
@@ -204,6 +206,60 @@ export const KERMAN: MachineDef = {
         P(16, { kick: "X...X...X...X...", snare: "....X.......X...", oh: "..X...X...X...X.", ch: "xxx.xxx.xxx.xxx." }),
         P(16, { kick: "X...X...X...X...", snare: "....X.......XXXX", tom: "........x.x.x..." }),
         P(16, { kick: "X...X...X...X...", oh: "..X...X...X...X." })
+      ])
+    },
+    // --------------------------------------------- chill, ambient, deep ----
+    {
+      id: "deepHouse", name: "Deep House", group: "Chill & Deep", bpm: 120,
+      patch: mk({ kick: [-1, 1.2, 0.35, 0.95], clap: [0, 1.1, 0.4, 0.5], ch: [0, 0.8, 0.45, 0.38], oh: [0, 0.9, 0.4, 0.34], rim: [0, 0.8, 0.5, 0.32] }, { drumSwing: 0.1, revMix: 0.22, rimSend: 1 }),
+      patterns: pats([
+        P(16, { kick: "X...X...X...X...", clap: "....X.......X...", ch: "g.x.g.x.g.x.g.x.", oh: "..x.......x.....", rim: "...x.....x..x..." }),
+        P(16, { kick: "X...X...X...X...", clap: "....X.......X...", ch: "g.x.g.x.g.x.g.x.", oh: "..x...x...x...x.", rim: "...x..x..x..x..." }),
+        P(16, { kick: "X...X...X...X...", clap: "....X.......X.x?", ch: "gxxxgxxxgxxxgxxx", rim: "...x..x..x..x.x." }),
+        P(16, { ch: "g.x.g.x.g.x.g.x.", oh: "..x.......x.....", rim: "...x.....x..x..." })
+      ])
+    },
+    {
+      id: "dubTechno", name: "Dub Techno", group: "Chill & Deep", bpm: 118,
+      patch: mk({ kick: [-2, 1.3, 0.25, 0.95], ch: [-1, 0.9, 0.35, 0.34], oh: [-1, 1.1, 0.35, 0.3], rim: [-3, 1.2, 0.3, 0.38], clap: [-2, 1.4, 0.3, 0.38] },
+        { revMix: 0.3, revSize: 3.2, delayMix: 0.35, delayTime: 0.375, delayFb: 0.55, rimSend: 1, clapSend: 1, chColor: -0.25 }),
+      patterns: pats([
+        P(16, { kick: "X...X...X...X...", ch: "..x...x...x...x.", rim: "......x.......x." }),
+        P(16, { kick: "X...X...X...X...", ch: "..x...x...x...x.", oh: "..........x.....", rim: "...x..x....x..x." }),
+        P(16, { kick: "X...X...X...X...", ch: "..x...x...x.x.x.", clap: "............x...", rim: "...x..x...x.x.x." }),
+        P(16, { ch: "..x...x...x...x.", rim: "......x.......x." })
+      ])
+    },
+    {
+      id: "ambientTechno", name: "Ambient Techno", group: "Chill & Deep", bpm: 110,
+      patch: mk({ kick: [-3, 1.5, 0.15, 0.8], ch: [0, 1.2, 0.25, 0.28], rim: [-5, 1.4, 0.2, 0.3], bell: [-7, 1.6, 0.2, 0.25] },
+        { revMix: 0.45, revSize: 4.5, delayMix: 0.3, delayTime: 0.5, delayFb: 0.5, drumGlue: 0.2, rimSend: 1, bellSend: 1, chColor: -0.35 }),
+      patterns: pats([
+        P(16, { kick: "X.......X.......", ch: "..x?..x?..x?..x?", rim: "......x........." }),
+        P(16, { kick: "X.......X...x...", ch: "..x?..x?..x?..x?", rim: "......x.......x.", bell: "x..............." }),
+        P(16, { kick: "X.......X.......", ch: "..xx..xx..xx..xx", rim: "......x...x...x.", bell: "x.......x......." }),
+        P(16, { ch: "..x?..x?..x?..x?", bell: "x..............." })
+      ])
+    },
+    {
+      id: "tripHop", name: "Trip-hop", group: "Chill & Deep", bpm: 86,
+      patch: mk({ kick: [-2, 1.2, 0.4, 1], snare: [-3, 1.3, 0.35, 0.75], ch: [0, 0.9, 0.35, 0.36], rim: [0, 1, 0.4, 0.35] },
+        { drumSwing: 0.16, revMix: 0.24, revSize: 2.4, drumGlue: 0.55, snareColor: -0.2, chColor: -0.3 }),
+      patterns: pats([
+        P(16, { kick: "X......x..X.....", snare: "....X..g....X...", ch: "x.x.x.x.x.x.x.x." }),
+        P(16, { kick: "X......x..X..x..", snare: "....X..g....X..g", ch: "x.x.x.xxx.x.x.x.", rim: "..............x." }),
+        P(16, { kick: "X......x..X.....", snare: "....X..g....F.33", ch: "x.x.x.x.x.x....." }),
+        P(16, { kick: "X.........X.....", ch: "x.x.x.x.x.x.x.x." })
+      ])
+    },
+    {
+      id: "persianHouse", name: "Persian House", group: "Persian", bpm: 122,
+      patch: mk({ kick: [0, 1, 0.3, 0.95], clap: [0, 1, 0.45, 0.48], ch: [0, 0.8, 0.5, 0.36], tom: [-3, 1.1, 0.4, 0.55], rim: [2, 0.8, 0.5, 0.38] }, { revMix: 0.18 }),
+      patterns: pats([
+        P(16, { kick: "X...X...X...X...", clap: "....X.......X...", ch: "xxXxxxXxxxXxxxXx", tom: "..x..x.x...x.x..", rim: "x.....x....x...." }),
+        P(16, { kick: "X...X...X...X...", clap: "....X.......X...", ch: "xxXxxxXxxxXxxxXx", tom: "..x..x.x..xx.xx.", rim: "x..x..x....x...." }),
+        P(16, { kick: "X...X...X...X...", clap: "....X.......X.x.", ch: "xxXxxxXxxxXxXXXX", tom: "..x..x.x..33.444" }),
+        P(16, { ch: "xxXxxxXxxxXxxxXx", tom: "..x..x.x...x.x..", rim: "x.....x....x...." })
       ])
     }
   ]
