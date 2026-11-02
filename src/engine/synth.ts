@@ -8,7 +8,7 @@
  * (with mono/legato, HOLD, sustain pedal and tuning applied).
  */
 
-import { getAudioCtx, getAudioCtxIfAny, getSynthBus, makeDriveCurve, makeReverbImpulse, unlockAudio } from "./bus";
+import { getAudioCtx, getAudioCtxIfAny, getSynthBus, makeDriveCurve, setReverbSize, unlockAudio } from "./bus";
 import { getCustomTuning, setCustomTuning, setOrbitSyncFormat, SYNC_DIVS, SYNTH_PARAMS, SynthPatch, synthDefaults, tuningCents } from "./params";
 import { createHQVoice, EngineId, hqPost, initHQ, setEngine, useHQ } from "./hq";
 import { createStringsVoice, initStrings, stringsPost, useStrings } from "./strings";
@@ -183,7 +183,7 @@ export function setSynthParam(
     else if (key === "eqMid") bus.eqMid.gain.setTargetAtTime(v, now, 0.02);
     else if (key === "eqHigh") bus.eqHigh.gain.setTargetAtTime(v, now, 0.02);
     else if (key === "delayTime") bus.delay.delayTime.setTargetAtTime(v, now, 0.05);
-    else if (key === "delayFb") bus.fb.gain.setTargetAtTime(v, now, 0.02);
+    else if (key === "delayFb") bus.fb.gain.setTargetAtTime(Math.min(0.95, v), now, 0.02);
     else if (key === "delayMix") bus.delayWet.gain.setTargetAtTime(v * 0.7, now, 0.02);
     else if (key === "revMix") bus.revWet.gain.setTargetAtTime(v * 0.9, now, 0.02);
     else if (key === "chorusMix") bus.chorusWet.gain.setTargetAtTime(v * 0.9, now, 0.03);
@@ -192,15 +192,7 @@ export function setSynthParam(
       bus.chorusDepthL.gain.setTargetAtTime(0.004 * v, now, 0.05);
       bus.chorusDepthR.gain.setTargetAtTime(-0.004 * v, now, 0.05);
     } else if (key === "volume") bus.master.gain.setTargetAtTime(v, now, 0.02);
-    else if (key === "revSize") {
-      if (bus.revTimer) clearTimeout(bus.revTimer);
-      bus.revTimer = setTimeout(() => {
-        if (Math.abs(bus.revSizeApplied - synthPatch.revSize) > 0.01) {
-          bus.reverb.buffer = makeReverbImpulse(ctx, synthPatch.revSize);
-          bus.revSizeApplied = synthPatch.revSize;
-        }
-      }, 180);
-    }
+    else if (key === "revSize") setReverbSize(bus, v);
   }
 
   activeSynthVoices.forEach((vc) => vc.update(key));
