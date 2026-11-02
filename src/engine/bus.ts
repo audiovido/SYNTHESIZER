@@ -4,7 +4,7 @@
 
 interface ReverbComb {
   delay: DelayNode;
-  damp: BiquadFilterNode;
+  damp: AudioNode;
   fb: GainNode;
   delaySec: number;
 }
@@ -162,8 +162,24 @@ function makeTanhCurve(): Float32Array {
 /** Freeverb-style comb delay lengths (seconds, derived from the classic 44.1kHz sample counts) and allpass delays. */
 const REVERB_COMB_DELAYS_SEC = [1557, 1617, 1491, 1422, 1277, 1356, 1188, 1116].map((s) => s / 44100);
 const REVERB_ALLPASS_DELAYS_SEC = [556, 441, 341, 225].map((s) => s / 44100);
-const REVERB_COMB_DAMP_HZ = 3500;
-const REVERB_COMB_DAMP_Q = Math.SQRT1_2;
+/**
+ * Comb damping: a ONE-POLE low-pass, as in the original Freeverb. Its gain falls
+ * monotonically from exactly 1 at DC, so every lower frequency rings at least as
+ * long as every higher one. (A biquad here had a passband bump near 2-3 kHz: once
+ * the feedback was scaled for that bump, the lows died early and the tail turned
+ * into a whistle around 2.5 kHz on every release.)
+ */
+const REVERB_COMB_DAMP_HZ = 4500;
+
+function makeDamp(ctx: BaseAudioContext): AudioNode {
+  const d = Math.exp((-2 * Math.PI * REVERB_COMB_DAMP_HZ) / ctx.sampleRate);
+  if (typeof (ctx as any).createIIRFilter === "function") return ctx.createIIRFilter([1 - d], [1, -d]);
+  const b = ctx.createBiquadFilter(); // fallback: no resonance
+  b.type = "lowpass";
+  b.frequency.value = REVERB_COMB_DAMP_HZ;
+  b.Q.value = -6;
+  return b;
+}
 const REVERB_ALLPASS_G = 0.5;
 const REVERB_FB_MAX = 0.97;
 
@@ -175,10 +191,7 @@ const REVERB_FB_MAX = 0.97;
  * requested decay time as safely possible (not an over-cautious fixed guess).
  */
 function measureDampPeakGain(ctx: AudioContext): number {
-  const probe = ctx.createBiquadFilter();
-  probe.type = "lowpass";
-  probe.frequency.value = REVERB_COMB_DAMP_HZ;
-  probe.Q.value = REVERB_COMB_DAMP_Q;
+  const probe = makeDamp(ctx) as BiquadFilterNode | IIRFilterNode;
   const n = 300;
   const freqs = new Float32Array(n);
   const nyquist = ctx.sampleRate / 2;
@@ -188,7 +201,7 @@ function measureDampPeakGain(ctx: AudioContext): number {
   probe.getFrequencyResponse(freqs, mag, phase);
   let peak = 1;
   for (let i = 0; i < n; i++) if (Number.isFinite(mag[i]) && mag[i] > peak) peak = mag[i];
-  return peak * 1.05; // 5% safety margin above the measured bump
+  return peak * 1.01; // the one-pole peaks at exactly 1 (DC); 1% margin
 }
 
 /** Per-comb feedback gain that targets an approximate RT60 (seconds) for that comb's own delay length,
@@ -203,17 +216,23 @@ function combFeedbackForRT60(delaySec: number, rt60: number, dampPeakGain: numbe
 function buildReverb(ctx: AudioContext, input: AudioNode, revSize: number): { combs: ReverbComb[]; output: AudioNode; dampPeakGain: number } {
   const dampPeakGain = measureDampPeakGain(ctx);
   const combInputScale = ctx.createGain();
-  combInputScale.gain.value = 0.22; // keeps 8 summed combs from building up too hot
+  combInputScale.gain.value = 0.14; // keeps 8 summed combs from building up too hot (the one-pole damping keeps more low end ringing than the old biquad)
   input.connect(combInputScale);
 
   const combSum = ctx.createGain();
   const combs: ReverbComb[] = REVERB_COMB_DELAYS_SEC.map((delaySec) => {
     const delay = ctx.createDelay(1);
     delay.delayTime.value = delaySec;
-    const damp = ctx.createBiquadFilter();
-    damp.type = "lowpass";
-    damp.frequency.value = REVERB_COMB_DAMP_HZ;
-    damp.Q.value = REVERB_COMB_DAMP_Q;
+    const damp = makeDamp(ctx);
+    // a slow, tiny wobble of each comb's length (different rate per comb) smears its fixed
+    // resonances, so long tails stay smooth instead of ringing on single metallic notes
+    const wob = ctx.createOscillator();
+    wob.frequency.value = 0.13 + 0.11 * (REVERB_COMB_DELAYS_SEC.indexOf(delaySec) % 8);
+    const wobAmt = ctx.createGain();
+    wobAmt.gain.value = 0.00035; // ±0.35 ms
+    wob.connect(wobAmt);
+    wobAmt.connect(delay.delayTime);
+    wob.start();
     const fb = ctx.createGain();
     fb.gain.value = combFeedbackForRT60(delaySec, revSize, dampPeakGain);
 
