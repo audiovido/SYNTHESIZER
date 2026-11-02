@@ -16,9 +16,11 @@ export const MERV: MachineDef = {
   ],
   sections: [
     SEC.osc1("osc"), SEC.osc2("osc"), SEC.filter("filter"), SEC.amp("filter"),
-    SEC.lfo("wobble", "WOBBLE", true, true), SEC.voice("wobble"), SEC.driveEq("fx"), SEC.space("fx")
+    SEC.lfo("wobble", "WOBBLE", true, true), { ...SEC.voice("wobble"), title: "VOICE · ANALOG", controls: [...SEC.voice("wobble").controls, ...SEC.analog("wobble").controls] },
+    SEC.driveEq("fx"), SEC.space("fx")
   ],
   base: {
+    drift: 0.1, filterDrive: 0.45, keyTrack: 0.2, // bass: growl from drive, stable pitch
     polyMode: "mono", legato: "on", glide: 0.03, osc1Oct: -1, osc2Oct: -1, filterType: "lp24",
     lfoTarget: "filter", lfoShape: "sine", lfoSync: 4, lfoDepth: 0.6,
     cutoff: 400, res: 8, envAmt: 0.3, fA: 0.003, fD: 0.3, fS: 0.3, aA: 0.003, aS: 0.9, aR: 0.08,

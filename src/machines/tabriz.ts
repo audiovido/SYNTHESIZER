@@ -31,7 +31,7 @@ export const TABRIZ: MachineDef = {
     },
     SEC.amp("filter"),
     SEC.voice("voice"),
-    { title: "ANALOG", page: "voice", controls: [row([["keyTrack", "KEY TRK"], ["filterDrive", "DRIVE"], ["drift", "DRIFT"]])] },
+    SEC.analog("voice"),
     SEC.lfo("voice"), SEC.driveEq("fx"), SEC.space("fx")
   ],
   base: { polyMode: "mono", legato: "on", glide: 0.06, filterType: "lp24", unison: 1, velSens: 0.5, revMix: 0.12, sub: 0.2, osc3Level: 0, osc3Wave: "triangle", osc3Oct: -1, osc3Detune: -5, keyTrack: 0.33, filterDrive: 0.3, drift: 0.25 },

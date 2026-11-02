@@ -4,7 +4,8 @@
 // behind every machine without a special engine: SY-1, Yazd, Baku, Merv,
 // Isfahan, Konya, Bam, Kerman, Bushehr, Rasht, Hormoz. Keep both in sync:
 // native/tests/hq_parity.cpp + hq_parity.mts check that they render the same
-// samples. Lives in sy1::hq so it can share a binary with the Tabriz engine.
+// samples. Lives in sy1::hq so it can share a binary with the Tabriz engine;
+// reuses its transistor ladder (analog.hpp) for the LADDER filter type.
 //
 // Precision notes (needed for sample parity with TypeScript):
 //  - Lookup tables are float (JS Float32Array); every read widens to double
@@ -14,6 +15,8 @@
 #include <cmath>
 #include <cstdint>
 #include <string>
+
+#include "analog.hpp"  // sy1::Ladder, sy1::resToLadder (the Tabriz ladder, shared)
 
 namespace sy1 {
 namespace hq {
@@ -25,6 +28,7 @@ constexpr int MAX_UNI = 7;
 constexpr double PEAK = 0.42;
 constexpr double PI = 3.14159265358979323846;
 constexpr double SQRT2 = 1.4142135623730951;
+const double C4 = std::log2(261.6256);  // key tracking pivot: cutoff unchanged at middle C
 
 inline double fastTanh(double x) {
   if (x > 3) return 1;
@@ -146,6 +150,9 @@ struct Voice {
   double subPh = 0, lfoPh = 0, lfoHold = 0, vibPh = 0;
   double t = 0, amp = 0.0001, fenv = 0, out = 1, relCoef = 0, scoopC = 0;
   double aL1 = 0, aL2 = 0, aR1 = 0, aR2 = 0, bL1 = 0, bL2 = 0, bR1 = 0, bR2 = 0;
+  Ladder ladL, ladR;                     // LADDER filter type (L/R)
+  double xPrevL = 0, xPrevR = 0;          // its 2x-oversampling input memory
+  double drift[2] = {}, driftFix[2] = {};  // analog drift per oscillator (-1..1)
 };
 
 class Engine {
@@ -157,7 +164,7 @@ class Engine {
     if (key == "oriental") oriental = s == "on";
     else if (key == "osc1Wave") w1 = waveId(s, 0);
     else if (key == "osc2Wave") w2 = waveId(s, 1);
-    else if (key == "filterType") ftype = s == "lowpass" ? 0 : s == "bandpass" ? 1 : s == "highpass" ? 2 : s == "lp24" ? 3 : 0;
+    else if (key == "filterType") ftype = s == "lowpass" ? 0 : s == "bandpass" ? 1 : s == "highpass" ? 2 : s == "lp24" ? 3 : s == "ladder" ? 4 : 0;
     else if (key == "lfoTarget") lfoTarget = s == "pitch" ? 0 : s == "filter" ? 1 : s == "amp" ? 2 : 0;
     else if (key == "lfoShape") lfoShape = s == "triangle" ? 1 : s == "square" ? 2 : s == "sawtooth" ? 3 : s == "sh" ? 4 : 0;
   }
@@ -192,6 +199,9 @@ class Engine {
     else if (key == "uniWidth") uniWidth.target = n;
     else if (key == "vibDepth") vibDepth.target = n;
     else if (key == "vibRate") vibRate.target = n;
+    else if (key == "keyTrack") keyTrack.target = n;
+    else if (key == "filterDrive") fDrive.target = n;
+    else if (key == "drift") driftAmt.target = n;
   }
 
   void snapParams() { for (Smooth* s : smooths()) s->snap(); }
@@ -243,6 +253,12 @@ class Engine {
     s.relCoef = 0;
     s.aL1 = s.aL2 = s.aR1 = s.aR2 = 0;
     s.bL1 = s.bL2 = s.bR1 = s.bR2 = 0;
+    s.ladL.reset(); s.ladR.reset();
+    s.xPrevL = s.xPrevR = 0;
+    for (int k = 0; k < 2; k++) {
+      s.drift[k] = (nextInit() * 2 - 1) * 0.5;
+      s.driftFix[k] = nextInit() * 2 - 1;
+    }
     if (fromHz > 0 && glide > 0.004) {
       s.lfTarget = std::log2(target);
       s.glideC = 1 - std::exp(-1 / ((glide / 3) * sr));
@@ -315,12 +331,32 @@ class Engine {
     const float(*T1)[TBL_N + 1] = w1 < 3 ? T.wave[w1] : nullptr;
     const float(*T2)[TBL_N + 1] = w2 < 3 ? T.wave[w2] : nullptr;
     const double BW = SQRT2;  // first LP24 stage: Butterworth damping
+    // analog character
+    const double kt = keyTrack.cur;
+    const double fd = fDrive.cur;
+    const double driveK = 1 + 4 * fd;
+    const double driveG = (1 + 0.55 * fd) / driveK;
+    const double driftC = driftAmt.cur;
+    const double rL = resToLadder(rs);
+    const double ladComp = 1 + 2.5 * rL;
+    const double fsOs = sr * 2;
 
     for (auto& v : voices) {
       if (!v.active) continue;
       const double peak = PEAK * (1 - velS + velS * v.vel);
       const double sus = std::fmax(0.0001, peak * aSv);
       double g = 0, a1 = 0, a2 = 0, a3 = 0, b1 = 0, b2 = 0, b3 = 0;
+
+      double dr1 = 1, dr2 = 1;
+      if (driftC > 0) {
+        for (int k = 0; k < 2; k++) {
+          double d = v.drift[k] + (nextInit() * 2 - 1) * 0.06;
+          d *= 0.996;
+          v.drift[k] = d > 1 ? 1 : d < -1 ? -1 : d;
+        }
+        dr1 = std::pow(2.0, (driftC * (6 * v.drift[0] + 2 * v.driftFix[0])) / 1200);
+        dr2 = std::pow(2.0, (driftC * (6 * v.drift[1] + 2 * v.driftFix[1])) / 1200);
+      }
 
       const double fb = std::pow(2.0, std::fmax(v.lf, v.lfTarget)) * std::pow(2.0, (std::fmax(0.0, bendCents) + 60) / 1200);
       for (int k = 0; k < N; k++) {
@@ -377,23 +413,27 @@ class Engine {
           if (l1 > 0) {
             double ph = v.ph1[k];
             const double s = (T1 ? readTable(T1[v.tb1[k]], ph) : sineAt(SINE, ph)) * l1;
-            ph += (f0 * ratio1 * ur) * invSr; if (ph >= 1) ph -= std::floor(ph); v.ph1[k] = ph;
+            ph += (f0 * ratio1 * dr1 * ur) * invSr; if (ph >= 1) ph -= std::floor(ph); v.ph1[k] = ph;
             xl += s * uGL[k]; xr += s * uGR[k];
           }
           if (l2 > 0) {
             double ph = v.ph2[k];
             const double s = (T2 ? readTable(T2[v.tb2[k]], ph) : sineAt(SINE, ph)) * l2;
-            ph += (f0 * ratio2 * ur) * invSr; if (ph >= 1) ph -= std::floor(ph); v.ph2[k] = ph;
+            ph += (f0 * ratio2 * dr2 * ur) * invSr; if (ph >= 1) ph -= std::floor(ph); v.ph2[k] = ph;
             xl += s * uGL[k]; xr += s * uGR[k];
           }
         }
         double c = 0;
         if (subG > 0) c += sineAt(SINE, v.subPh) * subG;
-        v.subPh += f0 * ratioSub * invSr;
+        v.subPh += f0 * ratioSub * dr1 * invSr;
         if (v.subPh >= 1) v.subPh -= std::floor(v.subPh);
         if (noiseG > 0) c += nextNoise() * noiseG;
         xl = (xl + c) * 0.5;
         xr = (xr + c) * 0.5;
+        if (fd > 0) {
+          xl = fastTanh(xl * driveK) * driveG;
+          xr = fastTanh(xr * driveK) * driveG;
+        }
 
         if (t < attackA) v.amp = 0.0001 + (peak - 0.0001) * (t / attackA);
         else v.amp += (sus - v.amp) * decayC;
@@ -404,14 +444,26 @@ class Engine {
         if ((i & 3) == 0) {
           double fc = base + (top - base) * v.fenv;
           if (lt == 1) fc *= std::pow(2.0, lfo * depth * 2);
+          if (kt != 0) fc *= std::pow(2.0, kt * (v.lf + cents / 1200 - C4));
           if (fc < 20) fc = 20; else if (fc > maxFc) fc = maxFc;
-          g = std::tan((PI * fc) * invSr);
-          a1 = 1 / (1 + g * (g + kq)); a2 = g * a1; a3 = g * a2;
-          if (ft == 3) { b1 = 1 / (1 + g * (g + BW)); b2 = g * b1; b3 = g * b2; }
+          if (ft == 4) {
+            v.ladL.setCutoff(fc, fsOs, rL);
+            v.ladR.setCutoff(fc, fsOs, rL);
+          } else {
+            g = std::tan((PI * fc) * invSr);
+            a1 = 1 / (1 + g * (g + kq)); a2 = g * a1; a3 = g * a2;
+            if (ft == 3) { b1 = 1 / (1 + g * (g + BW)); b2 = g * b1; b3 = g * b2; }
+          }
         }
 
         double yl, yr;
-        if (ft == 3) {
+        if (ft == 4) {  // LADDER: Tabriz transistor ladder, 2x oversampled, fed at 2x level
+          const double inL = xl * 2, inR = xr * 2;
+          v.ladL.tick(0.5 * (v.xPrevL + inL)); v.ladL.tick(inL); v.xPrevL = inL;
+          v.ladR.tick(0.5 * (v.xPrevR + inR)); v.ladR.tick(inR); v.xPrevR = inR;
+          yl = v.ladL.s4 * ladComp * 0.5;
+          yr = v.ladR.s4 * ladComp * 0.5;
+        } else if (ft == 3) {
           double v3 = xl - v.bL2;
           double v1 = b1 * v.bL1 + b2 * v3;
           double v2 = v.bL2 + b2 * v.bL1 + b3 * v3;
@@ -456,6 +508,8 @@ class Engine {
       if (std::fabs(v.bL2) < 1e-20) v.bL2 = 0;
       if (std::fabs(v.bR1) < 1e-20) v.bR1 = 0;
       if (std::fabs(v.bR2) < 1e-20) v.bR2 = 0;
+      v.ladL.flush();
+      v.ladR.flush();
       if (v.released && v.out < 2e-5) v.active = false;
     }
   }
@@ -471,10 +525,10 @@ class Engine {
     return def;
   }
 
-  struct SmoothList { Smooth* p[19]; Smooth** begin() { return p; } Smooth** end() { return p + 19; } };
+  struct SmoothList { Smooth* p[22]; Smooth** begin() { return p; } Smooth** end() { return p + 22; } };
   SmoothList smooths() {
     return {{&mix, &sub, &noise, &cutoff, &res, &envAmt, &fS, &aS, &velSens, &lfoRate, &lfoDepth, &detune2,
-             &bendRange, &uniDetune, &uniWidth, &vibDepth, &vibRate, &bend, &modWheel}};
+             &bendRange, &uniDetune, &uniWidth, &vibDepth, &vibRate, &bend, &modWheel, &keyTrack, &fDrive, &driftAmt}};
   }
 
   double nextNoise() { rng = xorshift(rng); return rng / 2147483648.0 - 1; }
@@ -514,7 +568,7 @@ class Engine {
   double scoop = 0, scoopTime = 0.08, vibDelay = 0.3, tahrir = 0, tahrirSpeed = 12;
   Smooth mix{0.45}, sub{0.2}, noise{0}, cutoff{2200}, res{2}, envAmt{0.45}, fS{0.25}, aS{0.75}, velSens{0.6},
       lfoRate{5}, lfoDepth{0}, detune2{8}, bendRange{2}, uniDetune{20}, uniWidth{0.5}, vibDepth{0}, vibRate{5.5},
-      bend{0}, modWheel{0};
+      bend{0}, modWheel{0}, keyTrack{0}, fDrive{0}, driftAmt{0};
   double uRatio[MAX_UNI] = {}, uGL[MAX_UNI] = {}, uGR[MAX_UNI] = {};
 };
 

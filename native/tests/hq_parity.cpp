@@ -12,7 +12,7 @@
 
 using namespace sy1;
 static const double SR = 48000;
-static const int SCENARIOS = 3;
+static const int SCENARIOS = 4;
 
 static void scenario(hq::Engine& e, int which) {
   if (which == 0) {  // unison supersaw lead, LP24 with resonance, S&H on the filter, noise
@@ -26,6 +26,10 @@ static void scenario(hq::Engine& e, int which) {
     e.setParam("vibDepth", 0.5); e.setParam("vibRate", 6.0); e.setParam("vibDelay", 0.2);
     e.setParam("osc1Wave", "square"); e.setParam("osc2Wave", "sawtooth"); e.setParam("osc2Detune", 4.0);
     e.setParam("filterType", "bandpass"); e.setParam("cutoff", 1400.0); e.setParam("res", 5.0);
+  } else if (which == 3) {  // analog character: LADDER near self-oscillation, drift, drive, key tracking, unison
+    e.setParam("osc1Wave", "sawtooth"); e.setParam("osc2Wave", "square"); e.setParam("unison", 3.0);
+    e.setParam("filterType", "ladder"); e.setParam("cutoff", 500.0); e.setParam("res", 15.0); e.setParam("envAmt", 0.5);
+    e.setParam("filterDrive", 0.6); e.setParam("drift", 0.8); e.setParam("keyTrack", 0.7);
   } else {  // sine/triangle, high-pass, pitch LFO, sub
     e.setParam("osc1Wave", "triangle"); e.setParam("osc2Wave", "sine"); e.setParam("osc2Oct", 1.0);
     e.setParam("filterType", "highpass"); e.setParam("cutoff", 300.0); e.setParam("res", 18.0);

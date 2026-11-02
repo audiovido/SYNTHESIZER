@@ -18,6 +18,10 @@
  *    resonant node is soft-saturated (tanh), resonance-dependent, so the
  *    filter overloads gracefully like an analog one instead of ringing with
  *    infinite headroom (same idea as the Tabriz ladder).
+ *  - Analog character, shared with Tabriz: DRIFT (each oscillator wanders a
+ *    few cents, random walk + per-note offset), filter DRIVE (tanh into the
+ *    filter, loudness-compensated), KEY TRK (cutoff follows the note), and a
+ *    LADDER filter type (the Tabriz transistor ladder, 2x oversampled, stereo)
  *  - Sample-accurate note offsets (the host converts times to offsets)
  *  - Glide (mono/legato), per-note tuning offsets (dastgah tunings)
  *  - LFO shapes: sine, triangle, square, saw, sample-and-hold
@@ -30,6 +34,8 @@
  *   allOff(), setBend(v -1..1), setMod(v 0..1)
  *   render(L, R, n)      adds n samples into L (and R when not null)
  */
+
+import { Ladder, resToLadder } from "./analog";
 
 export const HQ_POOL = 24;        // voice slots
 export const HQ_MAX_SOUNDING = 10; // held/ringing voices before the oldest is stolen (spec 6)
@@ -118,7 +124,8 @@ function readTable(t: Float32Array, ph: number): number {
 }
 
 const WAVE: Record<string, number> = { sawtooth: 0, square: 1, triangle: 2, sine: 3 };
-const FILT: Record<string, number> = { lowpass: 0, bandpass: 1, highpass: 2, lp24: 3 };
+const FILT: Record<string, number> = { lowpass: 0, bandpass: 1, highpass: 2, lp24: 3, ladder: 4 };
+const C4 = Math.log2(261.6256); // key tracking pivot: cutoff unchanged at middle C
 const LFOT: Record<string, number> = { pitch: 0, filter: 1, amp: 2 };
 const LFOS: Record<string, number> = { sine: 0, triangle: 1, square: 2, sawtooth: 3, sh: 4 };
 
@@ -181,6 +188,13 @@ export class HQVoice {
   // filter state (L/R, two stages)
   aL1 = 0; aL2 = 0; aR1 = 0; aR2 = 0;
   bL1 = 0; bL2 = 0; bR1 = 0; bR2 = 0;
+  // ladder filter type (L/R) and its 2x-oversampling input memory
+  ladL = new Ladder();
+  ladR = new Ladder();
+  xPrevL = 0; xPrevR = 0;
+  // analog drift per oscillator: random-walk state and fixed per-note offset (-1..1)
+  drift = new Float64Array(2);
+  driftFix = new Float64Array(2);
 }
 
 export class HQEngine {
@@ -211,6 +225,9 @@ export class HQEngine {
   vibRate = new Smooth(5.5);
   bend = new Smooth(0);
   modWheel = new Smooth(0);
+  keyTrack = new Smooth(0);
+  fDrive = new Smooth(0);
+  driftAmt = new Smooth(0);
   smooths: Smooth[];
 
   voices: HQVoice[] = [];
@@ -227,7 +244,7 @@ export class HQEngine {
     for (let i = 0; i < HQ_POOL; i++) this.voices.push(new HQVoice());
     this.smooths = [this.mix, this.sub, this.noise, this.cutoff, this.res, this.envAmt, this.fS, this.aS,
       this.velSens, this.lfoRate, this.lfoDepth, this.detune2, this.bendRange, this.uniDetune, this.uniWidth,
-      this.vibDepth, this.vibRate, this.bend, this.modWheel];
+      this.vibDepth, this.vibRate, this.bend, this.modWheel, this.keyTrack, this.fDrive, this.driftAmt];
   }
 
   setParam(key: string, v: unknown): void {
@@ -269,6 +286,9 @@ export class HQEngine {
       case "uniWidth": this.uniWidth.target = n; break;
       case "vibDepth": this.vibDepth.target = n; break;
       case "vibRate": this.vibRate.target = n; break;
+      case "keyTrack": this.keyTrack.target = n; break;
+      case "filterDrive": this.fDrive.target = n; break;
+      case "drift": this.driftAmt.target = n; break;
       default: break;
     }
   }
@@ -350,6 +370,12 @@ export class HQEngine {
     s.relCoef = 0;
     s.aL1 = s.aL2 = s.aR1 = s.aR2 = 0;
     s.bL1 = s.bL2 = s.bR1 = s.bR2 = 0;
+    s.ladL.reset(); s.ladR.reset();
+    s.xPrevL = s.xPrevR = 0;
+    for (let k = 0; k < 2; k++) {
+      s.drift[k] = (this.nextInit() * 2 - 1) * 0.5;
+      s.driftFix[k] = this.nextInit() * 2 - 1;
+    }
     if (fromHz > 0 && glide > 0.004) {
       s.lfTarget = Math.log2(target);
       s.glideC = 1 - Math.exp(-1 / ((glide / 3) * this.sr));
@@ -441,12 +467,33 @@ export class HQEngine {
     const T2 = w2 < 3 ? TABLES[w2] : null;
     const BW = Math.SQRT2; // first LP24 stage: Butterworth damping
     const oriental = this.oriental;
+    // analog character
+    const kt = this.keyTrack.cur;
+    const fd = this.fDrive.cur;
+    const driveK = 1 + 4 * fd;                    // pre-gain into the tanh
+    const driveG = (1 + 0.55 * fd) / driveK;      // back out, with makeup so typical mixes keep their loudness
+    const driftC = this.driftAmt.cur;
+    const rL = resToLadder(res);                  // RESO knob -> ladder feedback (1 = self-oscillation)
+    const ladComp = 1 + 2.5 * rL;               // makes up most of the ladder's resonance bass loss (Tabriz keeps more of it)
+    const fsOs = sr * 2;
 
     for (const v of this.voices) {
       if (!v.active) continue;
       const peak = PEAK * (1 - velS + velS * v.vel);
       const sus = Math.max(0.0001, peak * aS);
       let g = 0, a1 = 0, a2 = 0, a3 = 0, b1 = 0, b2 = 0, b3 = 0;
+
+      // slow analog drift: random walk per oscillator, once per block (+-6 cents walk, +-2 cents fixed, at 100%)
+      let dr1 = 1, dr2 = 1;
+      if (driftC > 0) {
+        for (let k = 0; k < 2; k++) {
+          let d = v.drift[k] + (this.nextInit() * 2 - 1) * 0.06;
+          d *= 0.996;
+          v.drift[k] = d > 1 ? 1 : d < -1 ? -1 : d;
+        }
+        dr1 = Math.pow(2, (driftC * (6 * v.drift[0] + 2 * v.driftFix[0])) / 1200);
+        dr2 = Math.pow(2, (driftC * (6 * v.drift[1] + 2 * v.driftFix[1])) / 1200);
+      }
 
       // wavetables for this block, chosen at the highest pitch the block can reach
       const fb = Math.pow(2, Math.max(v.lf, v.lfTarget)) * Math.pow(2, (Math.max(0, bendCents) + 60) / 1200);
@@ -506,23 +553,28 @@ export class HQEngine {
           if (l1 > 0) {
             let ph = v.ph1[k];
             const s = (T1 ? readTable(T1[v.tb1[k]], ph) : sineAt(ph)) * l1;
-            ph += (f0 * ratio1 * ur) * invSr; if (ph >= 1) ph -= Math.floor(ph); v.ph1[k] = ph;
+            ph += (f0 * ratio1 * dr1 * ur) * invSr; if (ph >= 1) ph -= Math.floor(ph); v.ph1[k] = ph;
             xl += s * this.uGL[k]; xr += s * this.uGR[k];
           }
           if (l2 > 0) {
             let ph = v.ph2[k];
             const s = (T2 ? readTable(T2[v.tb2[k]], ph) : sineAt(ph)) * l2;
-            ph += (f0 * ratio2 * ur) * invSr; if (ph >= 1) ph -= Math.floor(ph); v.ph2[k] = ph;
+            ph += (f0 * ratio2 * dr2 * ur) * invSr; if (ph >= 1) ph -= Math.floor(ph); v.ph2[k] = ph;
             xl += s * this.uGL[k]; xr += s * this.uGR[k];
           }
         }
         let c = 0;
         if (subG > 0) c += sineAt(v.subPh) * subG;
-        v.subPh += f0 * ratioSub * invSr;
+        v.subPh += f0 * ratioSub * dr1 * invSr;
         if (v.subPh >= 1) v.subPh -= Math.floor(v.subPh);
         if (noiseG > 0) c += this.nextNoise() * noiseG;
         xl = (xl + c) * 0.5;
         xr = (xr + c) * 0.5;
+        // filter drive: soft overdrive into the filter, like a hot analog mixer
+        if (fd > 0) {
+          xl = fastTanh(xl * driveK) * driveG;
+          xr = fastTanh(xr * driveK) * driveG;
+        }
 
         // envelopes (spec section 4)
         if (t < attackA) v.amp = 0.0001 + (peak - 0.0001) * (t / attackA);
@@ -534,14 +586,28 @@ export class HQEngine {
         if ((i & 3) === 0) {
           let fc = base + (top - base) * v.fenv;
           if (lt === 1) fc *= Math.pow(2, lfo * depth * 2);
+          if (kt !== 0) fc *= Math.pow(2, kt * (v.lf + cents / 1200 - C4));
           if (fc < 20) fc = 20; else if (fc > maxFc) fc = maxFc;
-          g = Math.tan((Math.PI * fc) * invSr);
-          a1 = 1 / (1 + g * (g + kq)); a2 = g * a1; a3 = g * a2;
-          if (ft === 3) { b1 = 1 / (1 + g * (g + BW)); b2 = g * b1; b3 = g * b2; }
+          if (ft === 4) {
+            v.ladL.setCutoff(fc, fsOs, rL);
+            v.ladR.setCutoff(fc, fsOs, rL);
+          } else {
+            g = Math.tan((Math.PI * fc) * invSr);
+            a1 = 1 / (1 + g * (g + kq)); a2 = g * a1; a3 = g * a2;
+            if (ft === 3) { b1 = 1 / (1 + g * (g + BW)); b2 = g * b1; b3 = g * b2; }
+          }
         }
 
         let yl: number, yr: number;
-        if (ft === 3) {
+        if (ft === 4) {
+          // LADDER: the Tabriz transistor ladder, 2x oversampled. Fed at 2x level so it
+          // saturates like Tabriz's mixer does, then halved back.
+          const inL = xl * 2, inR = xr * 2;
+          v.ladL.tick(0.5 * (v.xPrevL + inL)); v.ladL.tick(inL); v.xPrevL = inL;
+          v.ladR.tick(0.5 * (v.xPrevR + inR)); v.ladR.tick(inR); v.xPrevR = inR;
+          yl = v.ladL.s4 * ladComp * 0.5;
+          yr = v.ladR.s4 * ladComp * 0.5;
+        } else if (ft === 3) {
           // LP24: Butterworth stage, then the resonant stage
           let v3 = xl - v.bL2;
           let v1 = b1 * v.bL1 + b2 * v3;
@@ -587,6 +653,8 @@ export class HQEngine {
       if (Math.abs(v.bL2) < 1e-20) v.bL2 = 0;
       if (Math.abs(v.bR1) < 1e-20) v.bR1 = 0;
       if (Math.abs(v.bR2) < 1e-20) v.bR2 = 0;
+      v.ladL.flush();
+      v.ladR.flush();
       if (v.released && v.out < 2e-5) v.active = false;
     }
   }

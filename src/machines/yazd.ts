@@ -15,9 +15,10 @@ export const YAZD: MachineDef = {
   ],
   sections: [
     SEC.osc1("osc"), SEC.osc2("osc"), SEC.filter("filter"), SEC.amp("filter", true),
-    SEC.lfo("motion", "MOTION", true), SEC.chorus("motion"), SEC.delay("space"), SEC.reverbOut("space")
+    SEC.lfo("motion", "MOTION", true), SEC.chorus("motion"), SEC.delay("space"), SEC.reverbOut("space"), SEC.analog("space")
   ],
   base: {
+    drift: 0.35, filterDrive: 0.1, keyTrack: 0.2, // pads: more drift (movement), little drive
     aA: 0.8, aD: 1.2, aS: 0.85, aR: 2, velSens: 0.3, sub: 0.15,
     unison: 3, uniDetune: 14, uniWidth: 0.75,
     cutoff: 1600, res: 1.2, envAmt: 0.2, fA: 0.8, fD: 1.5, fS: 0.5,

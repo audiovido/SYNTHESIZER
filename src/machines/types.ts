@@ -101,6 +101,7 @@ export const LADDER_OPTS: ChoiceOption[] = [
 export const FILTER_OPTS: ChoiceOption[] = [
   ["lowpass", "LP", "Low-pass 12 dB"],
   ["lp24", "24", "Low-pass 24 dB (HQ engine)"],
+  ["ladder", "LDR", "Ladder low-pass 24 dB (Tabriz transistor ladder)"],
   ["bandpass", "BP", "Band-pass"],
   ["highpass", "HP", "High-pass"]
 ];
@@ -158,6 +159,11 @@ export const SEC = {
       row([["cutoff", "CUTOFF"], ["res", "RESO"], ["envAmt", "ENV"]]),
       row([["fA", "A"], ["fD", "D"], ["fS", "S"]], { small: true })
     ]
+  }),
+  /** Analog character (HQ and Tabriz engines): key tracking, filter drive, oscillator drift. */
+  analog: (page: string): SectionDef => ({
+    title: "ANALOG", page,
+    controls: [row([["keyTrack", "KEY TRK"], ["filterDrive", "DRIVE"], ["drift", "DRIFT"]])]
   }),
   amp: (page: string, hold = false): SectionDef => ({
     title: "AMP ENV", page,

@@ -15,9 +15,10 @@ export const BAM: MachineDef = {
   ],
   sections: [
     SEC.osc1("osc"), SEC.osc2("osc"), SEC.filter("filter"), SEC.amp("filter", true),
-    SEC.lfo("motion", "MOTION", true), SEC.driveEq("motion"), SEC.delay("space"), SEC.reverbOut("space")
+    SEC.lfo("motion", "MOTION", true), SEC.driveEq("motion"), SEC.delay("space"), SEC.reverbOut("space"), SEC.analog("space")
   ],
   base: {
+    drift: 0.4, filterDrive: 0.3, keyTrack: 0.1, // drones: lots of slow movement, a little grit
     hold: "off", aA: 2, aD: 1, aS: 1, aR: 4, velSens: 0.2, noise: 0.25,
     osc1Oct: -1, osc2Oct: -1, unison: 3, uniDetune: 30, uniWidth: 0.9,
     filterType: "bandpass", cutoff: 800, res: 6, envAmt: 0.1,

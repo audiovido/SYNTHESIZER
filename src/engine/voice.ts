@@ -74,7 +74,7 @@ export function createSynthVoice(
   const trem = ctx.createGain();         // LFO amp target
   trem.gain.setValueAtTime(1, when);
   const filter = ctx.createBiquadFilter();
-  filter.type = p.filterType === "lp24" ? "lowpass" : p.filterType;
+  filter.type = p.filterType === "lp24" || p.filterType === "ladder" ? "lowpass" : p.filterType;
   filter.Q.setValueAtTime(p.res, when);
   const mix = ctx.createGain();
   mix.gain.setValueAtTime(0.5, when);
@@ -213,7 +213,7 @@ export function createSynthVoice(
       } else if (key === "res") {
         filter.Q.setTargetAtTime(q.res, now, 0.02);
       } else if (key === "filterType") {
-        filter.type = q.filterType === "lp24" ? "lowpass" : q.filterType;
+        filter.type = q.filterType === "lp24" || q.filterType === "ladder" ? "lowpass" : q.filterType;
       } else if (key === "oscMix") {
         o1.g.gain.setTargetAtTime(1 - q.oscMix, now, 0.02);
         o2.g.gain.setTargetAtTime(q.oscMix, now, 0.02);

@@ -19,7 +19,7 @@ export type SynthPatch = Record<string, any>;
 export const PARAM_CHOICES: Record<string, string[]> = {
   wave: ["sawtooth", "square", "triangle", "sine"],
   wave3: ["triangle", "sawtooth", "revsaw", "square"],
-  filter: ["lowpass", "lp24", "bandpass", "highpass"],
+  filter: ["lowpass", "lp24", "ladder", "bandpass", "highpass"],
   lfo: ["pitch", "filter", "amp"],
   poly: ["poly", "mono"],
   onoff: ["off", "on"],

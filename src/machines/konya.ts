@@ -64,6 +64,7 @@ export const KONYA: MachineDef = {
     SEC.space("space")
   ],
   base: {
+    drift: 0.15, filterDrive: 0.2, keyTrack: 0.33,
     arpOn: "on", arpMode: "euclid", arpGate: 0.45, arpSwing: 0, eucRate: 6, hold: "off",
     polyMode: "poly", glide: 0, unison: 1, velSens: 0.5, ...PLUCK,
     delayMix: 0.22, delayTime: 0.375, delayFb: 0.35, revMix: 0.28, revSize: 2.6, volume: 0.78

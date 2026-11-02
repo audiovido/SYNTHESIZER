@@ -592,6 +592,11 @@
     padding: 2px;
     margin: 0;
   }
+  /* 5 options (FILTER with LADDER): 3 columns, so it stays 2 lines like the 4-option selectors */
+  .synth-panel[data-machine="sy1"] .synth-sec:not(.synth-sec-custom) > .synth-choice:has(> .synth-choice-btn:nth-child(5)) {
+    flex-basis: 84px;
+    grid-template-columns: 1fr 1fr 1fr;
+  }
   .synth-panel[data-machine="sy1"] .synth-sec:not(.synth-sec-custom) > .synth-choice .synth-choice-btn {
     min-height: 18px;
     font-size: 0.54rem;

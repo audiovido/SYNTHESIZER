@@ -27,9 +27,10 @@ export const BAKU: MachineDef = {
       ]
     },
     SEC.osc1("osc"), SEC.osc2("osc"), SEC.filter("filter"), SEC.amp("filter"), SEC.chorus("space"),
-    SEC.delay("space"), SEC.reverbOut("space")
+    SEC.delay("space"), SEC.reverbOut("space"), SEC.analog("space")
   ],
   base: {
+    drift: 0.15, filterDrive: 0.3, keyTrack: 0.4, // arps: punchy, brighter up the keyboard
     arpOn: "on", hold: "off", arpRate: 6, arpOct: 2, arpGate: 0.5,
     chorusMix: 0.4, chorusRate: 0.5, delayMix: 0.25, delayTime: 0.36, delayFb: 0.4, revMix: 0.25,
     aA: 0.002, aD: 0.25, aS: 0.3, aR: 0.2, velSens: 0.3, sub: 0.1,

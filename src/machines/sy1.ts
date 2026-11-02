@@ -1,4 +1,4 @@
-import { MachineDef, SEC } from "./types";
+import { MachineDef, row, SEC } from "./types";
 
 /** SY-1 — the flagship all-rounder (the original panel). */
 export const SY1: MachineDef = {
@@ -14,10 +14,13 @@ export const SY1: MachineDef = {
     { id: "fx", label: "Effects" }
   ],
   sections: [
-    SEC.osc1("osc"), SEC.osc2("osc"), SEC.filter("filter"), SEC.amp("amp"),
+    // ANALOG as a small captioned row under OSC 1 (same height as OSC 2 with its UNISON row)
+    { ...SEC.osc1("osc"), controls: [...SEC.osc1("osc").controls, row([["keyTrack", "KEY TRK"], ["filterDrive", "DRIVE"], ["drift", "DRIFT"]], { small: true, caption: "ANALOG" })] },
+    SEC.osc2("osc"), SEC.filter("filter"), SEC.amp("amp"),
     SEC.lfo("amp"), SEC.driveEq("fx"), SEC.delay("fx"), SEC.reverbOut("fx")
   ],
-  base: {},
+  // analog character (shared with Tabriz): balanced all-rounder amounts
+  base: { drift: 0.2, filterDrive: 0.25, keyTrack: 0.33 },
   presets: [
     { id: "init", name: "Init", group: "Basics", patch: {} },
     { id: "warmPad", name: "Warm Pad", group: "Pads", patch: { osc1Wave: "sawtooth", osc2Wave: "sawtooth", osc2Detune: 12, unison: 3, uniDetune: 14, uniWidth: 0.7, oscMix: 0.5, sub: 0.25, cutoff: 1400, res: 1.2, envAmt: 0.25, fA: 0.8, fD: 1.5, fS: 0.5, aA: 0.9, aD: 1.2, aS: 0.85, aR: 2.2, lfoRate: 0.35, lfoDepth: 0.25, lfoTarget: "filter", revMix: 0.45, revSize: 4, eqHigh: -3 } },
@@ -37,7 +40,7 @@ export const SY1: MachineDef = {
     { id: "noiseSweep", name: "Noise Sweep", group: "Bells & FX", patch: { oscMix: 0, noise: 0.9, sub: 0, filterType: "bandpass", res: 10, cutoff: 400, envAmt: 1, fA: 1.5, fD: 3, fS: 0.3, aA: 0.5, aD: 2, aS: 0.6, aR: 2.5, revMix: 0.5, revSize: 4 } },
 { id: "dreamPad", name: "Dream Pad", group: "Pads", patch: { osc1Wave: "triangle", osc2Wave: "sawtooth", osc2Detune: 9, oscMix: 0.45, unison: 5, uniDetune: 24, uniWidth: 0.85, sub: 0.15, cutoff: 1200, res: 1.5, envAmt: 0.3, fA: 1.5, fD: 2, fS: 0.5, aA: 1.4, aD: 1.5, aS: 0.85, aR: 3, lfoTarget: "filter", lfoRate: 0.2, lfoDepth: 0.3, chorusMix: 0.4, revMix: 0.55, revSize: 5, eqHigh: -2 } },
     { id: "lushStrings", name: "Lush Strings", group: "Pads", patch: { osc1Wave: "sawtooth", osc2Wave: "sawtooth", osc2Detune: 10, oscMix: 0.5, unison: 3, uniDetune: 16, uniWidth: 0.9, sub: 0, cutoff: 2800, res: 0.8, envAmt: 0.15, aA: 0.45, aD: 1, aS: 0.9, aR: 1.6, chorusMix: 0.6, chorusRate: 0.45, chorusDepth: 0.75, revMix: 0.4, revSize: 3.5, eqHigh: -3 } },
-    { id: "moogBass", name: "Ladder Bass", group: "Bass", patch: { polyMode: "mono", legato: "on", glide: 0.03, osc1Wave: "sawtooth", osc1Oct: -1, osc2Wave: "square", osc2Oct: -1, osc2Detune: 4, oscMix: 0.4, sub: 0.5, filterType: "lp24", cutoff: 380, res: 3, envAmt: 0.6, fA: 0.002, fD: 0.3, fS: 0.15, aA: 0.002, aD: 0.4, aS: 0.9, aR: 0.08, drive: 0.2, revMix: 0.04 } },
+    { id: "moogBass", name: "Ladder Bass", group: "Bass", patch: { polyMode: "mono", legato: "on", glide: 0.03, osc1Wave: "sawtooth", osc1Oct: -1, osc2Wave: "square", osc2Oct: -1, osc2Detune: 4, oscMix: 0.4, sub: 0.5, filterType: "ladder", filterDrive: 0.4, volume: 1, cutoff: 380, res: 3, envAmt: 0.6, fA: 0.002, fD: 0.3, fS: 0.15, aA: 0.002, aD: 0.4, aS: 0.9, aR: 0.08, drive: 0.2, revMix: 0.04 } },
     { id: "reeseBass", name: "Reese Bass", group: "Bass", patch: { polyMode: "mono", legato: "on", osc1Wave: "sawtooth", osc1Oct: -1, osc2Wave: "sawtooth", osc2Oct: -1, osc2Detune: 22, oscMix: 0.5, sub: 0.3, filterType: "lp24", cutoff: 650, res: 2, envAmt: 0.2, aA: 0.004, aS: 1, aR: 0.15, drive: 0.35, chorusMix: 0, revMix: 0.05 } },
     { id: "subBass", name: "Pure Sub", group: "Bass", patch: { polyMode: "mono", legato: "on", glide: 0.02, osc1Wave: "sine", osc1Oct: -1, osc2Wave: "triangle", osc2Oct: -1, oscMix: 0.25, sub: 0.6, cutoff: 300, res: 1, envAmt: 0.05, aA: 0.003, aS: 1, aR: 0.12, revMix: 0 } },
     { id: "sawLead", name: "Saw Lead", group: "Leads", patch: { polyMode: "mono", legato: "on", glide: 0.05, osc1Wave: "sawtooth", osc2Wave: "sawtooth", osc2Detune: 7, oscMix: 0.5, sub: 0.15, cutoff: 3500, res: 4, envAmt: 0.3, fD: 0.4, fS: 0.5, aA: 0.003, aS: 0.9, aR: 0.2, lfoTarget: "pitch", lfoRate: 5.5, lfoDepth: 0.04, delayMix: 0.25, delayTime: 0.375, delayFb: 0.35, revMix: 0.2 } },

@@ -38,10 +38,11 @@ export const ISFAHAN: MachineDef = {
     },
     SEC.osc1("tone"), SEC.osc2("tone", false),
     SEC.filter("filter"), SEC.amp("filter"),
-    { title: "VIBRATO", page: "space", controls: [row([["vibDelay", "DELAY"], ["vibDepth", "DEPTH"], ["vibRate", "RATE"]])] },
+    { title: "VIBRATO · ANALOG", page: "space", controls: [row([["vibDelay", "DELAY"], ["vibDepth", "DEPTH"], ["vibRate", "RATE"]]), ...SEC.analog("space").controls] },
     SEC.space("space")
   ],
   base: {
+    drift: 0.1, filterDrive: 0.2, keyTrack: 0.4, // little drift so dastgah intervals stay exact
     oriental: "off", tuning: "shur", tuneRoot: 7, polyMode: "mono", legato: "on", glide: 0,
     scoop: 0, scoopTime: 0.08, vibDelay: 0.35, vibDepth: 0.35, vibRate: 5.5, tahrir: 0, tahrirSpeed: 12,
     velSens: 0.5, noise: 0.1, sub: 0, unison: 1, cutoff: 2600, res: 2, envAmt: 0.25,
