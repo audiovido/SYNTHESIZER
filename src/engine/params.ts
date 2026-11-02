@@ -211,6 +211,17 @@ DRUM_PARAM_VOICES.forEach((v) => {
   SYNTH_PARAMS[v + "Tone"] = { min: 0, max: 1, def: 0.5, fmt: (x) => Math.round(x * 100) + "%" };
   SYNTH_PARAMS[v + "Level"] = { min: 0, max: 1, def: 0.8, fmt: (x) => Math.round(x * 100) + "%" };
 });
+// Per-voice mix (all drum machines): PAN, COLOR (one-knob filter: left = low-pass,
+// right = high-pass), DRIVE (saturation), SEND (how much of this voice goes to delay/reverb)
+DRUM_PARAM_VOICES.forEach((v) => {
+  SYNTH_PARAMS[v + "Pan"] = { min: -1, max: 1, def: 0, fmt: (x) => (Math.abs(x) < 0.02 ? "C" : (x < 0 ? "L" : "R") + Math.round(Math.abs(x) * 100)) };
+  SYNTH_PARAMS[v + "Color"] = { min: -1, max: 1, def: 0, fmt: (x) => (Math.abs(x) < 0.02 ? "Open" : (x < 0 ? "LP " : "HP ") + Math.round(Math.abs(x) * 100)) };
+  SYNTH_PARAMS[v + "Drive"] = { min: 0, max: 1, def: 0, fmt: (x) => Math.round(x * 100) + "%" };
+  // the kick stays mostly dry by default: reverb on the kick muddies the low end
+  SYNTH_PARAMS[v + "Send"] = { min: 0, max: 1, def: v === "kick" ? 0.2 : 1, fmt: (x) => Math.round(x * 100) + "%" };
+});
+// Drum bus GLUE: bus compression + gentle saturation that makes the kit sound like one instrument
+SYNTH_PARAMS.drumGlue = { min: 0, max: 1, def: 0.35, fmt: (x) => Math.round(x * 100) + "%" };
 SYNTH_PARAMS.drumSwing = { min: 0, max: 0.6, def: 0, fmt: (x) => Math.round(x * 100) + "%" };
 SYNTH_PARAMS.drumAccent = { min: 0, max: 1, def: 0.5, fmt: (x) => Math.round(x * 100) + "%" };
 

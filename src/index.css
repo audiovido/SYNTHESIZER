@@ -2756,6 +2756,15 @@ body {
     align-self: center;
     margin: 0;
   }
+  /* Drum SOUND card: its two knob rows (TUNE..LEVEL, PAN..SEND) side by side */
+  .synth-custom[data-custom="drum-voice"] {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    column-gap: var(--sp-1);
+  }
+  .synth-custom[data-custom="drum-voice"] > .drum-voice-name { flex: 1 1 100%; }
+  .synth-custom[data-custom="drum-voice"] > .sk-row { flex: 1 1 40%; min-width: 0; margin: 0; }
   .synth-sec:has(> .synth-choice ~ .synth-choice) > .synth-choice {
     flex: 1 1 40%;
     min-width: 0;

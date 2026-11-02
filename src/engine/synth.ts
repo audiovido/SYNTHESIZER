@@ -8,7 +8,7 @@
  * (with mono/legato, HOLD, sustain pedal and tuning applied).
  */
 
-import { getAudioCtx, getAudioCtxIfAny, getSynthBus, makeDriveCurve, setReverbSize, unlockAudio } from "./bus";
+import { getAudioCtx, getAudioCtxIfAny, getSynthBus, makeDriveCurve, setMainToFx, setReverbSize, unlockAudio } from "./bus";
 import { getCustomTuning, setCustomTuning, setOrbitSyncFormat, SYNC_DIVS, SYNTH_PARAMS, SynthPatch, synthDefaults, tuningCents } from "./params";
 import { createHQVoice, EngineId, hqPost, initHQ, setEngine, useHQ } from "./hq";
 import { createStringsVoice, initStrings, stringsPost, useStrings } from "./strings";
@@ -274,6 +274,8 @@ export function setMachine(id: string): void {
   releaseEverything();
   stopDrums();
   machine = next;
+  // drum machines feed delay/reverb only through per-voice sends; synths feed them directly
+  setMainToFx(machine.kind !== "drums");
   if (machine.kind === "drums") {
     setDrumKit(machine.drumModel, machine.drumLabels);
     useDrumBank(machine.id, machine.presets[0]?.patterns);
@@ -812,7 +814,9 @@ configureDrums(
   () => synthPatch,
   () => {
     const ctx = getAudioCtxIfAny();
-    return ctx ? getSynthBus(ctx, synthPatch).input : null;
+    if (!ctx) return null;
+    const bus = getSynthBus(ctx, synthPatch);
+    return { main: bus.input, send: bus.sendIn };
   }
 );
 setDrumTempoSource(getTempo);

@@ -116,7 +116,7 @@ function crushCurve(levels: number): Float32Array {
 }
 
 const driveCurves = new Map<number, Float32Array>();
-function driveCurve(k: number): Float32Array {
+export function driveCurve(k: number): Float32Array {
   const key = Math.round(k * 20);
   let c = driveCurves.get(key);
   if (!c) {

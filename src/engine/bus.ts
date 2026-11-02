@@ -35,6 +35,12 @@ export interface SynthFXBus {
   chorusDepthR: GainNode;
   revSizeApplied: number;
   dampPeakGain: number;
+  /** Everything that feeds delay, chorus and reverb (main signal via mainToFx, plus sendIn). */
+  fxIn: GainNode;
+  /** Main signal into the effects: 1 for synths, 0 on drum machines (voices use per-voice sends). */
+  mainToFx: GainNode;
+  /** Effects-only input (no dry path): per-voice drum sends. */
+  sendIn: GainNode;
 }
 
 let audioCtx: AudioContext | null = null;
@@ -238,6 +244,17 @@ export function setReverbSize(bus: SynthFXBus, revSize: number): void {
   bus.revSizeApplied = revSize;
 }
 
+// Whether the main signal feeds delay/chorus/reverb (synths) or only per-voice sends do (drum machines).
+let mainFxOn = true;
+
+/** Drum machines turn this off so reverb and delay come only from per-voice sends. */
+export function setMainToFx(on: boolean): void {
+  mainFxOn = on;
+  const ctx = audioCtx;
+  const b = ctx ? synthBuses.get(ctx) : undefined;
+  if (b && ctx) b.mainToFx.gain.setTargetAtTime(on ? 1 : 0, ctx.currentTime, 0.02);
+}
+
 export function getSynthBus(ctx: AudioContext, synthPatch: Record<string, any>): SynthFXBus {
   let bus = synthBuses.get(ctx);
   if (bus) return bus;
@@ -276,6 +293,15 @@ export function getSynthBus(ctx: AudioContext, synthPatch: Record<string, any>):
   const sum = ctx.createGain();
   eqHigh.connect(sum); // dry
 
+  // Effects input: the main signal (unless a drum machine turns it off) plus per-voice sends
+  const fxIn = ctx.createGain();
+  const mainToFx = ctx.createGain();
+  mainToFx.gain.value = mainFxOn ? 1 : 0;
+  const sendIn = ctx.createGain();
+  eqHigh.connect(mainToFx);
+  mainToFx.connect(fxIn);
+  sendIn.connect(fxIn);
+
   const delay = ctx.createDelay(2);
   delay.delayTime.value = p.delayTime;
   const fb = ctx.createGain();
@@ -294,7 +320,7 @@ export function getSynthBus(ctx: AudioContext, synthPatch: Record<string, any>):
   const delayWet = ctx.createGain();
   delayWet.gain.value = p.delayMix * 0.7;
 
-  eqHigh.connect(delay);
+  fxIn.connect(delay);
   delay.connect(delayTone);
   delayTone.connect(delayHP);
   delayHP.connect(delayWet); // wet tap: filtered, not yet saturated by the feedback-loop drive
@@ -305,7 +331,7 @@ export function getSynthBus(ctx: AudioContext, synthPatch: Record<string, any>):
 
   // Stereo chorus: two short modulated delays, LFO in opposite phase on L and R
   const chorusIn = ctx.createGain();
-  eqHigh.connect(chorusIn);
+  fxIn.connect(chorusIn);
   const dl = ctx.createDelay(0.05);
   const dr = ctx.createDelay(0.05);
   dl.delayTime.value = 0.012;
@@ -334,7 +360,7 @@ export function getSynthBus(ctx: AudioContext, synthPatch: Record<string, any>):
   const revWet = ctx.createGain();
   revWet.gain.value = p.revMix * 0.9;
 
-  const { combs: reverbCombs, output: reverbOut, dampPeakGain } = buildReverb(ctx, eqHigh, p.revSize);
+  const { combs: reverbCombs, output: reverbOut, dampPeakGain } = buildReverb(ctx, fxIn, p.revSize);
   reverbOut.connect(revWet);
   revWet.connect(sum);
 
@@ -381,7 +407,10 @@ export function getSynthBus(ctx: AudioContext, synthPatch: Record<string, any>):
     chorusDepthL,
     chorusDepthR,
     revSizeApplied: p.revSize,
-    dampPeakGain
+    dampPeakGain,
+    fxIn,
+    mainToFx,
+    sendIn
   };
 
   synthBuses.set(ctx, bus);

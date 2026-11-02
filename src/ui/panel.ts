@@ -157,7 +157,9 @@ function renderDrumVoice(): string {
   const v = drumVoice;
   return `<div class="drum-voice-name">${drumLabel(v)}</div><div class="sk-row">${
     renderSynthKnob(v + "Tune", "TUNE") + renderSynthKnob(v + "Decay", "DECAY") +
-    renderSynthKnob(v + "Tone", "TONE") + renderSynthKnob(v + "Level", "LEVEL")}</div>`;
+    renderSynthKnob(v + "Tone", "TONE") + renderSynthKnob(v + "Level", "LEVEL")}</div><div class="sk-row">${
+    renderSynthKnob(v + "Pan", "PAN") + renderSynthKnob(v + "Color", "COLOR") +
+    renderSynthKnob(v + "Drive", "DRIVE") + renderSynthKnob(v + "Send", "SEND")}</div>`;
 }
 
 // ------------------------------------------------- Kashan: algorithm LCD ----

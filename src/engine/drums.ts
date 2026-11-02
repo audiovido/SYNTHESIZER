@@ -8,7 +8,7 @@
  */
 
 import { getAudioCtxIfAny, getSharedNoiseBuffer } from "./bus";
-import { acousticHit, digitalHit, HitCtx, persianHit } from "./drum-models";
+import { acousticHit, digitalHit, driveCurve, HitCtx, persianHit } from "./drum-models";
 
 export const DRUM_VOICES = ["kick", "snare", "clap", "ch", "oh", "tom", "rim", "bell"] as const;
 export type DrumVoice = (typeof DRUM_VOICES)[number];
@@ -66,15 +66,65 @@ export function patternFrom(len: number, rows: Partial<Record<DrumVoice, string>
 // ---------------------------------------------------------------- sound ----
 type Patch = Record<string, any>;
 let getPatch: () => Patch = () => ({});
-let getDest: () => AudioNode | null = () => null;
+/** Where hits go: `main` = the FX bus input (dry path), `send` = its effects-only input. */
+export interface DrumDest { main: AudioNode; send: AudioNode }
+let getDest: () => DrumDest | null = () => null;
 let openHatGain: GainNode | null = null;
 
-export function configureDrums(patchGetter: () => Patch, destGetter: () => AudioNode | null): void {
+export function configureDrums(patchGetter: () => Patch, destGetter: () => DrumDest | null): void {
   getPatch = patchGetter;
   getDest = destGetter;
 }
 
-function vp(v: DrumVoice, key: "Tune" | "Decay" | "Tone" | "Level", def: number): number {
+// ------------------------------------------------------------ drum bus ----
+// Every hit's dry signal passes through one bus before the shared FX bus: a
+// compressor that "glues" the kit together (slow-ish attack keeps the
+// transients, the body comes up), then gentle tanh saturation. GLUE 0 = clean.
+interface DrumBus { input: GainNode; comp: DynamicsCompressorNode; makeup: GainNode; sat: WaveShaperNode; glue: number }
+const drumBuses = new WeakMap<BaseAudioContext, DrumBus>();
+
+function glueCurve(glue: number): Float32Array {
+  const c = new Float32Array(1024);
+  const k = 0.001 + 1.6 * glue;
+  for (let i = 0; i < c.length; i++) {
+    const x = (i / (c.length - 1)) * 2 - 1;
+    c[i] = Math.tanh(k * x) / Math.tanh(k);
+  }
+  return c;
+}
+
+function applyGlue(b: DrumBus, glue: number): void {
+  if (Math.abs(b.glue - glue) < 1e-3) return;
+  b.glue = glue;
+  b.comp.threshold.value = -4 - 20 * glue;    // dB
+  b.comp.ratio.value = 1 + 3 * glue;           // up to 4:1, a classic bus ratio
+  b.comp.knee.value = 8;
+  b.comp.attack.value = 0.012;                 // lets the stick / beater click through
+  b.comp.release.value = 0.14;
+  b.makeup.gain.value = Math.pow(10, (3 * glue) / 20); // measured: keeps kits within ~1-2 dB of their GLUE-0 loudness
+  b.sat.curve = glueCurve(glue) as any;
+}
+
+function getDrumBus(ctx: BaseAudioContext, main: AudioNode, glue: number): DrumBus {
+  let b = drumBuses.get(ctx);
+  if (!b) {
+    const input = ctx.createGain();
+    const comp = ctx.createDynamicsCompressor();
+    const makeup = ctx.createGain();
+    const sat = ctx.createWaveShaper();
+    sat.oversample = "2x";
+    input.connect(comp);
+    comp.connect(makeup);
+    makeup.connect(sat);
+    sat.connect(main);
+    b = { input, comp, makeup, sat, glue: -1 };
+    drumBuses.set(ctx, b);
+  }
+  applyGlue(b, glue);
+  return b;
+}
+
+function vp(v: DrumVoice, key: "Tune" | "Decay" | "Tone" | "Level" | "Pan" | "Color" | "Drive" | "Send", def: number): number {
   const x = getPatch()[v + key];
   return typeof x === "number" ? x : def;
 }
@@ -132,23 +182,61 @@ export function triggerDrum(v: DrumVoice, vel: number, at?: number): void {
   const strike = 1 - 0.45 * soft;
   const out = ctx.createGain();
   out.gain.value = lvl;
+  // Per-hit chain: level -> velocity brightness -> COLOR -> DRIVE -> PAN -> drum bus (+ SEND to the effects)
+  const chain: AudioNode[] = [out];
+  const link = (n: AudioNode) => { chain[chain.length - 1].connect(n); chain.push(n); };
   // velocity brightness: open at full velocity, ~2.5 octaves darker at the softest touch
   const cut = 20000 * Math.pow(2, -2.5 * soft);
-  let bright: BiquadFilterNode | null = null;
-  if (cut < Math.min(19000, ctx.sampleRate * 0.45)) {
-    bright = ctx.createBiquadFilter();
+  const nyq = ctx.sampleRate * 0.45;
+  if (cut < Math.min(19000, nyq)) {
+    const bright = ctx.createBiquadFilter();
     bright.type = "lowpass";
     bright.frequency.value = cut;
     bright.Q.value = -3; // dB: flat (Butterworth), no resonant bump
-    out.connect(bright);
-    bright.connect(dest);
-  } else {
-    out.connect(dest);
+    link(bright);
+  }
+  // COLOR: one knob, DJ-style: left closes a low-pass (to ~150 Hz), right opens a high-pass (to ~14 kHz)
+  const color = vp(v, "Color", 0);
+  if (Math.abs(color) > 0.02) {
+    const f = ctx.createBiquadFilter();
+    f.type = color < 0 ? "lowpass" : "highpass";
+    f.frequency.value = Math.min(nyq, color < 0 ? 20000 * Math.pow(2, color * 7) : 20 * Math.pow(2, color * 9.5));
+    f.Q.value = 1; // dB, a touch of edge like a mixer filter
+    link(f);
+  }
+  // DRIVE: per-voice tanh saturation, loudness-compensated
+  const drv = vp(v, "Drive", 0);
+  if (drv > 0.01) {
+    const sh = ctx.createWaveShaper();
+    sh.curve = driveCurve(drv) as any;
+    sh.oversample = "2x";
+    link(sh);
+    const comp = ctx.createGain();
+    comp.gain.value = 1 / (1 + 0.8 * drv);
+    link(comp);
+  }
+  // PAN
+  const pan = vp(v, "Pan", 0);
+  if (Math.abs(pan) > 0.01 && typeof ctx.createStereoPanner === "function") {
+    const p = ctx.createStereoPanner();
+    p.pan.value = Math.max(-1, Math.min(1, pan));
+    link(p);
+  }
+  const last = chain[chain.length - 1];
+  const glue = typeof getPatch().drumGlue === "number" ? getPatch().drumGlue : 0.35;
+  last.connect(getDrumBus(ctx, dest.main, glue).input);
+  // SEND: this voice's share of delay + reverb (the main signal itself no longer feeds them on drum machines)
+  const send = vp(v, "Send", v === "kick" ? 0.2 : 1);
+  if (send > 0.001) {
+    const sg = ctx.createGain();
+    sg.gain.value = send;
+    last.connect(sg);
+    sg.connect(dest.send);
+    chain.push(sg);
   }
   const life = 3 * dec + 0.2;
   setTimeout(() => {
-    try { out.disconnect(); } catch (e) {}
-    try { bright?.disconnect(); } catch (e) {}
+    for (const n of chain) { try { n.disconnect(); } catch (e) {} }
   }, (t - ctx.currentTime + life) * 1000 + 100);
 
   if (drumModel !== "analog") {

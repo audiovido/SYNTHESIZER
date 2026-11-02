@@ -39,7 +39,7 @@ export const KERMAN: MachineDef = {
   sections: [
     { title: "PATTERN", page: "steps", custom: "drum-transport", span: 2, wide: true, controls: [] },
     { title: "SOUND", page: "sound", custom: "drum-voice", wide: true, controls: [] },
-    { title: "GROOVE", page: "sound", controls: [row([["drumSwing", "SWING"], ["drumAccent", "ACCENT"], ["volume", "VOL"]])] },
+    { title: "GROOVE", page: "sound", wide: true, controls: [row([["drumSwing", "SWING"], ["drumAccent", "ACCENT"], ["drumGlue", "GLUE"], ["volume", "VOL"]])] },
     { title: "STEPS", page: "steps", custom: "drum-steps", span: 3, wide: true, controls: [] },
     SEC.driveEq("fx"),
     SEC.space("fx")
