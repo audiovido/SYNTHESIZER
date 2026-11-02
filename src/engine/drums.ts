@@ -94,6 +94,24 @@ function noiseSrc(ctx: AudioContext, t: number, dur: number): AudioBufferSourceN
   return n;
 }
 
+/**
+ * How each model reacts to the player (0 = machine-exact, 1 = full):
+ *  - vel: velocity changes timbre, not only level. Softer = darker (a low-pass
+ *    on the hit closing from open at full velocity), less pitch bend at the
+ *    attack, slightly shorter ring. Every voice is designed at full velocity,
+ *    so accented / full-velocity hits sound exactly as before.
+ *  - human: hit-to-hit variation (pitch +-8 cents, level +-0.7 dB, decay and
+ *    tone a few %), so repeated hits are never identical copies.
+ * Acoustic and Persian drums get the full amounts, the analog machine a
+ * little (free-running analog circuits drift too), the digital one almost none.
+ */
+const FEEL: Record<DrumModel, { vel: number; human: number }> = {
+  persian: { vel: 1, human: 1 },
+  acoustic: { vel: 1, human: 1 },
+  analog: { vel: 0.6, human: 0.4 },
+  digital: { vel: 0.3, human: 0 }
+};
+
 /** Play one drum hit at audio time `at` with velocity 0..1. */
 export function triggerDrum(v: DrumVoice, vel: number, at?: number): void {
   const ctx = getAudioCtxIfAny();
@@ -103,18 +121,38 @@ export function triggerDrum(v: DrumVoice, vel: number, at?: number): void {
   // schedule a few ms later so the attack of the very first hit is not lost.
   const warmup = ctx.state !== "running" || ctx.currentTime < 0.3 ? 0.04 : 0;
   const t = Math.max(ctx.currentTime + warmup, at || 0);
-  const tune = Math.pow(2, vp(v, "Tune", 0) / 12);
-  const dec = vp(v, "Decay", 1);
-  const tone = vp(v, "Tone", 0.5);
-  const lvl = vp(v, "Level", 0.8) * (0.25 + 0.75 * vel);
+  const feel = FEEL[drumModel] || FEEL.analog;
+  const velC = Math.max(0, Math.min(1, vel));
+  const soft = feel.vel * (1 - velC);                   // 0 at full velocity
+  const jit = () => (Math.random() * 2 - 1) * feel.human; // -human..+human
+  const tune = Math.pow(2, vp(v, "Tune", 0) / 12 + (jit() * 8 - soft * 12) / 1200);
+  const dec = vp(v, "Decay", 1) * (1 + jit() * 0.05) * (1 - 0.15 * soft);
+  const tone = Math.max(0, Math.min(1, vp(v, "Tone", 0.5) + jit() * 0.04));
+  const lvl = vp(v, "Level", 0.8) * (0.25 + 0.75 * vel) * (1 + jit() * 0.08);
+  const strike = 1 - 0.45 * soft;
   const out = ctx.createGain();
   out.gain.value = lvl;
-  out.connect(dest);
+  // velocity brightness: open at full velocity, ~2.5 octaves darker at the softest touch
+  const cut = 20000 * Math.pow(2, -2.5 * soft);
+  let bright: BiquadFilterNode | null = null;
+  if (cut < Math.min(19000, ctx.sampleRate * 0.45)) {
+    bright = ctx.createBiquadFilter();
+    bright.type = "lowpass";
+    bright.frequency.value = cut;
+    bright.Q.value = -3; // dB: flat (Butterworth), no resonant bump
+    out.connect(bright);
+    bright.connect(dest);
+  } else {
+    out.connect(dest);
+  }
   const life = 3 * dec + 0.2;
-  setTimeout(() => { try { out.disconnect(); } catch (e) {} }, (t - ctx.currentTime + life) * 1000 + 100);
+  setTimeout(() => {
+    try { out.disconnect(); } catch (e) {}
+    try { bright?.disconnect(); } catch (e) {}
+  }, (t - ctx.currentTime + life) * 1000 + 100);
 
   if (drumModel !== "analog") {
-    const h: HitCtx = { ctx, out, t, tune, dec, tone, vel, life };
+    const h: HitCtx = { ctx, out, t, tune, dec, tone, vel, life, strike };
     if (drumModel === "persian") persianHit(v, h);
     else if (drumModel === "acoustic") acousticHit(v, h);
     else digitalHit(v, h);
@@ -125,7 +163,7 @@ export function triggerDrum(v: DrumVoice, vel: number, at?: number): void {
     const o = ctx.createOscillator();
     o.type = "sine";
     const f1 = 52 * tune;
-    o.frequency.setValueAtTime(f1 * (2.6 + tone * 2), t);
+    o.frequency.setValueAtTime(f1 * (1 + (1.6 + tone * 2) * strike), t);
     o.frequency.exponentialRampToValueAtTime(f1, t + 0.06 * dec + 0.01);
     const g = ctx.createGain();
     env(g, t, 1.0, 0.5 * dec);
@@ -139,7 +177,7 @@ export function triggerDrum(v: DrumVoice, vel: number, at?: number): void {
   } else if (v === "snare") {
     const o = ctx.createOscillator();
     o.type = "triangle";
-    o.frequency.setValueAtTime(220 * tune, t);
+    o.frequency.setValueAtTime(170 * tune * (1 + (220 / 170 - 1) * strike), t);
     o.frequency.exponentialRampToValueAtTime(170 * tune, t + 0.05);
     const g = ctx.createGain(); env(g, t, 0.7 * (1 - tone * 0.6), 0.12 * dec);
     o.connect(g); g.connect(out);
@@ -189,7 +227,7 @@ export function triggerDrum(v: DrumVoice, vel: number, at?: number): void {
     sum.connect(hp); hp.connect(bp); bp.connect(g); g.connect(out);
   } else if (v === "tom") {
     const o = ctx.createOscillator(); o.type = "sine";
-    o.frequency.setValueAtTime(150 * tune * (1.4 + tone * 0.4), t);
+    o.frequency.setValueAtTime(110 * tune * (1 + ((150 * (1.4 + tone * 0.4)) / 110 - 1) * strike), t);
     o.frequency.exponentialRampToValueAtTime(110 * tune, t + 0.12);
     const g = ctx.createGain(); env(g, t, 0.95, 0.38 * dec);
     o.connect(g); g.connect(out); o.start(t); o.stop(t + life);

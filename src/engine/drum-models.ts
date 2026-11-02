@@ -12,6 +12,10 @@
  * DECAY, TONE and LEVEL knobs work the same way on every model: TUNE
  * transposes, DECAY scales the tail, TONE moves the brightness or the
  * character described next to each voice.
+ *
+ * Voices are designed at full velocity. triggerDrum (drums.ts) makes softer
+ * hits darker, shorter and less bent (via HitCtx.strike), and varies each hit
+ * slightly, like a real player.
  */
 
 import { getSharedNoiseBuffer } from "./bus";
@@ -27,7 +31,13 @@ export interface HitCtx {
   tone: number; // 0..1
   vel: number;  // 0..1
   life: number; // seconds the hit may last
+  /** Pitch-drop depth for this hit (1 = full, as voiced at full velocity): softer strikes bend the skin less. */
+  strike?: number;
 }
+
+// Strike depth of the hit being built (set at the top of each model function;
+// hits are built synchronously, one at a time).
+let strike = 1;
 
 // ------------------------------------------------------------- helpers ----
 function env(g: GainNode, t: number, peak: number, decay: number, attack = 0.001): void {
@@ -53,9 +63,10 @@ function osc(h: HitCtx, type: OscillatorType, f: number, dest: AudioNode, stopAf
   return o;
 }
 
-/** Pitch drop: from f*from to f over `time` seconds. */
+/** Pitch drop: from f*from to f over `time` seconds (depth scaled by the hit's strike). */
 function drop(o: OscillatorNode, t: number, f: number, from: number, time: number): void {
-  o.frequency.setValueAtTime(Math.max(10, f * from), t);
+  const fromS = 1 + (from - 1) * strike;
+  o.frequency.setValueAtTime(Math.max(10, f * fromS), t);
   o.frequency.exponentialRampToValueAtTime(Math.max(10, f), t + Math.max(0.003, time));
 }
 
@@ -130,6 +141,7 @@ function shaper(h: HitCtx, curve: Float32Array, dest: AudioNode): WaveShaperNode
 // --------------------------------------------------- PERSIAN (Bushehr) ----
 export function persianHit(v: Slot, h: HitCtx): void {
   const { t, tune, dec, tone } = h;
+  strike = h.strike ?? 1;
   if (v === "kick") {
     // DOHOL: big double-headed drum. TONE = beater brightness.
     const f = 62 * tune;
@@ -205,6 +217,7 @@ export function persianHit(v: Slot, h: HitCtx): void {
 // ---------------------------------------------------- ACOUSTIC (Rasht) ----
 export function acousticHit(v: Slot, h: HitCtx): void {
   const { t, tune, dec, tone } = h;
+  strike = h.strike ?? 1;
   if (v === "kick") {
     // KICK: felt beater on a ported bass drum. TONE = beater click.
     const f = 56 * tune;
@@ -278,6 +291,7 @@ export function acousticHit(v: Slot, h: HitCtx): void {
 // ---------------------------------------------------- DIGITAL (Hormoz) ----
 export function digitalHit(v: Slot, h: HitCtx): void {
   const { t, tune, dec, tone } = h;
+  strike = h.strike ?? 1;
   if (v === "kick") {
     // BOOM: long 808-style sub with a pitch dive. TONE = saturation.
     const f = 44 * tune;
