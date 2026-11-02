@@ -5,14 +5,16 @@
 //   in -> DRIVE (waveshaper (1+k)x/(1+k|x|), k = 60*drive, then 1/(1+1.5*drive))
 //      -> EQ: low shelf 220 Hz, peaking 1.1 kHz Q 0.8, high shelf 4.2 kHz (Web Audio biquad formulas)
 //      -> dry ------------------------------------------------------------+
-//      -> DELAY (time, feedback through a 4.5 kHz low-pass) * 0.7*mix ----+
+//      -> DELAY (time; repeats through 4.5 kHz low-pass -> 180 Hz high-pass,
+//         wet tapped there; feedback adds a fixed tanh saturation, fb <= 0.95) * 0.7*mix
 //      -> CHORUS (12 ms +/- 4 ms*depth triangle LFO, L/R opposite) * 0.9*mix
 //      -> REVERB * 0.9*mix -------------------------------------------------+-> * volume -> LIMITER -> out
 //
 // Differences from the web version (documented, by design):
-//  - Reverb: the web uses a convolution with a random noise burst decaying as
-//    (1-t/T)^3. Here an 8-line feedback delay network with the same length T
-//    and the same loudness (Web Audio's convolver normalisation), far cheaper on phones.
+//  - Reverb: the web uses a Freeverb-style bank (8 damped combs -> 4 allpasses,
+//    RT60 = revSize). Here an 8-line feedback delay network with the same T60,
+//    calibrated to the same loudness (measured from the web engine with
+//    continuous noise, see setSize), far cheaper on phones.
 //  - Drive: no 2x oversampling (the web's oversampler only matters at
 //    extreme drive on high notes).
 //  - Limiter: the web uses DynamicsCompressor (threshold -6 dB, ratio 12,
@@ -64,6 +66,11 @@ struct Biquad {
     const double alpha = std::sin(w) / (2 * std::pow(10, qDb / 20));
     set((1 - c) / 2, 1 - c, (1 - c) / 2, 1 + alpha, -2 * c, 1 - alpha);
   }
+  void highpass(double f, double qDb, double sr) {
+    const double w = 2 * M_PI * f / sr, c = std::cos(w);
+    const double alpha = std::sin(w) / (2 * std::pow(10, qDb / 20));
+    set((1 + c) / 2, -(1 + c), (1 + c) / 2, 1 + alpha, -2 * c, 1 - alpha);
+  }
 };
 
 // Fixed-size delay line (power-of-two buffer), fractional read with linear interpolation.
@@ -99,8 +106,21 @@ class FdnReverb {
     size_ = seconds < 0.3 ? 0.3 : seconds;
     const double t60 = size_;  // cubic decay of the web impulse ~ exponential with T60 = T
     for (int i = 0; i < L; i++) g_[i] = std::pow(10.0, -3.0 * len_[i] / (t60 * sr_));
-    // Web Audio convolver loudness for white-noise input: 0.00125 * 44100 * sqrt(T / sr)
-    const double target = 0.00125 * 44100.0 * std::sqrt(size_ / sr_);
+    // Target: wet RMS / input RMS of the web Freeverb-style reverb for continuous white
+    // noise at revMix 100% (measured 2026-11-02 in headless Chromium, last second of a
+    // T*1.5+2 s render). A continuously driven comb bank holds more energy than the
+    // input, so the gain is above 1. Interpolated in log(size).
+    static const double gT[4] = {0.3, 1.0, 2.2, 6.0};
+    static const double gG[4] = {1.526, 1.699, 1.551, 2.053};
+    double target = gG[3];
+    if (size_ <= gT[0]) target = gG[0];
+    else for (int i = 0; i < 3; i++) {
+      if (size_ <= gT[i + 1]) {
+        const double f = std::log(size_ / gT[i]) / std::log(gT[i + 1] / gT[i]);
+        target = gG[i] + (gG[i + 1] - gG[i]) * f;
+        break;
+      }
+    }
     // FDN output RMS for unit noise: sqrt(0.25 * 4 lines / (1 - g^2)) with average g (measured: tests/fx_test.cpp)
     double gm = 0;
     for (int i = 0; i < L; i++) gm += g_[i] * g_[i];
@@ -157,7 +177,8 @@ class FxBus {
     setParam("delayTime", 0.32); setParam("delayFb", 0.35); setParam("delayMix", 0.0);
     setParam("revSize", 2.2); setParam("revMix", 0.18); setParam("volume", 0.7);
     setParam("chorusMix", 0.0); setParam("chorusRate", 0.6); setParam("chorusDepth", 0.5);
-    for (int c = 0; c < 2; c++) tone_[c].lowpass(4500, 1, sr);
+    // same values as the web: Q.value 0.7071 (Web Audio reads LP/HP Q in dB)
+    for (int c = 0; c < 2; c++) { tone_[c].lowpass(4500, M_SQRT1_2, sr); hp_[c].highpass(180, M_SQRT1_2, sr); }
     // limiter coefficients
     att_ = 1 - std::exp(-1 / (0.003 * sr));
     rel_ = 1 - std::exp(-1 / (0.2 * sr));
@@ -169,7 +190,7 @@ class FxBus {
     else if (key == "eqMid") for (auto& b : mid_) b.peaking(1100, 0.8, v, sr_);
     else if (key == "eqHigh") for (auto& b : high_) b.highshelf(4200, v, sr_);
     else if (key == "delayTime") dTarget_ = std::fmin(1.5, std::fmax(0.01, v)) * sr_;
-    else if (key == "delayFb") fb_ = v;
+    else if (key == "delayFb") fb_ = std::fmin(0.95, v);
     else if (key == "delayMix") dMix_ = v * 0.7;
     else if (key == "revSize") rev_.setSize(v);
     else if (key == "revMix") rMix_ = v * 0.9;
@@ -199,8 +220,8 @@ class FxBus {
       dCur_ += (dTarget_ - dCur_) * 0.0005;
       double out[2];
       for (int c = 0; c < 2; c++) {
-        const double tap = tone_[c].tick(dl_[c].read(dCur_));
-        dl_[c].push(eq[c] + tap * fb_);
+        const double tap = hp_[c].tick(tone_[c].tick(dl_[c].read(dCur_)));
+        dl_[c].push(eq[c] + delaySat(tap) * fb_);  // saturation only colours the repeats
         out[c] = eq[c] + tap * dMix_;
       }
       // chorus
@@ -232,11 +253,16 @@ class FxBus {
       L[i] = static_cast<float>(soft(out[0] * gain));
       if (R) R[i] = static_cast<float>(soft(out[1] * gain));
     }
-    for (int c = 0; c < 2; c++) { low_[c].flush(); mid_[c].flush(); high_[c].flush(); tone_[c].flush(); }
+    for (int c = 0; c < 2; c++) { low_[c].flush(); mid_[c].flush(); high_[c].flush(); tone_[c].flush(); hp_[c].flush(); }
   }
 
  private:
   static constexpr double kThresh = 0.501187;  // -6 dBFS
+  // web: WaveShaper curve tanh(1.6x)/tanh(1.6), input clamped to -1..1
+  static double delaySat(double x) {
+    if (x > 1) x = 1; else if (x < -1) x = -1;
+    return std::tanh(1.6 * x) / std::tanh(1.6);
+  }
   double shape(double x) const {
     if (x > 1) x = 1; else if (x < -1) x = -1;
     return k_ == 0 ? x : ((1 + k_) * x) / (1 + k_ * std::fabs(x));
@@ -250,7 +276,7 @@ class FxBus {
 
   double sr_;
   double drive_ = 0, k_ = 0, comp_ = 1;
-  Biquad low_[2], mid_[2], high_[2], tone_[2];
+  Biquad low_[2], mid_[2], high_[2], tone_[2], hp_[2];
   DelayLine<262144> dl_[2];  // 5.4 s at 48 kHz, 2.7 s at 96 kHz
   double dTarget_ = 0.32 * 48000, dCur_ = -1, fb_ = 0.35, dMix_ = 0;
   DelayLine<4096> ch_;

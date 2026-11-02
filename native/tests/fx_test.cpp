@@ -65,9 +65,12 @@ int main() {
     int pk = 100; for (int i = 100; i < int(SR * 0.4); i++) if (std::fabs(L[i]) > std::fabs(L[pk])) pk = i;
     CHECK(std::fabs(pk - 0.25 * SR) < 20, "delay echo at %.1f ms (expected 250)", pk / SR * 1000);
   }
-  // 5. reverb loudness matches Web Audio convolver normalisation for white noise
+  // 5. reverb loudness matches the web Freeverb-style reverb for white noise
+  //    (targets measured from the web engine, see FdnReverb::setSize)
   std::mt19937 rng(1);
   std::normal_distribution<double> nd(0, 0.1);
+  const double webGain[4] = {1.526, 1.699, 1.551, 2.053};
+  int ti = 0;
   for (double T : {0.3, 1.0, 2.2, 6.0}) {
     auto fx = std::make_unique<FxBus>(SR);
     fx->setParam("revSize", T); fx->setParam("revMix", 1.0 / 0.9); fx->setParam("volume", 1);
@@ -77,7 +80,7 @@ int main() {
     fx->process(L.data(), R.data(), N);
     for (int i = 0; i < N; i++) L[i] -= dry[i];  // wet only (EQ flat, drive 0 -> dry passes unchanged)
     const double gain = rms(L, N - int(SR), N) / 0.1;
-    const double target = 0.00125 * 44100 * std::sqrt(T / SR);
+    const double target = webGain[ti++];
     CHECK(std::fabs(20 * std::log10(gain / target)) < 1.5, "reverb %.1fs: wet gain %.3f vs web %.3f (%.1f dB)", T, gain, target, 20 * std::log10(gain / target));
   }
   // 6. reverb decay time: -60 dB after ~T seconds
