@@ -8,7 +8,7 @@
  */
 
 import { getAudioCtxIfAny, getSharedNoiseBuffer } from "./bus";
-import { acousticHit, digitalHit, driveCurve, HitCtx, persianHit } from "./drum-models";
+import { acousticHit, driveCurve, HAT808, HitCtx, minimalHit, persianHit } from "./drum-models";
 
 export const DRUM_VOICES = ["kick", "snare", "clap", "ch", "oh", "tom", "rim", "bell"] as const;
 export type DrumVoice = (typeof DRUM_VOICES)[number];
@@ -17,7 +17,7 @@ export const DRUM_LABELS: Record<DrumVoice, string> = {
   kick: "KICK", snare: "SNARE", clap: "CLAP", ch: "HAT", oh: "OPEN", tom: "TOM", rim: "RIM", bell: "BELL"
 };
 
-export type DrumModel = "analog" | "persian" | "acoustic" | "digital";
+export type DrumModel = "analog" | "persian" | "acoustic" | "minimal";
 let drumModel: DrumModel = "analog";
 let drumLabels: Record<DrumVoice, string> = { ...DRUM_LABELS };
 
@@ -153,13 +153,13 @@ function noiseSrc(ctx: AudioContext, t: number, dur: number): AudioBufferSourceN
  *  - human: hit-to-hit variation (pitch +-8 cents, level +-0.7 dB, decay and
  *    tone a few %), so repeated hits are never identical copies.
  * Acoustic and Persian drums get the full amounts, the analog machine a
- * little (free-running analog circuits drift too), the digital one almost none.
+ * little (free-running analog circuits drift too), Hormoz (minimal & percussion) most of the way.
  */
 const FEEL: Record<DrumModel, { vel: number; human: number }> = {
   persian: { vel: 1, human: 1 },
   acoustic: { vel: 1, human: 1 },
   analog: { vel: 0.6, human: 0.4 },
-  digital: { vel: 0.3, human: 0 }
+  minimal: { vel: 0.8, human: 0.6 } // hand percussion breathes; the electronic voices stay tight enough
 };
 
 /** Play one drum hit at audio time `at` with velocity 0..1. */
@@ -243,7 +243,7 @@ export function triggerDrum(v: DrumVoice, vel: number, at?: number): void {
     const h: HitCtx = { ctx, out, t, tune, dec, tone, vel, life, strike };
     if (drumModel === "persian") persianHit(v, h);
     else if (drumModel === "acoustic") acousticHit(v, h);
-    else digitalHit(v, h);
+    else minimalHit(v, h);
     return;
   }
 
@@ -270,6 +270,10 @@ export function triggerDrum(v: DrumVoice, vel: number, at?: number): void {
     const g = ctx.createGain(); env(g, t, 0.7 * (1 - tone * 0.6), 0.12 * dec);
     o.connect(g); g.connect(out);
     o.start(t); o.stop(t + life);
+    // second tone oscillator, like the 808 snare's upper "ring"
+    const o2 = ctx.createOscillator(); o2.type = "sine"; o2.frequency.value = 330 * tune;
+    const g2 = ctx.createGain(); env(g2, t, 0.28 * (1 - tone * 0.6), 0.07 * dec);
+    o2.connect(g2); g2.connect(out); o2.start(t); o2.stop(t + life);
     const n = noiseSrc(ctx, t, life);
     const hp = ctx.createBiquadFilter(); hp.type = "highpass"; hp.frequency.value = 1200 * tune;
     const bp = ctx.createBiquadFilter(); bp.type = "peaking"; bp.frequency.value = 3500 + 4000 * tone; bp.gain.value = 6;
@@ -290,11 +294,11 @@ export function triggerDrum(v: DrumVoice, vel: number, at?: number): void {
     g.gain.setTargetAtTime(0.0001, t + 0.035, Math.max(0.01, (0.28 * dec) / 4));
     n.connect(bp); bp.connect(g); g.connect(out);
   } else if (v === "ch" || v === "oh") {
-    // six detuned square oscillators at metallic ratios (classic 808-style hats)
-    const ratios = [2, 3, 4.16, 5.43, 6.79, 8.21];
-    const sum = ctx.createGain(); sum.gain.value = 0.25;
-    ratios.forEach((r) => {
-      const o = ctx.createOscillator(); o.type = "square"; o.frequency.value = 40 * r * tune;
+    // the 808's six square oscillators at the circuit's own frequencies (205-800 Hz);
+    // they put ~4 dB more through the hat filters than the old ratios, hence 0.16
+    const sum = ctx.createGain(); sum.gain.value = 0.16;
+    HAT808.forEach((fr) => {
+      const o = ctx.createOscillator(); o.type = "square"; o.frequency.value = fr * tune;
       o.connect(sum); o.start(t); o.stop(t + life);
     });
     const hp = ctx.createBiquadFilter(); hp.type = "highpass"; hp.frequency.value = 6000 + 3000 * tone;

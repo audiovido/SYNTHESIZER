@@ -6,7 +6,7 @@
  *
  *   persian  (Bushehr) DOHOL, TAK, DAF, ZANG, DAYEREH, DOM, PELANG, SENJ
  *   acoustic (Rasht)   KICK, SNARE, BRUSH, HAT, RIDE, TOM, X-STICK, SHAKER
- *   digital  (Hormoz)  BOOM, SNAP, ZAP, TICK, METAL, FM TOM, GLITCH, BLIP
+ *   minimal  (Hormoz)  KICK, SNAP, CLAP, SHAKER, HAT, CONGA, CLAVE, KALIMBA
  *
  * Every hit is built from Web Audio nodes (no samples). Per slot the TUNE,
  * DECAY, TONE and LEVEL knobs work the same way on every model: TUNE
@@ -131,6 +131,39 @@ export function driveCurve(k: number): Float32Array {
   return c;
 }
 
+// ------------------------------------------------------- modal synthesis ----
+/**
+ * A struck membrane, bar or bell rings as a set of decaying sine "modes" at
+ * physically fixed frequency ratios; where and how it is struck decides which
+ * modes sound. Each mode: [frequency ratio, amplitude, decay seconds].
+ */
+type Mode = [ratio: number, amp: number, decay: number];
+
+/** Ideal circular membrane, mode (m,n) -> ratio to the fundamental (0,1). */
+const MEMBRANE = {
+  m01: 1, m11: 1.594, m21: 2.136, m02: 2.296, m31: 2.653, m12: 2.918, m41: 3.156, m22: 3.501, m03: 3.6, m51: 3.652
+};
+
+/**
+ * Ring a set of modes from frequency f. `bend` = how much sharper the modes start
+ * (skin tension rises with the strike, then settles) over `bendTime` seconds;
+ * scaled by the hit's strike depth like every pitch drop. Each mode gets a
+ * small random amplitude and the bend a small random depth, as in a real hit.
+ */
+function ring(h: HitCtx, f: number, list: Mode[], peak: number, bend = 0, bendTime = 0.05, type: OscillatorType = "sine"): void {
+  for (const [r, a, d] of list) {
+    if (a <= 0.001) continue;
+    const g = gain(h, peak * a * (0.92 + Math.random() * 0.16), Math.max(0.005, d * h.dec));
+    const o = osc(h, type, f * r, g);
+    if (bend > 0) drop(o, h.t, f * r, 1 + bend * (0.85 + Math.random() * 0.3), bendTime);
+  }
+}
+
+/** Contact noise of the strike (hand, finger, stick): filtered noise burst. */
+function contact(h: HitCtx, type: BiquadFilterType, f: number, q: number, peak: number, decay: number, attack = 0.0007): void {
+  noise(h, filt(h, type, Math.max(30, f), q, gain(h, peak, decay, attack)), Math.min(h.life, decay * 3 + 0.02));
+}
+
 function shaper(h: HitCtx, curve: Float32Array, dest: AudioNode): WaveShaperNode {
   const w = h.ctx.createWaveShaper();
   w.curve = curve as any;
@@ -143,44 +176,46 @@ export function persianHit(v: Slot, h: HitCtx): void {
   const { t, tune, dec, tone } = h;
   strike = h.strike ?? 1;
   if (v === "kick") {
-    // DOHOL: big double-headed drum. TONE = beater brightness.
-    const f = 62 * tune;
-    const g = gain(h, 1, 0.75 * dec);
-    drop(osc(h, "sine", f, g), t, f, 1.7, 0.05);
-    const g2 = gain(h, 0.35, 0.18 * dec);
-    drop(osc(h, "triangle", f * 1.52, g2), t, f * 1.52, 1.3, 0.04);
-    const gb = gain(h, 0.55, 0.05 * dec);
-    noise(h, filt(h, "lowpass", 500 + 2200 * tone, 0.9, gb), 0.12);
+    // DOHOL: big double-headed drum, heavy beater on the bass skin. The membrane's modes
+    // ring with a tension bend; the beater adds a felt thump. TONE = beater brightness.
+    const f = 60 * tune;
+    ring(h, f, [[MEMBRANE.m01, 1, 0.8], [MEMBRANE.m11, 0.42, 0.32], [MEMBRANE.m21, 0.22, 0.22], [MEMBRANE.m02, 0.18, 0.18], [MEMBRANE.m31, 0.1, 0.12]], 1, 0.45, 0.05);
+    contact(h, "lowpass", 450 + 2400 * tone, 0.9, 0.5, 0.045);
   } else if (v === "tom") {
-    // DOM: tombak bass stroke in the middle of the skin. TONE = ring of the goblet.
+    // DOM: tombak bass stroke in the centre of the skin. A centre strike excites only the
+    // symmetric modes (0,1), (0,2), (0,3); the goblet's air adds a low thump. TONE = ring.
     const f = 98 * tune;
-    const g = gain(h, 1, 0.5 * dec);
-    drop(osc(h, "sine", f, g), t, f, 1.18, 0.09);
-    const g2 = gain(h, 0.18 + 0.35 * tone, 0.16 * dec);
-    drop(osc(h, "sine", f * 2.25, g2), t, f * 2.25, 1.1, 0.06);
-    const gs = gain(h, 0.25, 0.03);
-    noise(h, filt(h, "bandpass", 420 * tune, 1.2, gs), 0.08);
+    ring(h, f, [[MEMBRANE.m01, 1, 0.55], [MEMBRANE.m02, 0.2 + 0.35 * tone, 0.2], [MEMBRANE.m03, 0.06 + 0.12 * tone, 0.12]], 1, 0.16, 0.08);
+    ring(h, f * 0.62, [[1, 0.3, 0.16]], 1, 0.1, 0.05); // Helmholtz resonance of the goblet body
+    contact(h, "bandpass", 380 * tune, 1.1, 0.22, 0.03);
   } else if (v === "snare") {
-    // TAK: tombak edge stroke, bright and ringing. TONE = brightness.
-    const parts: [number, number, number][] = [[710, 0.75, 0.1], [1185, 0.55, 0.07], [1660, 0.35 + 0.4 * tone, 0.05], [2410, 0.15 + 0.35 * tone, 0.035]];
-    parts.forEach(([fr, a, d]) => osc(h, "sine", fr * tune, gain(h, a, d * dec)));
-    const gc = gain(h, 0.4, 0.008);
-    noise(h, filt(h, "highpass", 3000, 0.7, gc), 0.03);
+    // TAK: tombak edge stroke, bright and ringing. An edge strike excites the asymmetric
+    // modes (1,1), (2,1), (3,1)...; TONE brings up the upper ones.
+    const F = 445 * tune;
+    ring(h, F, [
+      [MEMBRANE.m01, 0.25, 0.08], [MEMBRANE.m11, 0.75, 0.1], [MEMBRANE.m21, 0.55, 0.075],
+      [MEMBRANE.m31, 0.3 + 0.4 * tone, 0.055], [MEMBRANE.m41, 0.15 + 0.35 * tone, 0.04], [MEMBRANE.m51, 0.08 + 0.25 * tone, 0.03]
+    ], 1, 0.04, 0.02);
+    contact(h, "highpass", 3000, 0.7, 0.4, 0.008);
   } else if (v === "rim") {
-    // PELANG: finger snap / slap. TONE = snap brightness.
-    const gn = gain(h, 1, 0.035 * dec);
-    noise(h, filt(h, "bandpass", (1600 + 2600 * tone) * tune, 1.6, gn), 0.12);
-    osc(h, "sine", 1050 * tune, gain(h, 0.35, 0.02 * dec));
+    // PELANG: finger snap / slap on the skin: a sharp burst plus the high modes it shakes.
+    contact(h, "bandpass", (1600 + 2600 * tone) * tune, 1.6, 1, 0.035 * dec);
+    ring(h, 445 * tune, [[MEMBRANE.m21, 0.28, 0.03], [MEMBRANE.m41, 0.2, 0.025], [MEMBRANE.m51, 0.12, 0.02]], 1);
   } else if (v === "clap") {
-    // DAF: frame drum stroke with ring jingles. TONE = jingles vs skin.
+    // DAF: large frame drum with metal ringlets inside the frame. The thin skin booms
+    // briefly; the ringlets (random small pitches each hit) sizzle and keep rattling a
+    // moment after the stroke. TONE = ringlets vs skin.
     const f = 78 * tune;
-    const g = gain(h, 0.85 * (1 - 0.4 * tone), 0.2 * dec);
-    drop(osc(h, "sine", f, g), t, f, 1.5, 0.03);
+    ring(h, f, [[MEMBRANE.m01, 0.85 * (1 - 0.4 * tone), 0.22], [MEMBRANE.m11, 0.3 * (1 - 0.4 * tone), 0.12], [MEMBRANE.m21, 0.15, 0.08]], 1, 0.35, 0.03);
     const gj = h.ctx.createGain();
     gj.connect(h.out);
-    taps(gj, t, [0, 0.007, 0.016, 0.027], 0.35 + 0.55 * tone, 0.28 * dec);
-    const bp = filt(h, "bandpass", 5200 * Math.sqrt(tune), 0.9, gj);
-    [3120, 4380, 5910, 7340].forEach((fr) => osc(h, "square", fr * tune, bp));
+    const jt = () => Math.random() * 0.003;
+    taps(gj, t, [0, 0.006 + jt(), 0.014 + jt(), 0.024 + jt(), 0.037 + jt()], 0.35 + 0.55 * tone, 0.3 * dec);
+    const bp = filt(h, "bandpass", 5600 * Math.sqrt(tune), 0.7, gj);
+    const rings = h.ctx.createGain();
+    rings.gain.value = 4 / 7; // seven ringlets, same loudness as the old four partials
+    rings.connect(bp);
+    for (let i = 0; i < 7; i++) osc(h, "square", (2900 + i * 780 + Math.random() * 300) * tune, rings);
     noise(h, filt(h, "highpass", 6000, 0.7, gj));
   } else if (v === "oh") {
     // DAYEREH: frame drum shaken, rattling jingles. TONE = rattle speed.
@@ -223,14 +258,17 @@ export function acousticHit(v: Slot, h: HitCtx): void {
     const f = 56 * tune;
     const g = gain(h, 1.25, 0.32 * dec);
     drop(osc(h, "sine", f, g), t, f, 2.1, 0.028);
-    osc(h, "sine", f * 1.6, gain(h, 0.2, 0.06 * dec));
+    // batter-head modes above the fundamental (the "skin" of a real kick)
+    ring(h, f, [[MEMBRANE.m11, 0.16, 0.06], [MEMBRANE.m21, 0.09, 0.045], [MEMBRANE.m02, 0.06, 0.04]], 1, 0.6, 0.025);
     noise(h, filt(h, "bandpass", 3200, 0.9, gain(h, 0.12 + 0.5 * tone, 0.007)), 0.03);
     noise(h, filt(h, "lowpass", 160, 0.7, gain(h, 0.45, 0.06 * dec)), 0.2);
   } else if (v === "snare") {
     // SNARE: wood shell + snare wires. TONE = wires (snappy) vs shell.
-    const g = gain(h, 0.55 * (1 - 0.45 * tone), 0.09 * dec);
+    const body = 1 - 0.45 * tone;
+    const g = gain(h, 0.55 * body, 0.09 * dec);
     drop(osc(h, "triangle", 188 * tune, g), t, 188 * tune, 1.25, 0.02);
-    osc(h, "sine", 332 * tune, gain(h, 0.25, 0.05 * dec));
+    // batter-head modes: (1,1) is the classic ~330 Hz "ring" of a snare
+    ring(h, 188 * tune, [[MEMBRANE.m11, 0.25, 0.05], [MEMBRANE.m21, 0.14 * body, 0.04], [MEMBRANE.m02, 0.1 * body, 0.035]], 1, 0.08, 0.02);
     const wires = gain(h, 0.45 + 0.5 * tone, 0.19 * dec);
     const hp = filt(h, "highpass", 1700 * tune, 0.7, wires);
     noise(h, filt(h, "peaking", 5200, 0.8, hp));
@@ -270,7 +308,7 @@ export function acousticHit(v: Slot, h: HitCtx): void {
     const f = 112 * tune;
     const g = gain(h, 0.95, 0.42 * dec);
     drop(osc(h, "sine", f, g), t, f, 1.35, 0.06);
-    osc(h, "sine", f * 1.593, gain(h, 0.22, 0.12 * dec));
+    ring(h, f, [[MEMBRANE.m11, 0.22, 0.12], [MEMBRANE.m21, 0.12, 0.09], [MEMBRANE.m02, 0.09, 0.08], [MEMBRANE.m31, 0.05, 0.06]], 1, 0.25, 0.05);
     noise(h, filt(h, "bandpass", 2500, 0.8, gain(h, 0.1 + 0.4 * tone, 0.01)), 0.03);
   } else if (v === "rim") {
     // X-STICK: cross-stick on the rim, woody click. TONE = wood vs metal.
@@ -288,94 +326,68 @@ export function acousticHit(v: Slot, h: HitCtx): void {
   }
 }
 
-// ---------------------------------------------------- DIGITAL (Hormoz) ----
-export function digitalHit(v: Slot, h: HitCtx): void {
+// --------------------------------------------- MINIMAL & PERCUSSION (Hormoz) ----
+/** 808 hi-hat oscillator frequencies (Hz), from the original circuit. */
+export const HAT808 = [205.3, 304.4, 369.6, 522.7, 540, 800];
+
+export function minimalHit(v: Slot, h: HitCtx): void {
   const { t, tune, dec, tone } = h;
   strike = h.strike ?? 1;
   if (v === "kick") {
-    // BOOM: long 808-style sub with a pitch dive. TONE = saturation.
-    const f = 44 * tune;
-    const g = gain(h, 0.75, 1.1 * dec, 0.002);
-    const sh = shaper(h, driveCurve(tone), g);
-    drop(osc(h, "sine", f, sh), t, f, 3.2, 0.035);
+    // KICK: deep, round minimal kick: a sine with a short pitch dive, gently rounded by
+    // saturation, and a soft beater click. TONE = click (0 pure sub, 1 clicky).
+    const f = 50 * tune;
+    const g = gain(h, 0.95, 0.55 * dec, 0.0015);
+    drop(osc(h, "sine", f, shaper(h, driveCurve(0.25), g)), t, f, 2.4, 0.045);
+    contact(h, "bandpass", 2600, 0.8, 0.05 + 0.4 * tone, 0.006);
   } else if (v === "snare") {
-    // SNAP: FM snare. TONE = noise vs FM body.
-    const f = 232 * tune;
-    const car = h.ctx.createOscillator();
-    car.type = "sine";
-    car.frequency.value = f;
-    const mod = h.ctx.createOscillator();
-    mod.type = "sine";
-    mod.frequency.value = f * 3.7;
-    const idx = h.ctx.createGain();
-    idx.gain.setValueAtTime(f * 6, t);
-    idx.gain.exponentialRampToValueAtTime(1, t + 0.04);
-    mod.connect(idx);
-    idx.connect(car.frequency);
-    car.connect(gain(h, 0.6 * (1 - 0.5 * tone), 0.1 * dec));
-    car.start(t); mod.start(t); car.stop(t + h.life); mod.stop(t + h.life);
-    noise(h, filt(h, "highpass", 2500, 0.7, gain(h, 0.35 + 0.5 * tone, 0.13 * dec)));
+    // SNAP: finger snap: a bright skin-on-skin burst over a short, papery body. TONE = brightness.
+    contact(h, "bandpass", (2100 + 1200 * tone) * tune, 2.2, 2.6, 0.06 * dec);
+    contact(h, "bandpass", 1150 * tune, 1.5, 0.8, 0.025 * dec);
   } else if (v === "clap") {
-    // ZAP: laser sweep. TONE = sine to square.
-    const o1 = osc(h, "sine", 3600 * tune, gain(h, 0.6 * (1 - tone), 0.12 * dec));
-    const o2 = osc(h, "square", 3600 * tune, gain(h, 0.3 * tone, 0.12 * dec));
-    [o1, o2].forEach((o) => {
-      o.frequency.setValueAtTime(3600 * tune, t);
-      o.frequency.exponentialRampToValueAtTime(70 * tune, t + 0.06 + 0.08 * dec);
-    });
-  } else if (v === "ch") {
-    // TICK: short crushed digital hat. TONE = bit crush.
-    const g = gain(h, 0.8, 0.025 * dec);
-    const hp = filt(h, "highpass", 7500, 0.7, g);
-    const cr = shaper(h, crushCurve(Math.round(2 + (1 - tone) * 14)), hp);
-    noise(h, cr, 0.15);
-  } else if (v === "oh") {
-    // METAL: FM metallic open hat. TONE = brightness.
-    const f = 420 * tune;
-    const car = h.ctx.createOscillator();
-    car.type = "square";
-    car.frequency.value = f;
-    const mod = h.ctx.createOscillator();
-    mod.type = "square";
-    mod.frequency.value = f * 1.41;
-    const idx = h.ctx.createGain();
-    idx.gain.value = f * 2.2;
-    mod.connect(idx);
-    idx.connect(car.frequency);
-    const g = gain(h, 0.45, 0.38 * dec, 0.002);
-    car.connect(filt(h, "highpass", 2200 + 4000 * tone, 0.7, g));
-    car.start(t); mod.start(t); car.stop(t + h.life); mod.stop(t + h.life);
-  } else if (v === "tom") {
-    // FM TOM: pitched FM tom (long DECAY = log drum). TONE = FM amount.
-    const f = 138 * tune;
-    const car = h.ctx.createOscillator();
-    car.type = "sine";
-    drop(car, t, f, 1.5, 0.05);
-    const mod = h.ctx.createOscillator();
-    mod.type = "sine";
-    drop(mod, t, f * 1.5, 1.5, 0.05);
-    const idx = h.ctx.createGain();
-    idx.gain.setValueAtTime(f * (0.4 + 3 * tone), t);
-    idx.gain.setTargetAtTime(0.01, t, 0.05 * dec);
-    mod.connect(idx);
-    idx.connect(car.frequency);
-    car.connect(gain(h, 0.85, 0.32 * dec));
-    car.start(t); mod.start(t); car.stop(t + h.life); mod.stop(t + h.life);
-  } else if (v === "rim") {
-    // GLITCH: random pitched bursts that stutter. TONE = number of repeats.
+    // CLAP: soft clap in a room: four hands slightly apart, then a diffuse tail. TONE = brightness.
     const g = h.ctx.createGain();
     g.connect(h.out);
-    const n = 1 + Math.round(tone * 4);
-    const gap = 0.006 + 0.008 * dec;
-    const times: number[] = [];
-    for (let i = 0; i < n; i++) times.push(i * gap);
-    taps(g, t, times, 0.8, 0.015 * dec);
-    const o = osc(h, "square", (300 + Math.random() * 3200) * tune, filt(h, "bandpass", 2400, 0.8, g), 0.25);
-    for (let i = 1; i < n; i++) o.frequency.setValueAtTime((300 + Math.random() * 3200) * tune, t + i * gap);
+    const jt = () => Math.random() * 0.002;
+    taps(g, t, [0, 0.009 + jt(), 0.018 + jt(), 0.029 + jt()], 1.4, 0.32 * dec);
+    noise(h, filt(h, "bandpass", 1200 * tune * (0.75 + 0.6 * tone), 1.1, g));
+    contact(h, "lowpass", 3500, 0.7, 0.15, 0.5 * dec, 0.01); // room
+  } else if (v === "ch") {
+    // SHAKER: seeds in a gourd: a cluster of tiny grain impacts on a soft swell. TONE = brightness.
+    const g = h.ctx.createGain();
+    g.connect(h.out);
+    const times = [0];
+    for (let i = 1; i < 6; i++) times.push(0.004 + Math.random() * 0.026);
+    times.sort((a, b) => a - b);
+    taps(g, t, times, 0.8, 0.06 * dec);
+    noise(h, filt(h, "bandpass", (5500 + 3500 * tone) * tune, 1.4, filt(h, "highpass", 4000, 0.7, g)));
+  } else if (v === "oh") {
+    // HAT: soft open hat: the 808's six metallic oscillators, low in the mix, over airy noise. TONE = brightness.
+    const g = gain(h, 0.25, 0.35 * dec, 0.002);
+    const hp = filt(h, "highpass", 6500 + 3000 * tone, 0.7, g);
+    const m = h.ctx.createGain();
+    m.gain.value = 0.06;
+    m.connect(filt(h, "bandpass", 9000, 0.9, hp));
+    HAT808.forEach((fr) => osc(h, "square", fr * tune, m));
+    noise(h, filt(h, "highpass", 7000, 0.7, hp));
+  } else if (v === "tom") {
+    // CONGA: tuned hand drum. Open tone rings on the membrane modes; a slap (TONE up)
+    // mutes the ring and adds a sharp crack.
+    const f = 220 * tune;
+    const open = 1 - 0.6 * tone;
+    ring(h, f, [[MEMBRANE.m01, open, 0.3], [MEMBRANE.m11, 0.3 * open, 0.12], [MEMBRANE.m21, 0.18 * open, 0.09], [MEMBRANE.m02, 0.12, 0.07]], 1, 0.06, 0.03);
+    contact(h, "bandpass", 2400 * tune, 1.2, 0.15 + 0.6 * tone, 0.012 + 0.02 * tone);
+  } else if (v === "rim") {
+    // CLAVE: hardwood bar. A free bar rings at 1 : 2.756 : 5.404. TONE morphs from a
+    // hollow woodblock (low) to a bright clave (high).
+    const f = (900 + 1700 * tone) * tune;
+    ring(h, f, [[1, 1, 0.07], [2.756, 0.25, 0.025], [5.404, 0.08, 0.012]], 0.9);
+    contact(h, "highpass", 3000, 0.7, 0.25, 0.004);
   } else if (v === "bell") {
-    // BLIP: a clean sine ping. TONE = octave.
-    const f = 440 * Math.pow(2, Math.round(tone * 3)) * tune;
-    osc(h, "sine", f, gain(h, 0.8, 0.07 * dec));
-    osc(h, "sine", f * 2, gain(h, 0.12, 0.03 * dec));
+    // KALIMBA: plucked steel tine (C5 at TUNE 0; tune it for melodies). The tine's first
+    // overtone sits near 5.9x the note; TONE brings it up.
+    const f = 523.25 * tune;
+    ring(h, f, [[1, 0.8, 1.1], [5.9, 0.05 + 0.25 * tone, 0.12], [2, 0.06, 0.4]], 1);
+    contact(h, "bandpass", 3200 * tune, 1, 0.12, 0.004);
   }
 }
