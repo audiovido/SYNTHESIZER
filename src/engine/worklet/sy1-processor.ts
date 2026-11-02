@@ -9,7 +9,12 @@
  *    triangle, with Web Audio's own phase convention
  *  - Unison: up to 7 voices per oscillator, symmetric detune, stereo width
  *  - Zero-delay-feedback (TPT) state-variable filter: LP, LP24 (two stages),
- *    BP, HP; Web Audio's Q mapping (dB for LP/HP, linear for BP)
+ *    BP, HP; Web Audio's Q mapping (dB for LP/HP, linear for BP). The
+ *    resonant node is soft-saturated (tanh), resonance-dependent, so the
+ *    filter gains real analog character (gentle harmonic enrichment,
+ *    graceful overload instead of a mathematically pristine, infinite-
+ *    headroom resonance) as it's driven harder — the same circuit-accurate
+ *    modeling idea as the Tabriz ladder filter, adapted to this topology.
  *  - Sample-accurate timed events (arpeggiator and sequencers schedule ahead)
  *  - Glide (mono/legato), per-note tuning offsets (dastgah tunings)
  *  - LFO shapes: sine, triangle, square, saw, sample-and-hold
@@ -42,6 +47,14 @@ function sineAt(ph: number): number {
   const x = ph * SINE_N;
   const i = x | 0;
   return SINE[i] + (SINE[i + 1] - SINE[i]) * (x - i);
+}
+
+/** Rational tanh approximation (exact at 0, saturates to +-1 beyond |x| = 3). Bounded, so it can never diverge. */
+function fastTanh(x: number): number {
+  if (x > 3) return 1;
+  if (x < -3) return -1;
+  const x2 = x * x;
+  return (x * (27 + x2)) / (27 + 9 * x2);
 }
 
 // ---- band-limited wavetables ----
@@ -444,6 +457,12 @@ class SY1Processor extends AudioWorkletProcessor {
     const res = this.res.cur;
     const ft = this.ftype;
     const kq = ft === 1 ? 1 / Math.max(0.1, res) : 1 / Math.pow(10, res / 20);
+    // Resonance-dependent drive into the resonant node's soft saturator (see process() doc
+    // comment): near-unity at low resonance, growing toward the self-oscillation end of the
+    // RESO range. drvInv undoes the gain on the way out, so it only bites once the signal
+    // itself pushes into it.
+    const drv = 1 + res * 0.12;
+    const drvInv = 1 / drv;
     const base = this.cutoff.cur;
     const top = Math.min(20000, base * Math.pow(2, this.envAmt.cur * 6));
     const fS = this.fS.cur;
@@ -580,21 +599,25 @@ class SY1Processor extends AudioWorkletProcessor {
           v.bL1 = 2 * v1 - v.bL1; v.bL2 = 2 * v2 - v.bL2;
           let u = v2;
           v3 = u - v.aL2; v1 = a1 * v.aL1 + a2 * v3; v2 = v.aL2 + a2 * v.aL1 + a3 * v3;
+          v1 = fastTanh(v1 * drv) * drvInv;
           v.aL1 = 2 * v1 - v.aL1; v.aL2 = 2 * v2 - v.aL2;
           yl = v2;
           v3 = xr - v.bR2; v1 = b1 * v.bR1 + b2 * v3; v2 = v.bR2 + b2 * v.bR1 + b3 * v3;
           v.bR1 = 2 * v1 - v.bR1; v.bR2 = 2 * v2 - v.bR2;
           u = v2;
           v3 = u - v.aR2; v1 = a1 * v.aR1 + a2 * v3; v2 = v.aR2 + a2 * v.aR1 + a3 * v3;
+          v1 = fastTanh(v1 * drv) * drvInv;
           v.aR1 = 2 * v1 - v.aR1; v.aR2 = 2 * v2 - v.aR2;
           yr = v2;
         } else {
           let v3 = xl - v.aL2;
           let v1 = a1 * v.aL1 + a2 * v3;
           let v2 = v.aL2 + a2 * v.aL1 + a3 * v3;
+          v1 = fastTanh(v1 * drv) * drvInv;
           v.aL1 = 2 * v1 - v.aL1; v.aL2 = 2 * v2 - v.aL2;
           yl = ft === 0 ? v2 : ft === 1 ? kq * v1 : xl - kq * v1 - v2;
           v3 = xr - v.aR2; v1 = a1 * v.aR1 + a2 * v3; v2 = v.aR2 + a2 * v.aR1 + a3 * v3;
+          v1 = fastTanh(v1 * drv) * drvInv;
           v.aR1 = 2 * v1 - v.aR1; v.aR2 = 2 * v2 - v.aR2;
           yr = ft === 0 ? v2 : ft === 1 ? kq * v1 : xr - kq * v1 - v2;
         }

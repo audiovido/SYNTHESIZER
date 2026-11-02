@@ -89,6 +89,14 @@ const WAVETABLES = new Float32Array(WT_FRAMES * (TAB_N + 1));
 const VOWEL_F1 = [730, 530, 270, 570, 300];
 const VOWEL_F2 = [1090, 1840, 2290, 840, 870];
 
+/** Rational tanh approximation (exact at 0, saturates to +-1 beyond |x| = 3). Bounded, so it can never diverge. */
+function fastTanh(x: number): number {
+  if (x > 3) return 1;
+  if (x < -3) return -1;
+  const x2 = x * x;
+  return (x * (27 + x2)) / (27 + 9 * x2);
+}
+
 function polyBlep(t: number, dt: number): number {
   if (t < dt) {
     const x = t / dt;
@@ -625,6 +633,12 @@ class SY1VectorProcessor extends AudioWorkletProcessor {
     const resVal = this.res.cur;
     const qLin = fType === 1 ? Math.max(0.5, resVal) : Math.max(0.5, Math.pow(10, resVal / 20));
     const svfK = 1 / Math.min(18, qLin);
+    // Resonance-dependent drive into the resonant node's soft saturator (same circuit-accurate
+    // idea as the HQ engine and the Tabriz ladder): near-unity at low resonance, growing toward
+    // the self-oscillation end of the RESO range so the filter overloads gracefully instead of
+    // ringing with mathematically infinite headroom.
+    const svfDrv = 1 + resVal * 0.12;
+    const svfDrvInv = 1 / svfDrv;
 
     const pw = this.vecAPw.cur;
     const fmRatio = this.vecBRatio;
@@ -803,16 +817,18 @@ class SY1VectorProcessor extends AudioWorkletProcessor {
 
         // Filter Left
         const v3L = inL - v.svfIc2L;
-        const v1L = svfA1 * v.svfIc1L + svfA2 * v3L;
+        let v1L = svfA1 * v.svfIc1L + svfA2 * v3L;
         const v2L = v.svfIc2L + svfA2 * v.svfIc1L + svfA3 * v3L;
+        v1L = fastTanh(v1L * svfDrv) * svfDrvInv;
         v.svfIc1L = Math.max(-8, Math.min(8, 2 * v1L - v.svfIc1L));
         v.svfIc2L = Math.max(-8, Math.min(8, 2 * v2L - v.svfIc2L));
         const fltL = fType === 0 ? v2L : fType === 1 ? v1L : inL - svfK * v1L - v2L;
 
         // Filter Right
         const v3R = inR - v.svfIc2R;
-        const v1R = svfA1 * v.svfIc1R + svfA2 * v3R;
+        let v1R = svfA1 * v.svfIc1R + svfA2 * v3R;
         const v2R = v.svfIc2R + svfA2 * v.svfIc1R + svfA3 * v3R;
+        v1R = fastTanh(v1R * svfDrv) * svfDrvInv;
         v.svfIc1R = Math.max(-8, Math.min(8, 2 * v1R - v.svfIc1R));
         v.svfIc2R = Math.max(-8, Math.min(8, 2 * v2R - v.svfIc2R));
         const fltR = fType === 0 ? v2R : fType === 1 ? v1R : inR - svfK * v1R - v2R;
