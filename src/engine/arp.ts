@@ -139,6 +139,21 @@ function tick(): void {
   }
 }
 
+/** In the plugin, while the DAW plays: the first step falls on the DAW's next grid line of the arp's
+ *  rate (and the step count follows the song), so the arpeggio sits on the DAW's grid. */
+function alignToHost(ctx: AudioContext): void {
+  const hc = (globalThis as any).__hostClock;
+  const h = typeof hc === "function" ? hc() : null;
+  if (!h || !h.playing || !(h.bpm > 0) || !hooks) return;
+  const p = hooks.getPatch();
+  const rate = p.arpMode === "euclid" ? p.eucRate ?? 6 : p.arpRate || 6;
+  const beats = SYNC_DIVS[Math.max(0, Math.min(SYNC_DIVS.length - 1, Math.round(rate) - 1))].beats;
+  const now = h.ppq + (ctx.currentTime - h.t) * (h.bpm / 60);
+  const next = Math.ceil(now / beats - 1e-9) * beats;
+  nextTime = ctx.currentTime + ((next - now) * 60) / h.bpm;
+  stepIndex = Math.max(0, Math.round(next / beats));
+}
+
 function ensureRunning(): void {
   const ctx = getAudioCtxIfAny();
   if (!ctx || timer) return;
@@ -146,6 +161,7 @@ function ensureRunning(): void {
   stepIndex = 0;
   pos = -1;
   dir = 1;
+  alignToHost(ctx);
   tick();
   timer = setInterval(tick, 25);
 }

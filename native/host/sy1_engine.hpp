@@ -23,6 +23,10 @@ class Sy1Engine {
  public:
   /** Build the engine. storageJson: the saved plugin state ("" = fresh). */
   bool init(double sampleRate, const std::string& shimJs, const std::string& engineJs, const std::string& storageJson, std::string& err) {
+    {  // calls queued for the engine being replaced do not carry over
+      std::lock_guard<std::mutex> l(inMu_);
+      in_.clear();
+    }
     js_ = std::make_unique<WaJs>(sampleRate);
     err = js_->eval(shimJs, "wa-shim.js");
     if (!err.empty()) return false;
@@ -37,6 +41,7 @@ class Sy1Engine {
     return true;
   }
   bool ready() const { return js_ != nullptr; }
+  WaJs* js() { return js_.get(); }  // tests
 
   /** Queue an engine call (name + JSON array of arguments) from any thread. */
   void post(const std::string& name, const std::string& argsJson) {
@@ -63,12 +68,21 @@ class Sy1Engine {
 
   // ---- audio thread ------------------------------------------------------
   /** A call made by the host side on the audio thread (MIDI, tempo, transport). */
-  void hostCall(const std::string& name, const std::string& argsJson) {
-    run("SY1E.call(" + quote(name) + ", " + argsJson + ");");
+  void hostCall(const std::string& name, const std::string& argsJson, double offsetSec = 0) {
+    if (offsetSec > 0) {
+      // sample-exact: the engine sees the event's own time inside the block
+      char b[48];
+      std::snprintf(b, sizeof b, "__evOffset = %.12g; ", offsetSec);
+      run(std::string(b) + "try { SY1E.call(" + quote(name) + ", " + argsJson + "); } finally { __evOffset = 0; }");
+    } else {
+      run("SY1E.call(" + quote(name) + ", " + argsJson + ");");
+    }
     std::lock_guard<std::mutex> l(outMu_);
     if (out_.size() < 4096) out_.push_back({name, argsJson});
   }
-  /** Render n frames (any block size); output lags by one 128-frame block. */
+  /** The DAW's clock for the next block (audio thread). */
+  void setHostClock(bool playing, double ppq, double bpm) { js_->host.playing = playing; js_->host.ppq = ppq; js_->host.bpm = bpm; }
+  /** Render n frames (any block size), one 128-frame engine block at a time. */
   template <class OnBlock>
   void process(float* L, float* R, int n, OnBlock beforeBlock) {
     for (int i = 0; i < n; i++) {

@@ -48,7 +48,7 @@ jobs:
 
       - name: Configure (macOS universal)
         if: runner.os == 'macOS'
-        run: cmake -S plugin -B plugin/build -G Xcode -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" -DCMAKE_OSX_DEPLOYMENT_TARGET=11.0
+        run: cmake -S plugin -B plugin/build -G Xcode -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" -DCMAKE_OSX_DEPLOYMENT_TARGET=11.0 -DSY1_TESTS=ON
       - name: WebView2 SDK (Windows)
         if: runner.os == 'Windows'
         run: nuget install Microsoft.Web.WebView2 -Version 1.0.1901.177 -OutputDirectory "$env:RUNNER_TEMP\wv2"
@@ -58,6 +58,9 @@ jobs:
       - name: Build
         run: cmake --build plugin/build --config Release --parallel 4
 
+      - name: Host simulation test (DAW clock, MIDI timing, loops, state)
+        if: runner.os == 'macOS'
+        run: plugin/build/SY1HostTest_artefacts/Release/SY1HostTest
       - name: Sign (ad-hoc)
         if: runner.os == 'macOS'
         run: |

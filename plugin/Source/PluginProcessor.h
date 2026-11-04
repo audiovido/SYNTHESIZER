@@ -1,4 +1,7 @@
 #pragma once
+#include <cstdint>
+#include <limits>
+#include <vector>
 #include <juce_audio_processors/juce_audio_processors.h>
 
 #include "host/sy1_engine.hpp"
@@ -45,10 +48,18 @@ class SY1Processor : public juce::AudioProcessor {
   juce::String error_;
   double lastBpm_ = -1;
   bool wasPlaying_ = false;
+  // the DAW's clock: sample position since prepareToPlay, the play head of the current DAW block,
+  // MIDI events waiting for their engine block, and the last drum step sent
+  int64_t dawPos_ = 0;
+  struct HostPos { bool playing = false, hasPpq = false, looping = false; double bpm = 0, ppq = 0, loopStart = 0, loopEnd = 0; } host_;
+  struct Pending { int64_t t; juce::MidiMessage m; };
+  std::vector<Pending> pending_;
+  int64_t nextAllowed_ = 0;
+  void readPlayHead();
+  void hostClockFor(int64_t q0);
   std::shared_ptr<int> alive_ = std::make_shared<int>(0);  // lets queued UI work see that the plugin is gone
   bool startEngine(double sampleRate, const std::string& state);
-  void handleMidi(const juce::MidiMessage& m);
-  void handleTransport();
+  void handleMidi(const juce::MidiMessage& m, double at);
 
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SY1Processor)
 };

@@ -6,8 +6,8 @@ import * as synth from "./synth";
 import * as drums from "./drums";
 import * as params from "./params";
 import * as vector from "./vector";
-import { setTempo } from "./tempo";
-import { getAudioCtxIfAny, setMasterVolume } from "./bus";
+import { setHostTempo, setTempo } from "./tempo";
+import { setMasterVolume } from "./bus";
 import { runUnmirrored } from "./mirror";
 
 export const ENGINE_CALLS: Record<string, (...a: any[]) => unknown> = {
@@ -39,6 +39,8 @@ export const ENGINE_CALLS: Record<string, (...a: any[]) => unknown> = {
   setCustomTuning: params.setCustomTuning,
   setVectorDrawnPath: vector.setVectorDrawnPath,
   hostTransport,
+  hostStep,
+  setHostTempo,
   uiStore
 };
 
@@ -48,14 +50,14 @@ function uiStore(key: string, value: string): void {
   try { localStorage.setItem(String(key), String(value)); } catch (e) {}
 }
 
-/** DAW Play / Stop: a drum machine starts its pattern `delay` seconds from now (on the DAW's next
- *  16th note), at step `step` (that 16th's place in the DAW's song, so bars stay in line). */
-function hostTransport(playing: boolean, delay = 0, step = 0): void {
-  if (synth.getMachine().kind !== "drums") return;
-  if (!playing) { drums.stopDrums(); return; }
-  if (drums.isDrumPlaying()) drums.stopDrums();
-  const ctx = getAudioCtxIfAny();
-  drums.startDrums(ctx ? ctx.currentTime + Math.max(0, delay) : undefined, step);
+/** DAW Play / Stop: while the DAW plays, the drum pattern runs on the DAW's 16th notes (hostStep). */
+function hostTransport(playing: boolean): void {
+  drums.hostDrums(!!playing);
+}
+
+/** The DAW's 16th note number `sixteenth` (from the song start) falls `inSec` seconds from now. */
+function hostStep(sixteenth: number, inSec: number): void {
+  if (synth.getMachine().kind === "drums") drums.hostStep(sixteenth, inSec);
 }
 
 /** Apply a call that came from the other side (not sent back). */

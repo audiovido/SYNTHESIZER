@@ -88,6 +88,9 @@ class WaJs {
     while (JS_ExecutePendingJob(rt_, &c) > 0) {}
   }
 
+  /** The DAW's clock for the block about to render (set by the plugin before each block). */
+  struct HostClock { bool playing = false; double ppq = 0, bpm = 120; } host;
+
   void collectGarbage() { JS_UpdateStackTop(rt_); JS_RunGC(rt_); }
 
   size_t liveNodes() const {
@@ -408,6 +411,16 @@ class WaJs {
     w->post([w, pts] { w->path(pts); });
     return JS_UNDEFINED;
   }
+  static JSValue fnHost(JSContext* c, JSValueConst, int, JSValueConst*) {
+    WaJs* h = self(c);
+    if (!h->host.playing) return JS_NULL;
+    JSValue o = JS_NewObject(c);
+    JS_SetPropertyStr(c, o, "playing", JS_TRUE);
+    JS_SetPropertyStr(c, o, "ppq", JS_NewFloat64(c, h->host.ppq));
+    JS_SetPropertyStr(c, o, "bpm", JS_NewFloat64(c, h->host.bpm));
+    JS_SetPropertyStr(c, o, "t", JS_NewFloat64(c, h->g.ctx.currentTime()));
+    return o;
+  }
   static JSValue fnLog(JSContext* c, JSValueConst, int argc, JSValueConst* argv) {
     for (int i = 0; i < argc; i++) std::fprintf(stderr, "%s%s", i ? " " : "", str(c, argv[i]).c_str());
     std::fprintf(stderr, "\n");
@@ -436,6 +449,7 @@ class WaJs {
     fn("wkMsg", fnWkMsg, 10);
     fn("wkPath", fnWkPath, 2);
     fn("wave", fnWave, 3);
+    fn("host", fnHost, 0);
     JS_SetPropertyStr(ctx_, wa, "sampleRate", JS_NewFloat64(ctx_, g.ctx.sampleRate));
     JS_SetPropertyStr(ctx_, global, "__wa", wa);
     JSValue console = JS_NewObject(ctx_);

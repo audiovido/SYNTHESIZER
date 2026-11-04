@@ -119,5 +119,11 @@ web view, in UI mode: its own engine is silent, and every top-level engine call 
 (`src/engine/mirror.ts`, `calls.ts`) is sent to the plugin's engine; calls the plugin makes
 (DAW MIDI, tempo) are applied in the window too, and the scope shows the plugin's output.
 The state saved with the DAW project is everything the app keeps in localStorage.
+The DAW is the clock: its tempo is the engine's tempo (exact; the window's tempo controls are off),
+and while it plays, drum patterns run on its 16th notes (`hostStep`, following loops and jumps;
+nothing during a count-in); an arpeggio started while it plays begins on its grid. MIDI events
+sound at their exact sample: the engine renders one 128-frame block behind the DAW (the reported
+latency), so every event of a block is known first. `plugin/tests/host_test.cpp`
+(`-DSY1_TESTS=ON`) drives the real processor like a DAW and checks all of this to the sample.
 CI: `.github/workflows/plugin.yml` builds macOS (universal AU + VST3 + app, auval) and
 Windows (VST3 + exe) and uploads them as artifacts.

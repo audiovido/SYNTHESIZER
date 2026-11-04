@@ -77,7 +77,8 @@
     resume() { return Promise.resolve(); }
     suspend() { return Promise.resolve(); }
     getOutputTimestamp() { return { contextTime: this.currentTime, performanceTime: this.currentTime * 1000 }; }
-    get currentTime() { return W.time(); }
+    // __evOffset: a DAW event's place inside the current block (seconds), so it sounds sample-exact
+    get currentTime() { return W.time() + (globalThis.__evOffset || 0); }
     createGain() { return params(new AudioNode(W.create("gain")), ["gain"]); }
     createBiquadFilter() { return params(new BiquadNode(W.create("biquad")), ["frequency", "Q", "gain", "detune"]); }
     createDelay(max) { return params(new AudioNode(W.create("delay", +(max || 1))), ["delayTime"]); }
@@ -155,6 +156,8 @@
   globalThis.AudioContext = function () { return globalThis.__ctx || (globalThis.__ctx = new Ctx()); };
   globalThis.webkitAudioContext = globalThis.AudioContext;
   globalThis.AudioWorkletNode = AudioWorkletNode;
+  // the DAW's clock (plugin): {playing, ppq (beats at time t), bpm, t}, or null when the DAW is stopped
+  globalThis.__hostClock = () => (W.host ? W.host() : null);
   if (UI) return; // the browser keeps its own timers, document and storage handling below
   globalThis.performance = { now: () => W.time() * 1000 };
   const noEl = { classList: { toggle() {}, add() {}, remove() {}, contains() { return false; } }, setAttribute() {}, style: {} };

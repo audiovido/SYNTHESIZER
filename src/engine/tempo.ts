@@ -24,7 +24,11 @@ export function onTempoChange(cb: (bpm: number) => void): () => void {
   return () => listeners.delete(cb);
 }
 
+// In the plugin the DAW's tempo rules (exact, not rounded) and the app's own tempo controls are off.
+let hostLocked = false;
+
 function setTempo__impl(v: number): void {
+  if (hostLocked) return;
   const next = Math.max(40, Math.min(240, Math.round(v)));
   if (next === bpm) return;
   bpm = next;
@@ -48,4 +52,18 @@ export function tapTempo(): void {
 /** mirrored for the plugin (see mirror.ts) */
 export function setTempo(...args: Parameters<typeof setTempo__impl>): ReturnType<typeof setTempo__impl> {
   return mirrorCall("setTempo", setTempo__impl, args);
+}
+
+function setHostTempo__impl(v: number): void {
+  if (!(v > 0)) return;
+  hostLocked = true;
+  const next = Math.max(20, Math.min(999, Number(v)));
+  if (next === bpm) return;
+  bpm = next;
+  listeners.forEach((cb) => cb(bpm));
+}
+
+/** The DAW's tempo (plugin): exact, and from then on the app's own tempo controls do nothing. */
+export function setHostTempo(...args: Parameters<typeof setHostTempo__impl>): ReturnType<typeof setHostTempo__impl> {
+  return mirrorCall("setHostTempo", setHostTempo__impl, args);
 }

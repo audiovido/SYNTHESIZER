@@ -500,31 +500,76 @@ function scheduler(): void {
   const swing = typeof p.drumSwing === "number" ? p.drumSwing : 0;
   const accentAmt = typeof p.drumAccent === "number" ? p.drumAccent : 0.5;
   while (nextTime < ctx.currentTime + 0.12) {
-    const pat = bank[current];
-    const len = pat.len || 16;
-    const stepDur = 60 / getTempo() / 4;
-    const at = nextTime + (step % 2 === 1 ? swing * stepDur : 0);
-    DRUM_VOICES.forEach((v) => {
-      const s = pat.steps[v][step];
-      if (!s) return;
-      const prob = stepProb(pat, v, step);
-      if (prob < 100 && Math.random() * 100 >= prob) return;
-      const vel = s === 2 ? 1 : s === 3 ? 0.3 : 1 - 0.5 * accentAmt;
-      if (stepFlam(pat, v, step)) triggerDrum(v, vel * 0.45, at - 0.022); // grace note just before
-      const n = Math.max(1, Math.min(4, stepRoll(pat, v, step)));
-      for (let k = 0; k < n; k++) triggerDrum(v, k === 0 ? vel : vel * 0.82, at + (k * stepDur) / n);
-    });
-    const shown = step;
-    setTimeout(() => stepListeners.forEach((cb) => cb(shown)), Math.max(0, (at - ctx.currentTime) * 1000));
+    const len = bank[current].len || 16;
+    playStep(ctx, step, nextTime, swing, accentAmt);
     step = (step + 1) % len;
-    nextTime += stepDur;
+    nextTime += 60 / getTempo() / 4;
   }
+}
+
+/** Play one step of the current pattern, the step's grid time being `t`. */
+function playStep(ctx: AudioContext, step: number, t: number, swing: number, accentAmt: number): void {
+  const pat = bank[current];
+  const stepDur = 60 / getTempo() / 4;
+  const at = t + (step % 2 === 1 ? swing * stepDur : 0);
+  DRUM_VOICES.forEach((v) => {
+    const s = pat.steps[v][step];
+    if (!s) return;
+    const prob = stepProb(pat, v, step);
+    if (prob < 100 && Math.random() * 100 >= prob) return;
+    const vel = s === 2 ? 1 : s === 3 ? 0.3 : 1 - 0.5 * accentAmt;
+    if (stepFlam(pat, v, step)) triggerDrum(v, vel * 0.45, at - 0.022); // grace note just before
+    const n = Math.max(1, Math.min(4, stepRoll(pat, v, step)));
+    for (let k = 0; k < n; k++) triggerDrum(v, k === 0 ? vel : vel * 0.82, at + (k * stepDur) / n);
+  });
+  const shown = step;
+  setTimeout(() => stepListeners.forEach((cb) => cb(shown)), Math.max(0, (at - ctx.currentTime) * 1000));
+}
+
+// ---- the DAW as the clock (plugin) ----
+// While the DAW plays, the plugin sends every 16th note of the DAW's song (its number counted from
+// the start, and when it falls): the pattern plays exactly on the DAW's grid, follows loops and
+// jumps, and stops with the DAW. The internal clock is not used then.
+let hostRunning = false;
+
+function hostDrums__impl(running: boolean): void {
+  if (running) {
+    if (timer) clearInterval(timer);
+    timer = null;
+    hostRunning = true;
+    playing = true;
+  } else {
+    hostRunning = false;
+    playing = false;
+    stepListeners.forEach((cb) => cb(-1));
+  }
+  notify();
+}
+
+/** The DAW's 16th note number `sixteenth` (from the song start) falls `inSec` seconds from now. */
+function hostStep__impl(sixteenth: number, inSec: number): void {
+  const ctx = getAudioCtxIfAny();
+  if (!ctx || !hostRunning) return;
+  if (!playing) { playing = true; notify(); }
+  const p = getPatch();
+  const swing = typeof p.drumSwing === "number" ? p.drumSwing : 0;
+  const accentAmt = typeof p.drumAccent === "number" ? p.drumAccent : 0.5;
+  const len = bank[current].len || 16;
+  step = ((Math.floor(sixteenth) % len) + len) % len;
+  playStep(ctx, step, ctx.currentTime + Math.max(0, inSec), swing, accentAmt);
+}
+
+export function hostDrums(...args: Parameters<typeof hostDrums__impl>): ReturnType<typeof hostDrums__impl> {
+  return mirrorCall("hostDrums", hostDrums__impl, args);
+}
+export function hostStep(...args: Parameters<typeof hostStep__impl>): ReturnType<typeof hostStep__impl> {
+  return mirrorCall("hostStep", hostStep__impl, args);
 }
 
 /** Start the sequencer; `at` (audio time) lines the first step up with an external clock. */
 function startDrums__impl(at?: number, fromStep = 0): void {
   const ctx = getAudioCtxIfAny();
-  if (!ctx || playing) return;
+  if (!ctx || playing || hostRunning) return;
   playing = true;
   // fromStep: the DAW's position (the plugin starts the pattern where the DAW's bar is)
   step = fromStep > 0 ? Math.floor(fromStep) % (bank[current].len || 16) : 0;
@@ -535,6 +580,7 @@ function startDrums__impl(at?: number, fromStep = 0): void {
 }
 
 function stopDrums__impl(): void {
+  if (hostRunning) return; // the DAW's transport runs the pattern
   playing = false;
   if (timer) clearInterval(timer);
   timer = null;

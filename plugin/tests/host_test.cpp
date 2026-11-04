@@ -1,0 +1,220 @@
+// Host simulation: the real plugin processor driven like a DAW drives it (play head, MIDI, odd
+// block sizes, loops, a fractional tempo), checking that everything lands on the DAW's grid.
+//   cmake -B build -DSY1_TESTS=ON && cmake --build build --target SY1HostTest
+#include "PluginProcessor.h"
+#include <cstdio>
+#include <thread>
+
+struct FakeHead : juce::AudioPlayHead {
+  double bpm = 120, ppq = 0, loopStart = 0, loopEnd = 0;
+  bool playing = false, looping = false;
+  juce::Optional<PositionInfo> getPosition() const override {
+    PositionInfo p;
+    p.setBpm(bpm);
+    p.setIsPlaying(playing);
+    p.setPpqPosition(ppq);
+    p.setIsLooping(looping);
+    if (looping) p.setLoopPoints(LoopPoints{loopStart, loopEnd});
+    return p;
+  }
+};
+
+static int failures = 0;
+static void check(bool ok, const char* what) {
+  std::printf("  %s  %s\n", ok ? "ok  " : "FAIL", what);
+  if (!ok) failures++;
+}
+
+struct Run {
+  SY1Processor p;
+  FakeHead head;
+  double sr = 48000;
+  int64_t pos = 0;
+  explicit Run(const char* machine, double rate = 48000) : sr(rate) {
+    p.setPlayHead(&head);
+    p.setRateAndBufferSizeDetails(sr, 512);
+    p.prepareToPlay(sr, 512);
+    p.engine().post("setMachine", std::string("[\"") + machine + "\"]");
+    p.engine().js()->eval(
+        "globalThis.__log = []; { const oc = SY1E.call; SY1E.call = (n, a) => {"
+        " const t = __wa.time() + (globalThis.__evOffset || 0);"
+        " if (n === 'hostStep') __log.push([1, a[0], t + a[1]]); else if (n === 'noteOn') __log.push([2, a[0], t]);"
+        " return oc(n, a); }; }");
+  }
+  /** Render `samples` in DAW blocks of `block`, the play head advancing (and looping). */
+  double render(int64_t samples, int block, const std::vector<std::pair<int64_t, juce::MidiMessage>>& midi = {}) {
+    juce::AudioBuffer<float> buf(2, block);
+    double peak = 0;
+    for (int64_t done = 0; done < samples; done += block) {
+      juce::MidiBuffer mb;
+      for (auto& e : midi)
+        if (e.first >= pos && e.first < pos + block) mb.addEvent(e.second, static_cast<int>(e.first - pos));
+      buf.clear();
+      p.processBlock(buf, mb);
+      for (int i = 0; i < block; i++) peak = std::max(peak, static_cast<double>(std::fabs(buf.getSample(0, i))));
+      pos += block;
+      if (head.playing) {
+        head.ppq += block / sr * head.bpm / 60.0;
+        if (head.looping && head.ppq >= head.loopEnd) head.ppq = head.loopStart + (head.ppq - head.loopEnd);
+      }
+    }
+    return peak;
+  }
+  juce::var log() { return juce::JSON::parse(juce::String(p.engine().js()->evalString("JSON.stringify(__log.splice(0))"))); }
+  /** engine time -> the DAW sample where the DAW records it (after its 128-sample compensation) */
+  double dawSample(double t) const { return t * sr - wa::RQ; }
+};
+
+int main() {
+  juce::ScopedJuceInitialiser_GUI init;
+
+  std::printf("1. Drum machine from the song start, 120 BPM, DAW blocks of 512\n");
+  {
+    Run r("kerman");
+    r.render(4608, 512);  // stopped for a moment
+    const int64_t start = r.pos;
+    r.head.playing = true;
+    r.head.ppq = 0;
+    const double peak = r.render(48000 * 4, 512);
+    auto log = r.log();
+    int steps = 0;
+    double worst = 0;
+    int64_t prevK = -1;
+    bool consecutive = true;
+    for (auto& e : *log.getArray()) {
+      if (static_cast<int>(e[0]) != 1) continue;
+      const int64_t k = static_cast<int64_t>(static_cast<double>(e[1]));
+      const double expect = start + k / 4.0 * 60 / 120 * r.sr;
+      worst = std::max(worst, std::fabs(r.dawSample(static_cast<double>(e[2])) - expect));
+      if (prevK >= 0 && k != prevK + 1) consecutive = false;
+      prevK = k;
+      steps++;
+    }
+    std::printf("     %d steps, worst timing error %.2f samples, peak %.3f\n", steps, worst, peak);
+    check(steps >= 31 && steps <= 33, "every 16th of 4 s at 120 BPM (32) is played once");
+    check(consecutive, "no 16th skipped or doubled");
+    check(worst <= 1.0, "each step on the DAW's grid (within 1 sample)");
+    check(peak > 0.05, "drums sound");
+  }
+
+  std::printf("2. Play pressed in the middle of bar 3 (ppq 9.37), odd DAW block size 441\n");
+  {
+    Run r("bushehr");
+    const int64_t start = r.pos;
+    r.head.playing = true;
+    r.head.ppq = 9.37;
+    r.render(48000 * 2, 441);
+    auto log = r.log();
+    double worst = 0;
+    int64_t firstK = -1;
+    for (auto& e : *log.getArray()) {
+      if (static_cast<int>(e[0]) != 1) continue;
+      const int64_t k = static_cast<int64_t>(static_cast<double>(e[1]));
+      if (firstK < 0) firstK = k;
+      const double expect = start + (k / 4.0 - 9.37) * 60 / 120 * r.sr;
+      worst = std::max(worst, std::fabs(r.dawSample(static_cast<double>(e[2])) - expect));
+    }
+    std::printf("     first 16th %lld (expected 38), worst error %.2f samples\n", static_cast<long long>(firstK), worst);
+    check(firstK == 38, "first step is the DAW's next 16th, at its place in the bar");
+    check(worst <= 1.0, "on the grid with odd block sizes");
+  }
+
+  std::printf("3. DAW loop over one bar (ppq 4..8), 101.37 BPM, blocks of 256\n");
+  {
+    Run r("kerman");
+    r.head.bpm = 101.37;
+    r.head.playing = true;
+    r.head.looping = true;
+    r.head.loopStart = 4;
+    r.head.loopEnd = 8;
+    r.head.ppq = 4;
+    r.render(48000 * 6, 256);
+    auto log = r.log();
+    std::vector<std::pair<int64_t, double>> st;
+    for (auto& e : *log.getArray())
+      if (static_cast<int>(e[0]) == 1) st.push_back({static_cast<int64_t>(static_cast<double>(e[1])), r.dawSample(static_cast<double>(e[2]))});
+    const double stepS = 60 / 101.37 / 4 * r.sr;
+    double worstGap = 0;
+    bool kOk = true;
+    int wraps = 0;
+    for (size_t i = 1; i < st.size(); i++) {
+      worstGap = std::max(worstGap, std::fabs(st[i].second - st[i - 1].second - stepS));
+      if (st[i].first < st[i - 1].first) {
+        wraps++;
+        if (st[i].first != 16) kOk = false;
+      } else if (st[i].first != st[i - 1].first + 1) {
+        kOk = false;
+      }
+    }
+    std::printf("     %zu steps, %d loop wraps, worst spacing error %.2f samples\n", st.size(), wraps, worstGap);
+    check(wraps >= 2, "the pattern follows the DAW loop");
+    check(kOk, "after each wrap it continues at the loop start (16th 16), nothing doubled");
+    check(worstGap <= 1.5, "even spacing across the loop point");
+  }
+
+  std::printf("4. Synth notes land on their exact samples (blocks of 512)\n");
+  {
+    Run r("sy1");
+    std::vector<std::pair<int64_t, juce::MidiMessage>> midi;
+    const int64_t at[] = {1000, 1300, 5555, 9001, 20000};
+    for (int64_t a : at) {
+      midi.push_back({a, juce::MidiMessage::noteOn(1, 60, 0.8f)});
+      midi.push_back({a + 200, juce::MidiMessage::noteOff(1, 60)});
+    }
+    const double peak = r.render(48000, 512, midi);
+    auto log = r.log();
+    double worst = 0;
+    int n = 0;
+    for (auto& e : *log.getArray())
+      if (static_cast<int>(e[0]) == 2 && n < 5) { worst = std::max(worst, std::fabs(r.dawSample(static_cast<double>(e[2])) - at[n])); n++; }
+    std::printf("     %d notes, worst error %.2f samples, peak %.3f\n", n, worst, peak);
+    check(n == 5 && worst <= 0.5, "each note at its own sample (the DAW compensates the reported 128)");
+    check(peak > 0.05, "synth sounds");
+  }
+
+  std::printf("5. The DAW's tempo is the tempo (fractional; the window's controls do nothing)\n");
+  {
+    Run r("sy1");
+    r.head.bpm = 93.5;
+    r.head.playing = true;
+    r.render(4096, 512);
+    r.p.engine().post("setTempo", "[140]");
+    r.render(4096, 512);
+    const std::string t = r.p.engine().js()->evalString("String(SY1E.getTempo())");
+    std::printf("     engine tempo %s\n", t.c_str());
+    check(t == "93.5", "93.5 exactly, and the window cannot change it");
+  }
+
+  std::printf("6. Count-in (negative song position) plays nothing\n");
+  {
+    Run r("kerman");
+    r.head.playing = true;
+    r.head.ppq = -2;
+    r.render(48000 / 2, 512);
+    int steps = 0;
+    auto log = r.log();
+    for (auto& e : *log.getArray()) if (static_cast<int>(e[0]) == 1) steps++;
+    check(steps == 0, "no drum steps before the song start");
+  }
+
+  std::printf("7. State: saved during play from another thread, loaded into a new instance\n");
+  {
+    Run r("baku");
+    r.render(4096, 512);
+    r.p.engine().post("setSynthParam", "[\"cutoff\", 777]");
+    r.render(1024, 512);
+    juce::MemoryBlock mb;
+    std::thread saver([&] { r.p.getStateInformation(mb); });
+    r.render(48000 / 4, 512);
+    saver.join();
+    Run r2("sy1");
+    r2.p.setStateInformation(mb.getData(), static_cast<int>(mb.getSize()));
+    r2.render(4096, 512);
+    const std::string m = r2.p.engine().js()->evalString("SY1E.getMachine().id + ' ' + SY1E.getSynthPatch().cutoff");
+    std::printf("     restored: %s\n", m.c_str());
+    check(m == "baku 777", "machine and the knob turned right before saving come back");
+  }
+
+  std::printf(failures ? "\n%d FAILED\n" : "\nall passed\n", failures);
+  return failures ? 1 : 0;
+}
