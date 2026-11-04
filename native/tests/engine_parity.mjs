@@ -23,6 +23,8 @@ execFileSync("g++", ["-O3", "-std=c++17", ...(process.env.WA_SCALAR ? [] : ["-DW
 const rate = 48000;
 const seed = (n) => `{ let a = ${n}; Math.random = () => { a |= 0; a = (a + 0x6d2b79f5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }`;
 const Q = 128 / rate;
+// Preset scenes switch the preset 20 ms before their notes: Chrome hands a burst of ~450 preset
+// messages to its audio thread over two blocks (measured), which would shift those notes by a block.
 // Chrome hands worklet messages to its audio thread at a non-deterministic block; giving note events
 // a fixed 2-block lead (both sides) makes the comparison exact without changing any sound.
 const LEAD = `globalThis.__wkTransform = (m) => (m && /^(on|off|kill|glide)$/.test(m.t) ? { ...m, at: Math.max(Number(m.at) || 0, __now() + ${2 * 128 / 48000}) } : m);`;
@@ -45,7 +47,10 @@ const scenes0 = [
   { name: "SY-1 chorus at start", len: 3, js: `S.setMachine("sy1"); S.setSynthParam("chorusMix", 0.4); S.setSynthParam("revMix", 0); S.prepareAudio();` + chord([48, 52, 55], 0.2, 2.0) },
   { name: "Baku chorus at start", len: 3, js: `S.setMachine("baku"); S.setSynthParam("arpOn", "off"); S.setSynthParam("revMix", 0); S.setSynthParam("delayMix", 0); S.prepareAudio();` + chord([48, 52, 55], 0.2, 2.0) },
   { name: "Kashan FM chord", len: 3, js: machine("kashan") + chord([52, 59, 64], 0.2, 1.6, 0.9) + chord([71], 0.5, 1.2, 0.4) },
-  { name: "Kashan presets", len: 4, js: `S.setMachine("kashan"); S.prepareAudio(); const ps = S.getMachine().presets; ` + [0.2, 1.0, 1.8, 2.6].map((t, i) => `at(${T(t)}, () => { S.applySynthPreset(ps[${i * 3} % ps.length].id); S.noteOn(57, 0.8); S.noteOn(64, 0.6); }); at(${T(t + 0.6)}, () => { S.noteOff(57); S.noteOff(64); });`).join("\n") + `at(${T(1.4)}, () => S.setModWheel(0.8)); at(${T(2.2)}, () => S.setPitchBend(-0.4));` },
+  { name: "Kashan presets", len: 4, js: `S.setMachine("kashan"); S.prepareAudio(); const ps = S.getMachine().presets; ` + [0.2, 1.0, 1.8, 2.6].map((t, i) => `at(${T(t - 0.02)}, () => S.applySynthPreset(ps[${i * 3} % ps.length].id)); at(${T(t)}, () => { S.noteOn(57, 0.8); S.noteOn(64, 0.6); }); at(${T(t + 0.6)}, () => { S.noteOff(57); S.noteOff(64); });`).join("\n") + `at(${T(1.4)}, () => S.setModWheel(0.8)); at(${T(2.2)}, () => S.setPitchBend(-0.4));` },
+  { name: "Shiraz santur", len: 3, js: machine("shiraz") + chord([62, 69], 0.2, 1.2, 0.9) + chord([74], 0.6, 1.4, 0.5) },
+  { name: "Shiraz presets", len: 4, js: `S.setMachine("shiraz"); S.prepareAudio(); const ps = S.getMachine().presets; ` + [0.2, 1.2, 2.2].map((t, i) => `at(${T(t - 0.02)}, () => S.applySynthPreset(ps[${i * 4 + 1}].id)); at(${T(t)}, () => { S.noteOn(55, 0.85); S.noteOn(62, 0.6); }); at(${T(t + 0.7)}, () => { S.noteOff(55); S.noteOff(62); });`).join("\n") },
+  { name: "Shiraz riz (tremolo)", len: 3, js: machine("shiraz") + `S.setSynthParam("riz", "on");` + chord([64], 0.2, 1.8, 0.8) },
   { name: "Konya euclid", len: 4, js: machine("konya") + chord([50, 53, 57], 0.2, 3.2) },
   { name: "Kerman drums (style)", len: 4, js: machine("kerman") + `at(${T(0.2)}, () => S.drums.startDrums());` },
   { name: "Bushehr drums (style)", len: 4, js: machine("bushehr") + `at(${T(0.2)}, () => S.drums.startDrums());` }
@@ -137,7 +142,8 @@ for (const [i, sc] of scenes.entries()) {
   let maxErr = 0, e2 = 0, s2 = 0, peak = 0, atF = 0, npeak = 0;
   for (let i = 0; i < web.length; i++) { const e = Math.abs(web[i] - nat[i]); if (e > maxErr) { maxErr = e; atF = i >> 1; } e2 += e * e; s2 += web[i] * web[i]; peak = Math.max(peak, Math.abs(web[i])); npeak = Math.max(npeak, Math.abs(nat[i])); }
   const onset = (a) => { for (let i = 0; i < a.length; i++) if (Math.abs(a[i]) > 1e-4) return i >> 1; return -1; };
-  if (process.env.DEBUG) { console.log('onset web', onset(web), 'plugin', onset(nat)); writeFileSync(`${tmp}/web.json`, JSON.stringify(web)); }
+  if (process.env.DEBUG) {
+    { let f = -1; for (let i = 0; i < web.length; i++) if (Math.abs(web[i] - nat[i]) > 1e-6) { f = i >> 1; break; } console.log('first diff frame', f, (f / rate).toFixed(4)); } console.log('onset web', onset(web), 'plugin', onset(nat)); writeFileSync(`${tmp}/web.json`, JSON.stringify(web)); }
   const rel = s2 > 0 ? 10 * Math.log10(e2 / s2) : 0;
   worst = Math.max(worst, rel);
   console.log(`${sc.name.padEnd(24)} peak web ${peak.toFixed(3)} / plugin ${npeak.toFixed(3)}  max err ${maxErr.toExponential(2)} (t ${(atF / rate).toFixed(3)})  error ${rel.toFixed(1)} dB${best.mask ? ` (allpass order ${best.mask})` : ""}`);
