@@ -45,6 +45,7 @@ class SY1Processor : public juce::AudioProcessor {
   juce::String error_;
   double lastBpm_ = -1;
   bool wasPlaying_ = false;
+  std::shared_ptr<int> alive_ = std::make_shared<int>(0);  // lets queued UI work see that the plugin is gone
   bool startEngine(double sampleRate, const std::string& state);
   void handleMidi(const juce::MidiMessage& m);
   void handleTransport();

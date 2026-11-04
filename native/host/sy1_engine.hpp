@@ -6,6 +6,9 @@
 #pragma once
 #include <cmath>
 #include <cstdio>
+#include <atomic>
+#include <chrono>
+#include <condition_variable>
 #include <cstring>
 #include <memory>
 #include <mutex>
@@ -30,6 +33,7 @@ class Sy1Engine {
     err = js_->eval("globalThis.__ctx = __makeCtx(); SY1E.initMachine(); SY1E.prepareAudio();", "<start>");
     if (!err.empty()) return false;
     fifoPos_ = wa::RQ;  // first sample renders a block
+    saveState();
     return true;
   }
   bool ready() const { return js_ != nullptr; }
@@ -74,17 +78,37 @@ class Sy1Engine {
         js_->render(fifoL_, fifoR_);  // runs the JS timers too
         fifoPos_ = 0;
         pushScope();
-        if (++blocks_ % 375 == 0) saveState();  // about every second at 48 kHz
+        idleGc();
+        if (saveRequest_.exchange(false)) {
+          saveState();
+          std::lock_guard<std::mutex> l(stateMu_);
+          saveSeq_++;
+          stateCv_.notify_all();
+        } else if (++blocks_ % 375 == 0 && !js_->evalString("__takeDirty()").empty()) {
+          saveState();  // about every second at 48 kHz, only when something changed
+        }
       }
-      L[i] = fifoL_[fifoPos_];
-      R[i] = fifoR_[fifoPos_];
+      // never let a broken value (NaN / infinity) reach the speakers
+      const float l = fifoL_[fifoPos_], r = fifoR_[fifoPos_];
+      L[i] = std::isfinite(l) ? l : 0.0f;
+      R[i] = std::isfinite(r) ? r : 0.0f;
       fifoPos_++;
     }
   }
+  /** Save the state now (audio thread, or any thread while audio is not running). */
   void saveState() {
     const std::string s = js_->evalString("__dumpStorage()");
     std::lock_guard<std::mutex> l(stateMu_);
     state_ = s;
+  }
+  /** From another thread (DAW saving the project, window opening): the audio thread saves the
+   *  state at its next block; waits up to timeoutMs, then returns whatever state is newest. */
+  std::string freshState(int timeoutMs) {
+    std::unique_lock<std::mutex> l(stateMu_);
+    const unsigned want = saveSeq_ + 1;
+    saveRequest_ = true;
+    stateCv_.wait_for(l, std::chrono::milliseconds(timeoutMs), [&] { return saveSeq_ >= want; });
+    return state_;
   }
 
   static std::string quote(const std::string& s) {
@@ -110,11 +134,15 @@ class Sy1Engine {
   float fifoL_[wa::RQ] = {}, fifoR_[wa::RQ] = {};
   int fifoPos_ = wa::RQ;
   size_t blocks_ = 0;
+  unsigned quiet_ = 0;
   std::mutex inMu_, outMu_, scopeMu_, stateMu_;
   std::vector<std::string> in_;
   std::vector<std::pair<std::string, std::string>> out_;
   float scope_[kScope] = {};
   std::string state_;
+  std::atomic<bool> saveRequest_{false};
+  unsigned saveSeq_ = 0;
+  std::condition_variable stateCv_;
 
   void run(const std::string& code) { js_->eval(code, "<call>"); }
   void drainIn() {
@@ -125,6 +153,13 @@ class Sy1Engine {
       calls.swap(in_);
     }
     for (auto& c : calls) run(c);
+  }
+  /** Garbage collection only after a second of silence (never while something sounds). */
+  void idleGc() {
+    float peak = 0;
+    for (int k = 0; k < wa::RQ; k++) peak = std::max(peak, std::max(std::fabs(fifoL_[k]), std::fabs(fifoR_[k])));
+    if (peak > 1e-5f) { quiet_ = 0; return; }
+    if (++quiet_ == 400) js_->collectGarbage();
   }
   void pushScope() {
     std::unique_lock<std::mutex> l(scopeMu_, std::try_to_lock);

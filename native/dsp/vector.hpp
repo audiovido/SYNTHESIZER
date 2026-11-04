@@ -138,10 +138,9 @@ class VectorWorklet : public WorkletNode {
 
   static float sine_[kTab + 1];
   static float wt_[kFrames * (kTab + 1)];
-  static void tables() {
-    static bool done = false;
-    if (done) return;
-    done = true;
+  // built once (thread-safe: several plugin instances can start on different threads)
+  static void tables() { static const bool built = (buildTables(), true); (void)built; }
+  static void buildTables() {
     for (int i = 0; i <= kTab; i++) sine_[i] = static_cast<float>(std::sin((2 * kPi * i) / kTab));
     static const std::vector<std::vector<double>> spectra = {
       {1.0, 0.55, 0.3, 0.12, 0.06, 0.03},

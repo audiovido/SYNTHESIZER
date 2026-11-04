@@ -13,6 +13,7 @@
 #include <cstdint>
 #include <cstring>
 #include <memory>
+#include <mutex>
 #include <vector>
 
 #include "param.hpp"
@@ -1058,6 +1059,8 @@ class PeriodicWave {
   /** The four built-in shapes, built once per sample rate and shared (Chrome caches them per context too). */
   static std::shared_ptr<PeriodicWave> basic(double sr, Shape s) {
     static std::vector<std::pair<double, std::shared_ptr<PeriodicWave>>> cache[4];
+    static std::mutex mu;  // several plugin instances can create oscillators on different threads
+    std::lock_guard<std::mutex> lock(mu);
     for (auto& e : cache[s]) if (e.first == sr) return e.second;
     auto w = build(sr, s);
     cache[s].push_back({sr, w});

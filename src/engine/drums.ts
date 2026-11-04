@@ -521,12 +521,13 @@ function scheduler(): void {
   }
 }
 
-/** Start the sequencer; `at` (audio time) lines step 1 up with an external clock. */
-function startDrums__impl(at?: number): void {
+/** Start the sequencer; `at` (audio time) lines the first step up with an external clock. */
+function startDrums__impl(at?: number, fromStep = 0): void {
   const ctx = getAudioCtxIfAny();
   if (!ctx || playing) return;
   playing = true;
-  step = 0;
+  // fromStep: the DAW's position (the plugin starts the pattern where the DAW's bar is)
+  step = fromStep > 0 ? Math.floor(fromStep) % (bank[current].len || 16) : 0;
   nextTime = at !== undefined ? Math.max(ctx.currentTime + 0.005, at) : ctx.currentTime + 0.05;
   scheduler();
   timer = setInterval(scheduler, 25);

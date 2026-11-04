@@ -30,6 +30,7 @@ SY1Editor::SY1Editor(SY1Processor& p) : AudioProcessorEditor(&p), proc_(p) {
   setResizable(true, true);
   setResizeLimits(720, 480, 2400, 1600);
   setSize(1180, 780);
+  proc_.engine().takeOutgoing();  // calls made while the window was closed are already in the state it starts from
   build();
   startTimerHz(30);
 }
@@ -58,7 +59,11 @@ juce::String SY1Editor::userScript() {
   s << "(function () { let seed = {}; try { seed = JSON.parse(" << juce::JSON::toString(juce::var(juce::String::fromUTF8(state.empty() ? "{}" : state.c_str())))
     << "); } catch (e) {}\n"
        "  const m = new Map(Object.entries(seed));\n"
-       "  const ls = { getItem: (k) => (m.has(k) ? m.get(k) : null), setItem: (k, v) => { m.set(k, String(v)); }, removeItem: (k) => { m.delete(k); },\n"
+       "  // settings only the window keeps (open page, favourites) are stored in the plugin's state too\n"
+       "  const uiOnly = (k) => /^sy1\\.m\\.[^.]+\\.(page|favs)$/.test(k);\n"
+       "  const ls = { getItem: (k) => (m.has(k) ? m.get(k) : null),\n"
+       "    setItem: (k, v) => { v = String(v); m.set(k, v); if (uiOnly(k) && window.__SY1_PLUGIN__) window.__SY1_PLUGIN__.send('uiStore', [k, v]); },\n"
+       "    removeItem: (k) => { m.delete(k); },\n"
        "    clear: () => m.clear(), key: (i) => Array.from(m.keys())[i] ?? null, get length() { return m.size; } };\n"
        "  try { Object.defineProperty(window, 'localStorage', { configurable: true, get: () => ls }); } catch (e) {}\n"
        "})();\n";

@@ -29,6 +29,8 @@ void SY1Processor::prepareToPlay(double sampleRate, int) {
   // one 128-frame block of latency (the engine renders in Web Audio's render quanta)
   setLatencySamples(wa::RQ);
   if (!engine_.ready() || sampleRate != rate_) {
+    // (audio is not running during prepareToPlay, so the engine can be read here)
+    if (pendingState_.empty() && engine_.ready()) engine_.saveState();
     const std::string state = !pendingState_.empty() ? pendingState_ : (engine_.ready() ? engine_.state() : std::string());
     startEngine(sampleRate, state);
     pendingState_.clear();
@@ -66,16 +68,17 @@ void SY1Processor::handleTransport() {
   const bool playing = pos->getIsPlaying();
   if (playing != wasPlaying_) {
     wasPlaying_ = playing;
-    double delay = 0;
+    double delay = 0, step = 0;
     if (playing) {
-      // start the drum pattern on the next 16th note of the DAW's grid
+      // start the drum pattern on the next 16th note of the DAW's grid, at that 16th's place in the bar
       if (const auto ppq = pos->getPpqPosition()) {
-        const double sixteenths = *ppq * 4;
-        const double frac = std::ceil(sixteenths - 1e-6) - sixteenths;
-        delay = frac * (60.0 / (lastBpm_ > 0 ? lastBpm_ : 120.0) / 4);
+        const double sixteenths = std::max(0.0, *ppq * 4);
+        const double next = std::ceil(sixteenths - 1e-6);
+        delay = (next - sixteenths) * (60.0 / (lastBpm_ > 0 ? lastBpm_ : 120.0) / 4);
+        step = next;
       }
     }
-    engine_.hostCall("hostTransport", std::string("[") + (playing ? "true" : "false") + ", " + num(delay) + "]");
+    engine_.hostCall("hostTransport", std::string("[") + (playing ? "true" : "false") + ", " + num(delay) + ", " + num(step) + "]");
   }
 }
 
@@ -100,7 +103,8 @@ void SY1Processor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuff
 
 std::string SY1Processor::currentState() {
   if (!pendingState_.empty()) return pendingState_;
-  return engine_.ready() ? engine_.state() : std::string();
+  // the newest state: the audio thread saves it at its next block (if audio is running)
+  return engine_.ready() ? engine_.freshState(150) : std::string();
 }
 
 void SY1Processor::getStateInformation(juce::MemoryBlock& destData) {
@@ -118,7 +122,12 @@ void SY1Processor::setStateInformation(const void* data, int sizeInBytes) {
     suspendProcessing(true);
     startEngine(rate_, s);
     suspendProcessing(false);
-    if (auto* ed = dynamic_cast<SY1Editor*>(getActiveEditor())) ed->reloadUi();
+    // the window is rebuilt on the message thread (hosts may load a state from any thread)
+    std::weak_ptr<int> alive = alive_;
+    juce::MessageManager::callAsync([this, alive] {
+      if (alive.expired()) return;
+      if (auto* ed = dynamic_cast<SY1Editor*>(getActiveEditor())) ed->reloadUi();
+    });
   } else {
     pendingState_ = s;
   }

@@ -31,6 +31,10 @@ class WaJs {
   explicit WaJs(double sampleRate) : g(sampleRate) {
     rt_ = JS_NewRuntime();
     JS_SetMaxStackSize(rt_, 256 * 1024);  // fits the small stacks of DAW audio threads
+    // No automatic garbage collection while playing: a collection pass takes several ms (an audible
+    // dropout). Almost everything is freed at once by reference counting; the rest is collected
+    // by collectGarbage(), which the plugin calls only during silence.
+    JS_SetGCThreshold(rt_, static_cast<size_t>(-1));
     ctx_ = JS_NewContext(rt_);
     JS_SetContextOpaque(ctx_, this);
     dest_ = g.make<wa::Gain>();  // id 0 = ctx.destination
@@ -83,6 +87,8 @@ class WaJs {
     JSContext* c;
     while (JS_ExecutePendingJob(rt_, &c) > 0) {}
   }
+
+  void collectGarbage() { JS_UpdateStackTop(rt_); JS_RunGC(rt_); }
 
   size_t liveNodes() const {
     size_t n = 0;

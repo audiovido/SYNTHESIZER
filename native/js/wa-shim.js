@@ -42,6 +42,29 @@
     start(when, offset) { W.start(this._id, +(when || 0), +(offset || 0)); }
     stop(when) { W.stop(this._id, +(when || 0)); }
   }
+  // node properties live on the classes (no per-node closures: a closure that holds its own node
+  // makes a reference cycle, which only the slow garbage collector could free)
+  class BiquadNode extends AudioNode {
+    set type(v) { W.prop(this._id, "type", String(v)); }
+    get type() { return "lowpass"; }
+  }
+  class ShaperNode extends AudioNode {
+    set curve(c) { W.curve(this._id, c ? c.buffer.slice(c.byteOffset, c.byteOffset + c.byteLength) : null); }
+    get curve() { return null; }
+    set oversample(v) { W.prop(this._id, "oversample", String(v)); }
+    get oversample() { return "none"; }
+  }
+  class OscNode extends Scheduled {
+    set type(v) { W.prop(this._id, "type", String(v)); }
+    get type() { return "sine"; }
+    setPeriodicWave(w) { if (w && w._w !== undefined) W.prop(this._id, "wave", w._w); }
+  }
+  class BufferSrcNode extends Scheduled {
+    set buffer(b) { if (!b._id) { const d = b._d[0]; b._id = W.buffer(d.buffer.slice(0), b.sampleRate); } W.prop(this._id, "buffer", b._id); }
+    get buffer() { return null; }
+    set loop(v) { W.prop(this._id, "loop", v ? 1 : 0); }
+    get loop() { return false; }
+  }
   class AudioBuffer {
     constructor(ch, len, rate) { this.numberOfChannels = ch; this.length = len; this.sampleRate = rate; this.duration = len / rate; this._d = []; for (let i = 0; i < ch; i++) this._d.push(new Float32Array(len)); this._id = 0; }
     getChannelData(i) { return this._d[i]; }
@@ -56,18 +79,9 @@
     getOutputTimestamp() { return { contextTime: this.currentTime, performanceTime: this.currentTime * 1000 }; }
     get currentTime() { return W.time(); }
     createGain() { return params(new AudioNode(W.create("gain")), ["gain"]); }
-    createBiquadFilter() {
-      const n = params(new AudioNode(W.create("biquad")), ["frequency", "Q", "gain", "detune"]);
-      Object.defineProperty(n, "type", { set(v) { W.prop(n._id, "type", String(v)); }, get() { return "lowpass"; } });
-      return n;
-    }
+    createBiquadFilter() { return params(new BiquadNode(W.create("biquad")), ["frequency", "Q", "gain", "detune"]); }
     createDelay(max) { return params(new AudioNode(W.create("delay", +(max || 1))), ["delayTime"]); }
-    createWaveShaper() {
-      const n = new AudioNode(W.create("shaper"));
-      Object.defineProperty(n, "curve", { set(c) { W.curve(n._id, c ? c.buffer.slice(c.byteOffset, c.byteOffset + c.byteLength) : null); }, get() { return null; } });
-      Object.defineProperty(n, "oversample", { set(v) { W.prop(n._id, "oversample", String(v)); }, get() { return "none"; } });
-      return n;
-    }
+    createWaveShaper() { return new ShaperNode(W.create("shaper")); }
     createDynamicsCompressor() { return params(new AudioNode(W.create("comp")), ["threshold", "knee", "ratio", "attack", "release"]); }
     createStereoPanner() { return params(new AudioNode(W.create("panner")), ["pan"]); }
     createIIRFilter(ff, fb) {
@@ -99,23 +113,13 @@
       n.getFloatTimeDomainData = (arr) => { const src = globalThis.__SY1_SCOPE; for (let i = 0; i < arr.length; i++) arr[i] = src && src.length ? src[(i * src.length / arr.length) | 0] : 0; };
       return n;
     }
-    createOscillator() {
-      const n = params(new Scheduled(W.create("osc")), ["frequency", "detune"]);
-      Object.defineProperty(n, "type", { set(v) { W.prop(n._id, "type", String(v)); }, get() { return "sine"; } });
-      n.setPeriodicWave = (w) => { if (w && w._w !== undefined) W.prop(n._id, "wave", w._w); };
-      return n;
-    }
+    createOscillator() { return params(new OscNode(W.create("osc")), ["frequency", "detune"]); }
     createPeriodicWave(real, imag, opts) {
       const f = (a) => { const x = Float32Array.from(a); return x.buffer; };
       return { _w: W.wave(f(real), f(imag), !!(opts && opts.disableNormalization)) };
     }
     createBuffer(ch, len, rate) { return new AudioBuffer(ch, len, rate); }
-    createBufferSource() {
-      const n = params(new Scheduled(W.create("buffersrc")), ["playbackRate", "detune"]);
-      Object.defineProperty(n, "buffer", { set(b) { if (!b._id) { const d = b._d[0]; b._id = W.buffer(d.buffer.slice(0), b.sampleRate); } W.prop(n._id, "buffer", b._id); }, get() { return null; } });
-      Object.defineProperty(n, "loop", { set(v) { W.prop(n._id, "loop", v ? 1 : 0); }, get() { return false; } });
-      return n;
-    }
+    createBufferSource() { return params(new BufferSrcNode(W.create("buffersrc")), ["playbackRate", "detune"]); }
   }
   class AudioWorkletNode extends AudioNode {
     constructor(ctx, name) {
@@ -169,7 +173,9 @@
   };
   if (!globalThis.localStorage) {
     const m = new Map();
-    globalThis.localStorage = { getItem: (k) => (m.has(k) ? m.get(k) : null), setItem: (k, v) => m.set(k, String(v)), removeItem: (k) => m.delete(k) };
+    let dirty = false;
+    globalThis.localStorage = { getItem: (k) => (m.has(k) ? m.get(k) : null), setItem: (k, v) => { v = String(v); if (m.get(k) !== v) { m.set(k, v); dirty = true; } }, removeItem: (k) => { if (m.delete(k)) dirty = true; } };
+    globalThis.__takeDirty = () => { const d = dirty; dirty = false; return d ? "1" : ""; };
     // plugin state = this storage (the app saves machines, patches, banks and settings here)
     globalThis.__dumpStorage = () => JSON.stringify(Object.fromEntries(m));
     globalThis.__loadStorage = (json) => { m.clear(); try { const o = JSON.parse(json || "{}"); for (const k in o) m.set(k, String(o[k])); } catch (e) {} };
