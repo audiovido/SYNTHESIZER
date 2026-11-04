@@ -51,7 +51,7 @@ jobs:
         run: nuget install Microsoft.Web.WebView2 -Version 1.0.1901.177 -OutputDirectory "$env:RUNNER_TEMP\wv2"
       - name: Configure (Windows)
         if: runner.os == 'Windows'
-        run: cmake -S plugin -B plugin/build -G "Visual Studio 17 2022" -A x64 "-DJUCE_WEBVIEW2_PACKAGE_LOCATION=$env:RUNNER_TEMP\wv2"
+        run: cmake -S plugin -B plugin/build -A x64 "-DJUCE_WEBVIEW2_PACKAGE_LOCATION=$env:RUNNER_TEMP\wv2"
       - name: Build
         run: cmake --build plugin/build --config Release --parallel 4
 
