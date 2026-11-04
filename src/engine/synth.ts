@@ -33,9 +33,13 @@ import {
   setDrumKit,
   setDrumTempoSource,
   useDrumBank,
+  isDrumPlaying,
+  setDrumHitListener,
+  startDrums,
   stopDrums,
   triggerDrum
 } from "./drums";
+import { allOff as midiOutAllOff, configureDaw, drumHit, modWheelOut, pitchBendOut, scheduledNote, syncHeldNotes } from "./daw";
 import { getMachineDef, MACHINES } from "../machines";
 import type { DrumKitDef, MachineDef, PresetDef } from "../machines/types";
 
@@ -240,6 +244,7 @@ export function setSynthParam(
     }
     if (key === "arpOn" && synthPatch.arpOn !== before) handleArpToggle(synthPatch.arpOn === "on");
     if (key === "polyMode" && value !== before) releaseEverything();
+    if (key === "hold" || key === "polyMode" || key === "arpOn") syncOut();
   }
 
   // Shared FX bus
@@ -409,6 +414,7 @@ export function setMachine(id: string): void {
 export function setPitchBend(norm: number): void {
   setVoicePitchBend(norm);
   const v = getVoicePitchBend();
+  pitchBendOut(v);
   hqPost({ t: "bend", v });
   stringsPost({ t: "bend", v });
   fmPost({ t: "bend", v });
@@ -421,6 +427,7 @@ export function getPitchBend(): number {
 export function setModWheel(norm: number): void {
   setVoiceModWheel(norm);
   const v = getVoiceModWheel();
+  modWheelOut(v);
   hqPost({ t: "mod", v });
   stringsPost({ t: "mod", v });
   fmPost({ t: "mod", v });
@@ -682,6 +689,17 @@ function releaseHeldByHold(): void {
 export function setSustainPedal(down: boolean): void {
   sustainPedal = down;
   if (!down) releaseHeldByHold();
+  syncOut();
+}
+
+/** MIDI out / take: send the notes that sound now (the arpeggiator sends its own steps). */
+function syncOut(): void {
+  if (machine.kind === "drums") return;
+  const arp = synthPatch.arpOn === "on";
+  const cands: number[] = Array.from(heldNotesOrder.keys());
+  heldVoices.forEach((_, m) => cands.push(m));
+  if (monoMidi >= 0) cands.push(monoMidi);
+  syncHeldNotes(cands, (m) => !arp && isNoteSounding(m), (m) => heldNotesOrder.get(m) ?? 0.8);
 }
 export function getSustainPedal(): boolean {
   return sustainPedal;
@@ -825,6 +843,7 @@ export function noteOn(midi: number, velocity = 1): void {
   }
   if (synthPatch.polyMode === "mono") monoOn(midi, velocity);
   else polyOn(midi, velocity);
+  syncOut();
 }
 
 export function noteOff(midi: number): void {
@@ -840,6 +859,7 @@ export function noteOff(midi: number): void {
   }
   if (synthPatch.polyMode === "mono") monoOff(midi);
   else polyOff(midi);
+  syncOut();
 }
 
 /** Release only physically held keys (window blur / tab hidden); keeps HOLD-latched notes and sustain pedal. */
@@ -859,6 +879,7 @@ export function releasePhysicalNotes(): void {
     const dropped = arpReleasePhysical(synthPatch.hold === "on");
     dropped.forEach((m) => markKey(m, false));
   }
+  syncOut();
 }
 
 /** Stop every sound and forget held state (keeps the sustain pedal flag off too). */
@@ -881,6 +902,7 @@ function releaseEverything(): void {
   analogPost({ t: "alloff" });
   vectorPost({ t: "alloff" });
   document.querySelectorAll(".key.is-pressed").forEach((el) => el.classList.remove("is-pressed"));
+  midiOutAllOff();
 }
 
 export function allNotesOff(): void {
@@ -902,6 +924,26 @@ configureArp({
     flushPendingHandoverVoices(at);
     const v = startVoice(midi, vel, at);
     v.release(off);
+    scheduledNote(midi, vel, at, off);
+  }
+});
+setDrumHitListener(drumHit);
+configureDaw({
+  isDrums: () => machine.kind === "drums",
+  getTap: () => {
+    const ctx = getAudioCtxIfAny();
+    if (!ctx) return null;
+    return { ctx, tap: getSynthBus(ctx, synthPatch).tap };
+  },
+  startDrums: (at) => { prepareAudio(); startDrums(at); },
+  stopDrums,
+  isDrumPlaying,
+  takeName: () => {
+    const preset = machine.presets.find((p) => p.id === synthPresetId);
+    const d = new Date();
+    const pad = (n: number) => String(n).padStart(2, "0");
+    const stamp = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}`;
+    return `SY-1 ${machine.name}${preset ? " " + preset.name : ""} ${stamp}`.replace(/[\\/:*?"<>|]+/g, "-");
   }
 });
 configureDrums(

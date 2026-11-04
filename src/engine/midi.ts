@@ -3,6 +3,7 @@
  */
 
 import { PARAM_CHOICES, SYNTH_PARAMS, synthDenorm } from "./params";
+import { beginMidiIn, endMidiIn, getMidiOutName, handleRealtime } from "./daw";
 import { allNotesOff, noteOff, noteOn, setModWheel, setPitchBend, setSustainPedal, setSynthParam } from "./synth";
 
 export interface MidiInputInfo {
@@ -213,10 +214,26 @@ function applyCcToParam(paramKey: string, ccVal: number): void {
 // Allocation-free MIDI message handler
 function handleMidiMessage(e: any): void {
   const data = e.data;
-  if (!data || data.length < 2) return;
+  if (!data || !data.length) return;
+  if (data[0] >= 0xf8) {
+    if (data[0] <= 0xfc) handleRealtime(data[0], e.timeStamp || performance.now());
+    return;
+  }
+  if (data.length < 2) return;
+  // a loopback port (IAC bus, loopMIDI) hands our own MIDI out straight back: play it only once
+  const outName = getMidiOutName();
+  if (outName && e.target && e.target.name === outName) return;
+  beginMidiIn();
+  try {
+    dispatchMidi(e, data);
+  } finally {
+    endMidiIn();
+  }
+}
 
+function dispatchMidi(e: any, data: any): void {
   const status = data[0];
-  // Ignore system real-time / sysex messages (>= 0xF0)
+  // other system messages (sysex, song position...) are ignored
   if (status >= 0xf0) return;
 
   const ch = (status & 0x0f) + 1;

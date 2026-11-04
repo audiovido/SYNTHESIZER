@@ -215,6 +215,12 @@ export function drumModelFor(v: DrumVoice): DrumModel {
   return drumModel;
 }
 
+let hitListener: ((v: DrumVoice, vel: number, at: number) => void) | null = null;
+/** Called for every drum hit with its audio time (MIDI out and take recording). */
+export function setDrumHitListener(fn: ((v: DrumVoice, vel: number, at: number) => void) | null): void {
+  hitListener = fn;
+}
+
 /** Play one drum hit at audio time `at` with velocity 0..1. */
 export function triggerDrum(v: DrumVoice, vel: number, at?: number): void {
   const ctx = getAudioCtxIfAny();
@@ -224,6 +230,7 @@ export function triggerDrum(v: DrumVoice, vel: number, at?: number): void {
   // schedule a few ms later so the attack of the very first hit is not lost.
   const warmup = ctx.state !== "running" || ctx.currentTime < 0.3 ? 0.04 : 0;
   const t = Math.max(ctx.currentTime + warmup, at || 0);
+  if (hitListener) hitListener(v, vel, t);
   const model = drumModelFor(v);
   const feel = FEEL[model] || FEEL.analog;
   const velC = Math.max(0, Math.min(1, vel));
@@ -512,12 +519,13 @@ function scheduler(): void {
   }
 }
 
-export function startDrums(): void {
+/** Start the sequencer; `at` (audio time) lines step 1 up with an external clock. */
+export function startDrums(at?: number): void {
   const ctx = getAudioCtxIfAny();
   if (!ctx || playing) return;
   playing = true;
   step = 0;
-  nextTime = ctx.currentTime + 0.05;
+  nextTime = at !== undefined ? Math.max(ctx.currentTime + 0.005, at) : ctx.currentTime + 0.05;
   scheduler();
   timer = setInterval(scheduler, 25);
   notify();

@@ -25,6 +25,7 @@ import {
   selectLearnParam,
   toggleLearnMode
 } from "../engine/midi";
+import { renderMasterKnob, renderRecButton } from "./daw-panel";
 import { escapeHtml } from "../engine/params";
 import {
   allNotesOff,
@@ -669,6 +670,7 @@ export function renderSynthPanelHtml(): string {
       <div class="synth-top">
         <div class="synth-brand"><span class="synth-brand-maker">SY-1 </span><button type="button" class="synth-machine-select" id="machine-btn" aria-haspopup="dialog" aria-expanded="false" title="Choose an instrument">${escapeHtml(m.name)}</button><select class="sr-only" id="machine-select" aria-hidden="true" tabindex="-1">${renderMachineOptions()}</select></div>
         <canvas class="synth-scope" width="320" height="56" aria-hidden="true"></canvas>
+        <div class="synth-out">${renderMasterKnob()}${renderRecButton()}</div>
         <div class="synth-conn-wrap">
           <button type="button" class="synth-conn-btn${connOpen ? " is-open" : ""}" id="conn-btn" data-action="conn-toggle" aria-label="Connections" aria-haspopup="dialog" aria-expanded="${connOpen ? "true" : "false"}" title="Connections">
             <svg class="conn-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -694,6 +696,7 @@ export function renderSynthPanelHtml(): string {
               <select class="synth-midi-select" id="midi-channel" aria-label="MIDI Channel" hidden>${renderChannelOptions()}</select>
             </div>
             <div class="synth-midi-msg" id="midi-msg" role="status" aria-live="polite" hidden></div>
+            <button type="button" class="synth-midi-btn conn-daw-btn" data-daw="open">DAW &amp; RECORDING…</button>
           </div>
         </div>
       </div>
@@ -937,6 +940,7 @@ export function initPanelInteractions(): void {
   });
 
   document.addEventListener("click", (e) => {
+    if ((e.target as HTMLElement)?.closest?.("[data-daw='open']")) { setConnOpen(false); return; }
     const btn = (e.target as HTMLElement)?.closest?.("[data-action]") as HTMLElement | null;
     if (!btn) return;
     const action = btn.getAttribute("data-action");

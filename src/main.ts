@@ -37,6 +37,7 @@ import { initArpPanel } from "./ui/arp-panel";
 import { initOrientalPanel } from "./ui/oriental-panel";
 import { initLibrary } from "./ui/library";
 import { initMachineBrowser } from "./ui/machine-browser";
+import { initDawPanel } from "./ui/daw-panel";
 
 function initApp(): void {
   // skin and keyboard follow the machine
@@ -50,6 +51,7 @@ function initApp(): void {
   initOrientalPanel();
   initLibrary();
   initMachineBrowser();
+  initDawPanel();
   initMachine();          // loads the remembered machine and its patch
   applySkin(getMachine().skin);
   renderPanel();

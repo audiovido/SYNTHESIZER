@@ -31,6 +31,10 @@ export interface SynthFXBus {
   /** Soft clipper after the limiter: transparent below 0.9, never above 1.0 (same curve as native fx.hpp). */
   clipIn: GainNode;
   clip: WaveShaperNode;
+  /** Final output after the soft clipper (unity): the recorder taps here, before the master volume. */
+  tap: GainNode;
+  /** App master volume (one knob for every machine). Unity = the sound exactly as designed. */
+  out: GainNode;
   analyser: AnalyserNode;
   chorusWet: GainNode;
   chorusLfo: OscillatorNode;
@@ -48,11 +52,69 @@ export interface SynthFXBus {
 
 let audioCtx: AudioContext | null = null;
 
+// ------------------------------------------------- master volume & output ----
+const VOL_KEY = "sy1.masterVol";
+const SINK_KEY = "sy1.outputDevice";
+let masterVol = 1;
+let outputDevice = "";
+try {
+  const v = localStorage.getItem(VOL_KEY);
+  if (v !== null && isFinite(Number(v))) masterVol = Math.max(0, Math.min(1, Number(v)));
+  outputDevice = localStorage.getItem(SINK_KEY) || "";
+} catch (e) {}
+const volListeners = new Set<(v: number) => void>();
+
+/** Master volume 0..1 as a knob position; the gain is position squared (0.5 = -12 dB). */
+export function getMasterVolume(): number {
+  return masterVol;
+}
+export function masterGainFor(v: number): number {
+  return v * v;
+}
+export function setMasterVolume(v: number): void {
+  const next = Math.max(0, Math.min(1, v));
+  if (next === masterVol) return;
+  masterVol = next;
+  try { localStorage.setItem(VOL_KEY, String(next)); } catch (e) {}
+  const b = audioCtx ? synthBuses.get(audioCtx) : undefined;
+  if (b && audioCtx) b.out.gain.setTargetAtTime(masterGainFor(next), audioCtx.currentTime, 0.015);
+  volListeners.forEach((cb) => cb(next));
+}
+export function onMasterVolumeChange(cb: (v: number) => void): () => void {
+  volListeners.add(cb);
+  return () => volListeners.delete(cb);
+}
+
+/** True when this browser can send the sound to a chosen output device (Chrome / Edge 110+). */
+export function canChooseOutput(): boolean {
+  return typeof AudioContext !== "undefined" && typeof (AudioContext.prototype as any).setSinkId === "function";
+}
+export function getOutputDevice(): string {
+  return outputDevice;
+}
+/** Send the whole app to an audio output ("" = system default), e.g. BlackHole / Loopback / VB-Cable for a DAW. */
+export async function setOutputDevice(id: string): Promise<boolean> {
+  outputDevice = id;
+  try { localStorage.setItem(SINK_KEY, id); } catch (e) {}
+  return applyOutputDevice();
+}
+async function applyOutputDevice(): Promise<boolean> {
+  const ctx = audioCtx as any;
+  if (!ctx || typeof ctx.setSinkId !== "function") return false;
+  try {
+    if ((ctx.sinkId || "") !== outputDevice) await ctx.setSinkId(outputDevice);
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
 export function getAudioCtx(): AudioContext {
   if (!audioCtx) {
     const AC = window.AudioContext || (window as any).webkitAudioContext;
     if (AC) {
       audioCtx = new AC({ latencyHint: "interactive" });
+      if (outputDevice) applyOutputDevice();
     }
   }
   return audioCtx!;
@@ -425,7 +487,12 @@ export function getSynthBus(ctx: AudioContext, synthPatch: Record<string, any>):
   clip.oversample = "none"; // oversampling's filters ring ~5% past the curve; "none" keeps the 1.0 ceiling exact
   limiter.connect(clipIn);
   clipIn.connect(clip);
-  clip.connect(analyser);
+  const tap = ctx.createGain();
+  const out = ctx.createGain();
+  out.gain.value = masterGainFor(masterVol);
+  clip.connect(tap);
+  tap.connect(out);
+  out.connect(analyser);
   analyser.connect(ctx.destination);
 
   bus = {
@@ -447,6 +514,8 @@ export function getSynthBus(ctx: AudioContext, synthPatch: Record<string, any>):
     sum,
     master,
     limiter,
+    tap,
+    out,
     analyser,
     chorusWet,
     chorusLfo,
