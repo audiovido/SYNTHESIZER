@@ -27,6 +27,18 @@ jobs:
           cache: npm
       - uses: oven-sh/setup-bun@v2
       - run: npm ci
+      # the lockfile was made on Linux: add this platform's native build tools (not saved)
+      - name: Platform binaries for vite
+        shell: bash
+        run: |
+          V=$(node -p "require('rolldown/package.json').version")
+          C=$(node -p "require('lightningcss/package.json').version")
+          case "$RUNNER_OS" in
+            macOS) P="@rolldown/binding-darwin-arm64@$V lightningcss-darwin-arm64@$C" ;;
+            Windows) P="@rolldown/binding-win32-x64-msvc@$V lightningcss-win32-x64-msvc@$C" ;;
+          esac
+          npm install --no-save --no-package-lock $P
+          git checkout -- package.json package-lock.json 2>/dev/null || true
       - name: Bundle engine and UI
         shell: bash
         run: bash plugin/prepare.sh
