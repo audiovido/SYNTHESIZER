@@ -1,0 +1,17 @@
+rate 48000
+len 1
+node n noise 5
+loop n
+start n 0.01234 0.7
+stop n 0.6
+node bp biquad bandpass
+connect n bp
+set bp frequency 7000
+set bp Q 1.2
+node p panner
+connect bp p
+set p pan -0.4
+ev p pan linearRampToValueAtTime 0.7 0.5
+node iir iir 0.4466 / 1 -0.5534
+connect p iir
+out iir

@@ -1,0 +1,16 @@
+rate 48000
+len 0.5
+node src feed chord 1 0.9
+node s1 shaper drive 0.4 2x
+node s2 shaper softclip none
+node s3 shaper drive 0.8 4x
+node pre gain
+connect src s1
+connect s1 pre
+connect pre s2
+connect src s3
+node sum gain
+connect s2 sum
+connect s3 sum
+set pre gain 3
+out sum

@@ -1,0 +1,24 @@
+rate 48000
+len 1
+node src feed chord 2 0.5
+node dl delay 0.05
+node lfo osc triangle
+node depth gain
+connect src dl
+connect lfo depth
+connectp depth dl delayTime
+set dl delayTime 0.012
+set lfo frequency 0.6
+set depth gain 0.002
+start lfo 0
+node m merger 2
+node dr delay 0.05
+set dr delayTime 0.012
+node dn gain
+set dn gain -0.002
+connect lfo dn
+connectp dn dr delayTime
+connect src dr
+connect dl m 0
+connect dr m 1
+out m

@@ -1,0 +1,10 @@
+rate 48000
+len 1.5
+node src feed burst 9 1.5
+node c comp
+connect src c
+set c threshold -6
+set c ratio 12
+set c attack 0.003
+set c release 0.2
+out c

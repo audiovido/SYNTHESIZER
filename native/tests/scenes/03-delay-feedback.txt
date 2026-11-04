@@ -1,0 +1,27 @@
+rate 48000
+len 1.5
+node src feed burst 3 0.6
+node d delay 2
+node tone biquad lowpass
+node hp biquad highpass
+node sat shaper tanh 2x
+node fb gain
+node wet gain
+node sum gain
+connect src d
+connect d tone
+connect tone hp
+connect hp wet
+connect hp sat
+connect sat fb
+connect fb d
+connect src sum
+connect wet sum
+out sum
+set d delayTime 0.31
+set fb gain 0.6
+set wet gain 0.5
+set tone frequency 4500
+set tone Q 0.7071
+set hp frequency 180
+set hp Q 0.7071

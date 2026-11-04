@@ -1,0 +1,26 @@
+rate 48000
+len 1
+node o1 osc sine
+node o2 osc square
+node o3 osc sawtooth
+node o4 osc triangle
+node g gain
+connect o1 g
+connect o2 g
+connect o3 g
+connect o4 g
+set g gain 0.2
+set o1 frequency 0.6
+set o2 frequency 110
+set o3 frequency 2637
+set o4 frequency 55
+ev o2 frequency setValueAtTime 110 0.1
+ev o2 frequency exponentialRampToValueAtTime 40 0.5
+ev o3 detune setValueAtTime 0 0.2
+ev o3 detune linearRampToValueAtTime 700 0.7
+start o1 0
+start o2 0.0103
+start o3 0.21
+start o4 0.333
+stop o4 0.8
+out g

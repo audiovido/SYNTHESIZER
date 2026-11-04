@@ -41,3 +41,28 @@ your team under Signing & Capabilities, pick your iPhone, press Run.
 - `tools/make_xcodeproj.py`: regenerates the project file
 The app screen shows buffer size, iOS output latency, DSP load and glitch count.
 No delay/reverb/EQ yet (dry signal); those come with the Expo UI step.
+
+## Web Audio core (`wa/`) and the exact FX bus (`dsp/bus.hpp`) — plugin groundwork
+The web app's FX bus and drum machines are Web Audio node graphs, so the
+plugin needs Chrome's node behaviour, not an approximation. `wa/wa.hpp` +
+`wa/param.hpp` re-implement the nodes SY-1 uses from Chromium's own algorithms
+(see `wa/NOTICE.md`): AudioParam timeline, 128-frame pull model with Chrome's
+cycle behaviour, Gain, Biquad, IIR, Delay (SSE2/NEON kernel), WaveShaper with
+the 2x/4x resamplers, DynamicsCompressor, Oscillator/PeriodicWave (vector
+kernels), AudioBufferSource, StereoPanner, ChannelMerger.
+
+`dsp/bus.hpp` builds the FX bus node for node like `src/engine/bus.ts`. It
+supersedes the approximate `dsp/fx.hpp` (FDN reverb), which the plugin will not use.
+
+Tests (Chromium via Playwright on this machine, which is x86, hence
+`-DWA_X86_PARAMS`; the plugin builds without it, matching Chrome on Apple Silicon):
+```
+WA_X86=1 node native/tests/wa_scene.mjs native/tests/scenes/*.txt   # every node type
+node native/tests/bus_parity.mjs                                    # whole bus vs bus.ts
+```
+Last result (2026-11-04): dry, drive/EQ and delay paths bit-identical; chorus,
+reverb, limiter, knob moves, drum sends and 44.1 kHz 94-110 dB below the signal.
+Note: in Chrome the reverb's four allpass stages break their feedback cycle in
+hash-set order, which changes per page load (16 variants). The plugin always
+uses the true Schroeder allpass order (`apOrderMask_ = 0`); the parity test
+finds the order Chrome used on that load and then matches it exactly.

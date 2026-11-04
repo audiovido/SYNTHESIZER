@@ -1,0 +1,14 @@
+rate 48000
+len 1
+node src feed tone 220 0.5
+node g gain
+connect src g
+out g
+set g gain 0.2
+ev g gain linearRampToValueAtTime 1 0.3
+ev g gain exponentialRampToValueAtTime 0.01 0.6
+ev g gain setTargetAtTime 0.8 0.65 0.05
+at 0.8
+ev g gain cancelScheduledValues 0
+ev g gain setValueAtTime 0.5 0.81
+ev g gain setTargetAtTime 0 0.85 0.02
