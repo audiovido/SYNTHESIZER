@@ -13,7 +13,7 @@
  * Nothing here touches the sound: the recorder only listens to the output.
  */
 
-import { DRUM_NOTES, DrumVoice } from "./drums";
+import { DRUM_NOTES, DRUM_VOICES, DrumPattern, DrumVoice, stepFlam, stepProb, stepRoll } from "./drums";
 import { getTempo, onTempoChange, setTempo } from "./tempo";
 
 // ---------------------------------------------------------------- hooks ----
@@ -201,9 +201,17 @@ export function scheduledNote(m: number, vel: number, at: number, off: number): 
 
 /** One drum hit (pads, MIDI in, sequencer) as its General MIDI drum note. */
 export function drumHit(v: DrumVoice, vel: number, at: number): void {
-  if (!port() && !take) return;
   const note = DRUM_NOTES[v];
   if (note === undefined) return;
+  // the plugin: every hit the drum machine makes itself (pattern, pads, keys) goes to the DAW as MIDI
+  // (channel 10, General MIDI drums); hits played by the DAW's own MIDI are not sent back
+  const host = (globalThis as any).__wa;
+  if (host && typeof host.midiOut === "function" && fromIn === 0) {
+    const v7 = vel7(vel);
+    host.midiOut(0x99, note, v7, at);
+    host.midiOut(0x89, note, 0, at + 0.06);
+  }
+  if (!port() && !take) return;
   const toPort = fromIn === 0;
   emit([0x90 | (outCh - 1), note, vel7(vel)], at, toPort);
   emit([0x80 | (outCh - 1), note, 0], at + 0.06, toPort);
@@ -543,4 +551,36 @@ export function encodeMidi(
   const len = trk.length;
   const file = new Uint8Array([...head, 0x4d, 0x54, 0x72, 0x6b, (len >>> 24) & 0xff, (len >> 16) & 0xff, (len >> 8) & 0xff, len & 0xff, ...trk]);
   return { blob: new Blob([file], { type: "audio/midi" }), notes };
+}
+
+
+/** Drum patterns as a MIDI file (GM drums on channel 10), one after the other, at `bpm`, with the
+ *  machine's swing and accent; flams and rolls as played. Steps with a chance below 100% are kept
+ *  (their velocity a little lower), so the file is the same every time. */
+export function drumPatternsMidi(pats: DrumPattern[], bpm: number, swing: number, accentAmt: number, name: string): { blob: Blob; notes: number } {
+  const stepDur = 60 / bpm / 4;
+  const ev: { at: number; bytes: number[] }[] = [];
+  let t0 = 0;
+  for (const pat of pats) {
+    const len = pat.len || 16;
+    for (let step = 0; step < len; step++) {
+      const at = t0 + step * stepDur + (step % 2 === 1 ? swing * stepDur : 0);
+      for (const v of DRUM_VOICES) {
+        const s = pat.steps[v][step];
+        if (!s) continue;
+        const note = DRUM_NOTES[v as DrumVoice];
+        let vel = s === 2 ? 1 : s === 3 ? 0.3 : 1 - 0.5 * accentAmt;
+        if (stepProb(pat, v, step) < 100) vel *= 0.85;
+        const hit = (a: number, vv: number, dur: number) => {
+          ev.push({ at: Math.max(0, a), bytes: [0x99, note, vel7(vv)] });
+          ev.push({ at: Math.max(0, a) + dur, bytes: [0x89, note, 0] });
+        };
+        if (stepFlam(pat, v, step)) hit(at - 0.022, vel * 0.45, 0.015);
+        const n = Math.max(1, Math.min(4, stepRoll(pat, v, step)));
+        for (let k = 0; k < n; k++) hit(at + (k * stepDur) / n, k === 0 ? vel : vel * 0.82, Math.min(0.06, (stepDur / n) * 0.9));
+      }
+    }
+    t0 += len * stepDur;
+  }
+  return encodeMidi(ev, 0, t0, bpm, name);
 }

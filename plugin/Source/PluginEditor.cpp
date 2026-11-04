@@ -90,12 +90,29 @@ void SY1Editor::build() {
                      .withEventListener("sy1call", [this](const juce::var& v) {
                        const juce::String name = v.getProperty("name", {}).toString();
                        const juce::String args = v.getProperty("args", "[]").toString();
+                       if (name == "saveFile") { saveFile(args); return; }
                        if (name.isNotEmpty()) proc_.engine().post(name.toStdString(), args.toStdString());
                      });
   web_ = std::make_unique<juce::WebBrowserComponent>(options);
   addAndMakeVisible(*web_);
   web_->goToURL(juce::WebBrowserComponent::getResourceProviderRoot());
   resized();
+}
+
+/** A file from the window (the drum pattern as MIDI): written to Music/SY-1 and shown in
+ *  Finder / Explorer, from where it is dragged into the DAW. args = [fileName, base64]. */
+void SY1Editor::saveFile(const juce::String& argsJson) {
+  const juce::var a = juce::JSON::parse(argsJson);
+  if (!a.isArray() || a.size() < 2) return;
+  juce::String fileName = juce::File::createLegalFileName(a[0].toString());
+  if (fileName.isEmpty()) fileName = "SY-1.mid";
+  juce::MemoryOutputStream bytes;
+  if (!juce::Base64::convertFromBase64(bytes, a[1].toString()) || bytes.getDataSize() == 0) return;
+  const juce::File dir = juce::File::getSpecialLocation(juce::File::userMusicDirectory).getChildFile("SY-1");
+  if (!dir.createDirectory()) return;
+  const juce::File f = dir.getNonexistentChildFile(juce::File(dir.getChildFile(fileName)).getFileNameWithoutExtension(),
+                                                   juce::File(fileName).getFileExtension(), false);
+  if (f.replaceWithData(bytes.getData(), bytes.getDataSize())) f.revealToUser();
 }
 
 void SY1Editor::reloadUi() {

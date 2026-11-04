@@ -91,6 +91,11 @@ class WaJs {
   /** The DAW's clock for the block about to render (set by the plugin before each block). */
   struct HostClock { bool playing = false; double ppq = 0, bpm = 120; } host;
 
+  /** MIDI the engine sends to the DAW (drum hits as GM notes), with their audio time; the plugin
+   *  takes them after each block (audio thread only, no allocation while playing). */
+  struct MidiOut { uint8_t b0, b1, b2; double t; };
+  std::vector<MidiOut> midiOut = [] { std::vector<MidiOut> v; v.reserve(1024); return v; }();
+
   void collectGarbage() { JS_UpdateStackTop(rt_); JS_RunGC(rt_); }
 
   size_t liveNodes() const {
@@ -421,6 +426,18 @@ class WaJs {
     JS_SetPropertyStr(c, o, "t", JS_NewFloat64(c, h->g.ctx.currentTime()));
     return o;
   }
+  static JSValue fnMidiOut(JSContext* c, JSValueConst, int argc, JSValueConst* argv) {
+    WaJs* h = self(c);
+    if (argc < 4 || h->midiOut.size() >= 1024) return JS_UNDEFINED;
+    int32_t b0 = 0, b1 = 0, b2 = 0;
+    double t = 0;
+    JS_ToInt32(c, &b0, argv[0]);
+    JS_ToInt32(c, &b1, argv[1]);
+    JS_ToInt32(c, &b2, argv[2]);
+    JS_ToFloat64(c, &t, argv[3]);
+    h->midiOut.push_back({static_cast<uint8_t>(b0), static_cast<uint8_t>(b1 & 0x7f), static_cast<uint8_t>(b2 & 0x7f), t});
+    return JS_UNDEFINED;
+  }
   static JSValue fnLog(JSContext* c, JSValueConst, int argc, JSValueConst* argv) {
     for (int i = 0; i < argc; i++) std::fprintf(stderr, "%s%s", i ? " " : "", str(c, argv[i]).c_str());
     std::fprintf(stderr, "\n");
@@ -450,6 +467,7 @@ class WaJs {
     fn("wkPath", fnWkPath, 2);
     fn("wave", fnWave, 3);
     fn("host", fnHost, 0);
+    fn("midiOut", fnMidiOut, 4);
     JS_SetPropertyStr(ctx_, wa, "sampleRate", JS_NewFloat64(ctx_, g.ctx.sampleRate));
     JS_SetPropertyStr(ctx_, global, "__wa", wa);
     JSValue console = JS_NewObject(ctx_);

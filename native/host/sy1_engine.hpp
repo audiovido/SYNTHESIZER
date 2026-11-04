@@ -80,6 +80,14 @@ class Sy1Engine {
     std::lock_guard<std::mutex> l(outMu_);
     if (out_.size() < 4096) out_.push_back({name, argsJson});
   }
+  /** The engine's audio clock (seconds; audio thread). */
+  double time() const { return js_->g.ctx.currentTime(); }
+  /** MIDI the engine produced since the last call (audio thread). */
+  template <class F>
+  void takeMidiOut(F&& each) {
+    for (const auto& m : js_->midiOut) each(m.b0, m.b1, m.b2, m.t);
+    js_->midiOut.clear();
+  }
   /** The DAW's clock for the next block (audio thread). */
   void setHostClock(bool playing, double ppq, double bpm) { js_->host.playing = playing; js_->host.ppq = ppq; js_->host.bpm = bpm; }
   /** Render n frames (any block size), one 128-frame engine block at a time. */

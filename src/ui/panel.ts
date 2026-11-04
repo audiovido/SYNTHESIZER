@@ -53,6 +53,7 @@ import {
 import { evalOrbitPoint, getVectorLiveXY, setVectorDrawnPath } from "../engine/vector";
 import { getEngine, getHQState, onEngineChange } from "../engine/hq";
 import { getMidiPickup, HOST_MIDI, setMidiPickup } from "../engine/cc-map";
+import { exportDrumMidi } from "./drum-export";
 import { fmtBpm, getSync, getTempo, isHostSynced, onSyncChange, onTempoChange, setSync, setTempo, tapTempo } from "../engine/tempo";
 import {
   clearPattern,
@@ -158,6 +159,7 @@ function renderDrumTransport(): string {
       </div>
       <button type="button" class="synth-choice-btn drum-acc ${stepEdit !== "hit" ? "active" : ""}" data-action="drum-edit" title="EDIT mode: ${EDIT_HELP[stepEdit]} (tap to change mode)">✎ ${EDIT_LABEL[stepEdit]}</button>
       <button type="button" class="synth-choice-btn" data-action="drum-clear" title="Clear this pattern">CLEAR</button>
+      <button type="button" class="synth-choice-btn drum-export" data-action="drum-export" draggable="true" title="${HOST_MIDI ? "Save this pattern as a MIDI file in Music/SY-1 and show it, to drag into the DAW (Shift: patterns A–H)" : "Save this pattern as a MIDI file, or drag it into your DAW (Shift: patterns A–H)"}">⤓ MIDI</button>
     </div>`;
 }
 
@@ -1020,6 +1022,7 @@ export function initPanelInteractions(): void {
       case "drum-len": setPatternLength(Number(btn.getAttribute("data-len"))); break;
       case "drum-edit": stepEdit = STEP_EDITS[(STEP_EDITS.indexOf(stepEdit) + 1) % STEP_EDITS.length]; refreshCustom("drum-transport"); break;
       case "drum-clear": clearPattern(); break;
+      case "drum-export": exportDrumMidi((e as MouseEvent).shiftKey); break;
       case "drum-voice": {
         drumVoice = btn.getAttribute("data-voice") as DrumVoice;
         refreshCustom("drum-steps");

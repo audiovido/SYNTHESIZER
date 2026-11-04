@@ -25,7 +25,7 @@ class SY1Processor : public juce::AudioProcessor {
 
   const juce::String getName() const override { return "SY-1"; }
   bool acceptsMidi() const override { return true; }
-  bool producesMidi() const override { return false; }
+  bool producesMidi() const override { return true; }
   bool isMidiEffect() const override { return false; }
   double getTailLengthSeconds() const override { return 4.0; }
 
@@ -63,6 +63,7 @@ class SY1Processor : public juce::AudioProcessor {
   struct HostPos { bool playing = false, hasPpq = false, looping = false; double bpm = 0, ppq = 0, loopStart = 0, loopEnd = 0; } host_;
   struct Pending { int64_t t; juce::MidiMessage m; };
   std::vector<Pending> pending_;
+  std::vector<Pending> outPending_;  // MIDI out waiting for its DAW block (drum hits)
   int64_t nextAllowed_ = 0;
   static constexpr int kMacros = 16;
   std::array<juce::AudioParameterFloat*, kMacros> macros_{};

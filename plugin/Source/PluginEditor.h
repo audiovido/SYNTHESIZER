@@ -20,6 +20,7 @@ class SY1Editor : public juce::AudioProcessorEditor, private juce::Timer {
   std::optional<juce::WebBrowserComponent::Resource> serve(const juce::String& url);
   juce::String userScript();
   void build();
+  void saveFile(const juce::String& argsJson);
 
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SY1Editor)
 };

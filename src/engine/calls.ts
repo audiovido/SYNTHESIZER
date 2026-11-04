@@ -10,6 +10,7 @@ import { setHostTempo, setSync, setTempo } from "./tempo";
 import { setMasterVolume } from "./bus";
 import { runUnmirrored } from "./mirror";
 import * as ccmap from "./cc-map";
+import { beginMidiIn, endMidiIn } from "./daw";
 
 export const ENGINE_CALLS: Record<string, (...a: any[]) => unknown> = {
   setSynthParam: synth.setSynthParam,
@@ -51,6 +52,8 @@ export const ENGINE_CALLS: Record<string, (...a: any[]) => unknown> = {
   setMidiPickup: ccmap.setMidiPickup,
   hostCC: ccmap.hostCC,
   hostMacro: ccmap.hostMacro,
+  midiNoteOn,
+  midiNoteOff,
   uiStore
 };
 
@@ -58,6 +61,16 @@ export const ENGINE_CALLS: Record<string, (...a: any[]) => unknown> = {
 function uiStore(key: string, value: string): void {
   if (!/^sy1\.m\.[^.]+\.(page|favs)$/.test(String(key))) return;
   try { localStorage.setItem(String(key), String(value)); } catch (e) {}
+}
+
+/** A note from the DAW's MIDI (plugin): played like any note, but never echoed to the MIDI out. */
+function midiNoteOn(midi: number, vel: number): void {
+  beginMidiIn();
+  try { synth.noteOn(midi, vel); } finally { endMidiIn(); }
+}
+function midiNoteOff(midi: number): void {
+  beginMidiIn();
+  try { synth.noteOff(midi); } finally { endMidiIn(); }
 }
 
 /** DAW Play / Stop: while the DAW plays, the drum pattern runs on the DAW's 16th notes (hostStep). */

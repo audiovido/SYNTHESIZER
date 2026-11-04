@@ -68,13 +68,15 @@ void SY1Processor::prepareToPlay(double sampleRate, int) {
   wasPlaying_ = false;
   dawPos_ = 0;
   pending_.clear();
+  outPending_.clear();
+  outPending_.reserve(4096);
   pending_.reserve(2048);
 }
 
 
 void SY1Processor::handleMidi(const juce::MidiMessage& m, double at) {
-  if (m.isNoteOn()) engine_.hostCall("noteOn", "[" + num(m.getNoteNumber()) + ", " + num(m.getFloatVelocity()) + "]", at);
-  else if (m.isNoteOff()) engine_.hostCall("noteOff", "[" + num(m.getNoteNumber()) + "]", at);
+  if (m.isNoteOn()) engine_.hostCall("midiNoteOn", "[" + num(m.getNoteNumber()) + ", " + num(m.getFloatVelocity()) + "]", at);
+  else if (m.isNoteOff()) engine_.hostCall("midiNoteOff", "[" + num(m.getNoteNumber()) + "]", at);
   else if (m.isPitchWheel()) engine_.hostCall("setPitchBend", "[" + num((m.getPitchWheelValue() - 8192) / 8192.0) + "]", at);
   else if (m.isAllNotesOff() || m.isAllSoundOff()) engine_.hostCall("allNotesOff", "[]", at);
   // every other controller (mod wheel and sustain too): MIDI Learn mappings first, then the built-ins
@@ -146,9 +148,15 @@ void SY1Processor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuff
     if (pending_.size() < 8192) pending_.push_back({dawPos_ + meta.samplePosition, meta.getMessage()});
   float* L = buffer.getWritePointer(0);
   float* R = buffer.getWritePointer(1);
+  double outBase = 0, outT0 = 0;
+  bool rendered = false;
   engine_.process(L, R, n, [&](int i) {
     // this engine block covers DAW samples [q0, q0 + 128) and is heard 128 samples later
     const int64_t q0 = dawPos_ + i - wa::RQ;
+    // its audio starts at buffer position i: engine time t sounds at output sample dawPos_ + i + (t - T0) * sr
+    outBase = static_cast<double>(dawPos_ + i);
+    outT0 = engine_.time();
+    rendered = true;
     hostClockFor(q0);
     macrosToEngine();
     size_t k = 0;
@@ -156,6 +164,23 @@ void SY1Processor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuff
       handleMidi(pending_[k].m, std::max<int64_t>(0, pending_[k].t - q0) / rate_);
     if (k) pending_.erase(pending_.begin(), pending_.begin() + static_cast<long>(k));
   });
+  // MIDI out (drum hits as GM notes): each event goes where its sound is in the output, so a MIDI
+  // track recording SY-1 lines up with SY-1's audio
+  midi.clear();
+  if (rendered)
+    engine_.takeMidiOut([&](uint8_t b0, uint8_t b1, uint8_t b2, double t) {
+      if (outPending_.size() >= 4096) return;
+      // (an event already in the past goes at the start of this buffer)
+      const double at = std::max(static_cast<double>(dawPos_), outBase + (t - outT0) * rate_);
+      outPending_.push_back({static_cast<int64_t>(std::llround(at)), juce::MidiMessage(b0, b1, b2)});
+    });
+  if (!outPending_.empty()) {
+    std::stable_sort(outPending_.begin(), outPending_.end(), [](const Pending& a, const Pending& b) { return a.t < b.t; });
+    size_t k = 0;
+    for (; k < outPending_.size() && outPending_[k].t < dawPos_ + n; k++)
+      midi.addEvent(outPending_[k].m, static_cast<int>(std::clamp<int64_t>(outPending_[k].t - dawPos_, 0, n - 1)));
+    if (k) outPending_.erase(outPending_.begin(), outPending_.begin() + static_cast<long>(k));
+  }
   dawPos_ += n;
 }
 

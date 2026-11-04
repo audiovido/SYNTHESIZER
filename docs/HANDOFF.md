@@ -77,6 +77,15 @@ Design:
 - Also expose the main knobs as **DAW automation parameters** (JUCE `AudioProcessorValueTreeState` with ~16 macro slots that the user assigns), so Ableton/Logic can automate and map them with their own MIDI map mode. This is the most standard way for DAW users.
 
 ### 5.3 Drum machine → MIDI in the DAW (see/record which drum plays when)
+
+**Built (5 Nov 2026).**
+- The plugin now has a MIDI output (`NEEDS_MIDI_OUTPUT TRUE`, `producesMidi()`). Every drum hit the machine makes itself (pattern on the DAW's or its own clock, pads, keys) goes out as a GM drum note on channel 10 (`daw.ts drumHit` → native `__wa.midiOut(b0, b1, b2, t)` → `WaJs::midiOut` → `Sy1Engine::takeMidiOut` → `PluginProcessor` places each event where its sound is in the output buffer). Note-off 60 ms later.
+- Notes that came in from the DAW (`midiNoteOn`/`midiNoteOff`, marked as MIDI-in) are never sent back, so a MIDI track that records SY-1 and plays into it does not loop.
+- **⤓ MIDI** button on the drum machines (row with CLEAR): the current pattern as a .mid (Shift: patterns A–H with notes), tempo, swing, accents, flams and rolls (`drumPatternsMidi` in `daw.ts`, `src/ui/drum-export.ts`). Web app: download, or drag the button into the DAW (Chrome/Edge). Plugin: written to `~/Music/SY-1/` and shown in Finder, to drag from there (`SY1Editor::saveFile`).
+- Not yet: arp → MIDI out; direct drag-out from the plugin window (WebView drags cannot carry files to the DAW).
+- Test: host_test 11.
+
+Original design notes:
 Now the plugin outputs audio only (`NEEDS_MIDI_OUTPUT FALSE`).
 Design:
 - Set `NEEDS_MIDI_OUTPUT TRUE` (`plugin/CMakeLists.txt`) and `producesMidi() = true`.

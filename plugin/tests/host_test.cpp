@@ -30,6 +30,7 @@ struct Run {
   FakeHead head;
   double sr = 48000;
   int64_t pos = 0;
+  std::vector<std::pair<int64_t, juce::MidiMessage>> out;  // MIDI the plugin sent to the DAW
   explicit Run(const char* machine, double rate = 48000) : sr(rate) {
     p.setPlayHead(&head);
     p.setRateAndBufferSizeDetails(sr, 512);
@@ -38,7 +39,7 @@ struct Run {
     p.engine().js()->eval(
         "globalThis.__log = []; { const oc = SY1E.call; SY1E.call = (n, a) => {"
         " const t = __wa.time() + (globalThis.__evOffset || 0);"
-        " if (n === 'hostStep') __log.push([1, a[0], t + a[1]]); else if (n === 'noteOn') __log.push([2, a[0], t]);"
+        " if (n === 'hostStep') __log.push([1, a[0], t + a[1]]); else if (n === 'noteOn' || n === 'midiNoteOn') __log.push([2, a[0], t]);"
         " return oc(n, a); }; }");
   }
   /** Render `samples` in DAW blocks of `block`, the play head advancing (and looping). */
@@ -51,6 +52,7 @@ struct Run {
         if (e.first >= pos && e.first < pos + block) mb.addEvent(e.second, static_cast<int>(e.first - pos));
       buf.clear();
       p.processBlock(buf, mb);
+      for (const auto meta : mb) out.push_back({pos + meta.samplePosition, meta.getMessage()});
       for (int i = 0; i < block; i++) peak = std::max(peak, static_cast<double>(std::fabs(buf.getSample(0, i))));
       pos += block;
       if (head.playing) {
@@ -330,6 +332,50 @@ int main() {
     std::printf("     reloaded project: CC 74 at 0 -> cutoff %s (pickup off after reload? %s)\n", c2.c_str(),
                 r2.p.engine().js()->evalString("localStorage.getItem('sy1_midi_pickup')").c_str());
     check(r2.p.engine().js()->evalString("localStorage.getItem('musicher_synth_midi_map')") == map, "mappings come back with the project");
+  }
+
+  std::printf("11. Drum machine -> MIDI out: GM drum notes where their sound is, DAW notes not echoed\n");
+  {
+    Run r("kerman");
+    r.render(4096, 512);
+    r.p.engine().post("applyDrumStyle", "[\"k808\"]");
+    r.render(24000, 512);  // past the engine's start-up warm-up (hits in its first 0.3 s come 40 ms late)
+    const int64_t start = r.pos;
+    r.head.bpm = 120;
+    r.head.playing = true;
+    r.head.ppq = 0;
+    r.render(48000 * 2, 441);
+    r.head.playing = false;
+    r.render(8192, 512);  // the last note-offs
+    int ons = 0, offs = 0, onGrid = 0, ch10 = 0, gm = 0;
+    for (auto& [t, m] : r.out) {
+      if (m.isNoteOn()) {
+        ons++;
+        if (m.getChannel() == 10) ch10++;
+        const int nn = m.getNoteNumber();
+        if (nn == 36 || nn == 37 || nn == 38 || nn == 39 || nn == 42 || nn == 45 || nn == 46 || nn == 56) gm++;
+        // the 16th grid in the output: start + RQ + k * 6000 samples (120 BPM, 48 kHz)
+        const double k = (t - start - wa::RQ) / 6000.0;
+        if (std::fabs(k - std::round(k)) * 6000.0 <= 1.0) onGrid++;
+        else std::printf("     off grid: note %d at 16th %.4f\n", nn, k);  // (none expected)
+      } else if (m.isNoteOff()) {
+        offs++;
+      }
+    }
+    std::printf("     %d note-ons (%d on channel 10, %d GM drum notes, %d on the 16th grid), %d note-offs\n", ons, ch10, gm, onGrid, offs);
+    check(ons >= 8 && ch10 == ons && gm == ons, "every hit is a GM drum note on channel 10");
+    check(onGrid == ons, "each note at its sound's sample (DAW grid + the reported 128)");
+    check(offs == ons, "every note gets its note-off");
+    r.out.clear();
+    r.render(4096, 512, {{r.pos + 100, juce::MidiMessage::noteOn(10, 38, 0.9f)}, {r.pos + 2000, juce::MidiMessage::noteOff(10, 38)}});
+    int echoed = 0;
+    for (auto& [t, m] : r.out) if (m.isNoteOn()) echoed++;
+    check(echoed == 0, "a drum played by the DAW's MIDI is not sent back (no feedback loop)");
+    r.p.engine().post("playDrum", "[\"kick\", 1]");
+    r.render(8192, 512);
+    int pad = 0;
+    for (auto& [t, m] : r.out) if (m.isNoteOn() && m.getNoteNumber() == 36) pad++;
+    check(pad == 1, "a pad tapped in the window goes out as MIDI");
   }
 
   std::printf(failures ? "\n%d FAILED\n" : "\nall passed\n", failures);
