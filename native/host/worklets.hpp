@@ -20,6 +20,8 @@ class WorkletNode : public wa::Node {
   virtual void param(const std::string& key, double v) = 0;
   virtual void param(const std::string& key, const std::string& v) = 0;
   virtual void snap() = 0;
+  /** A drawn path (x0, y0, x1, y1...): only the vector engine uses one. */
+  virtual void path(const std::vector<double>&) {}
   /** t: on, off, kill, glide, alloff, bend, mod */
   virtual void message(const std::string& t, int id, double midi, double cents, double vel, double at, double from, double glide, double v) = 0;
 

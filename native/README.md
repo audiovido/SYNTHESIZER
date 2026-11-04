@@ -90,21 +90,34 @@ on Apple Silicon.
 styles, drum machines, the real `bus.ts`), unchanged. AudioWorklet engines are
 native wa nodes with the same message protocol and timing: `sy1-voices` (HQ)
 `sy1-analog` (Tabriz), `sy1-fm` (Kashan, `dsp/fm.hpp`) and `sy1-strings` (Shiraz,
-`dsp/strings.hpp`). Vector (Nishapur) is not native yet.
+`dsp/strings.hpp`) and `sy1-vector` (Nishapur, `dsp/vector.hpp`). `createPeriodicWave` maps to
+native `wa::PeriodicWave`. Promise callbacks run right after each script (as in a browser).
 
 `node native/tests/worklet_replay.mjs` (deterministic, no browser): a scene runs in the
 plugin engine and logs every worklet message; the log is replayed into the web's own
-TypeScript processor and into the C++ engine. Last result: FM and strings bit-identical
+TypeScript processor (Bun, or V8 with `TSRUN=node`) and into the C++ engine. Last result: FM,
+strings and vector bit-identical, both channels
 (presets switched while notes ring, mono legato glide, riz tremolo, pitch bend, mod wheel).
 
 Parity: `node native/tests/engine_parity.mjs` (vite dev server on :3344) runs the
 real app in Chrome (OfflineAudioContext, timers on the render clock) and the
-same scenes in the plugin engine. Last result (2026-11-04): every scene within
-97-123 dB of Chrome. The scenes cover SY-1 (chord, knob moves, chorus), Yazd,
-Tabriz mono legato with glide, Baku (arpeggio, chord, dry, chorus, delay),
-Konya Euclid, and the Kerman and Bushehr drum styles. Chrome itself sometimes
-renders a chorus scene differently on one page load (as with the reverb
-allpass order); a rerun matches. Kashan FM chord (-109 dB), Shiraz santur (-107 dB) and riz (-109 dB) match. Scenes that
-switch presets while playing differ in Chrome alone: measured, Chrome hands a burst of
-~450 messages to its audio thread over two blocks (first ~300, then the rest), so its
-timing shifts; the engines themselves are bit-identical on the same messages (above).
+same scenes in the plugin engine. All 15 machines are covered. Last result
+(2026-11-04): every scene 105-124 dB below the signal, preset switches included,
+except Nishapur's preset scene (-34 to -44 dB, a different value on every Chrome
+run): Chrome hands the preset's burst of messages to its audio thread over two
+blocks at random. The engines are bit-identical on the same messages (above).
+Note events get a fixed 2-block lead on both sides (`LEAD`). `LOGMSG=1` writes both
+sides' worklet messages, `DEBUG=1` the two renders.
+
+## The plugin (`../plugin`, JUCE 8: AU, VST3, Standalone)
+`plugin/prepare.sh` bundles the engine (`engine.js`, `wa-shim.js`) and the built web UI
+into `plugin/resources` (HTML and CSS made pure ASCII). The processor runs the engine
+(`host/sy1_engine.hpp`) in 128-frame blocks (128 samples of reported latency); DAW MIDI
+(notes, pitch bend, mod wheel, sustain), tempo and Play/Stop (drum machines start on the
+DAW's next 16th) go into it on the audio thread. The window is the web app itself in a
+web view, in UI mode: its own engine is silent, and every top-level engine call it makes
+(`src/engine/mirror.ts`, `calls.ts`) is sent to the plugin's engine; calls the plugin makes
+(DAW MIDI, tempo) are applied in the window too, and the scope shows the plugin's output.
+The state saved with the DAW project is everything the app keeps in localStorage.
+CI: `.github/workflows/plugin.yml` builds macOS (universal AU + VST3 + app, auval) and
+Windows (VST3 + exe) and uploads them as artifacts.

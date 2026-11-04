@@ -7,6 +7,8 @@
  * timing stays tight even when the page is busy.
  */
 
+import { mirrorCall } from "./mirror";
+
 import { getAudioCtxIfAny, getSharedNoiseBuffer } from "./bus";
 import { acousticHit, classicHit, ClassicModel, driveCurve, HAT808, HitCtx, minimalHit, persianHit } from "./drum-models";
 
@@ -450,7 +452,7 @@ export function getPattern(i = current): DrumPattern { return bank[i]; }
 export function getPatternIndex(): number { return current; }
 export function isDrumPlaying(): boolean { return playing; }
 
-export function selectPattern(i: number): void {
+function selectPattern__impl(i: number): void {
   current = Math.max(0, Math.min(7, i));
   notify();
 }
@@ -463,7 +465,7 @@ export function loadBank(patterns: DrumPattern[]): void {
 }
 
 /** Tap on a step, by edit mode. Turning a step off also clears its roll, flam and chance. */
-export function editStep(v: DrumVoice, i: number, mode: StepEdit): void {
+function editStep__impl(v: DrumVoice, i: number, mode: StepEdit): void {
   const p = bank[current];
   const s = p.steps[v];
   const clearMods = () => { setArr(p, "roll", v, i, 1, 1); setArr(p, "flam", v, i, 0, 0); setArr(p, "prob", v, i, 100, 100); };
@@ -479,13 +481,13 @@ export function editStep(v: DrumVoice, i: number, mode: StepEdit): void {
   notify();
 }
 
-export function setPatternLength(len: number): void {
+function setPatternLength__impl(len: number): void {
   bank[current].len = len === 12 ? 12 : 16;
   saveBank();
   notify();
 }
 
-export function clearPattern(): void {
+function clearPattern__impl(): void {
   bank[current] = emptyPattern(bank[current].len);
   saveBank();
   notify();
@@ -520,7 +522,7 @@ function scheduler(): void {
 }
 
 /** Start the sequencer; `at` (audio time) lines step 1 up with an external clock. */
-export function startDrums(at?: number): void {
+function startDrums__impl(at?: number): void {
   const ctx = getAudioCtxIfAny();
   if (!ctx || playing) return;
   playing = true;
@@ -531,10 +533,50 @@ export function startDrums(at?: number): void {
   notify();
 }
 
-export function stopDrums(): void {
+function stopDrums__impl(): void {
   playing = false;
   if (timer) clearInterval(timer);
   timer = null;
   stepListeners.forEach((cb) => cb(-1));
   notify();
+}
+
+/** mirrored for the plugin (see mirror.ts) */
+export function selectPattern(...args: Parameters<typeof selectPattern__impl>): ReturnType<typeof selectPattern__impl> {
+  return mirrorCall("selectPattern", selectPattern__impl, args);
+}
+
+/** mirrored for the plugin (see mirror.ts) */
+export function editStep(...args: Parameters<typeof editStep__impl>): ReturnType<typeof editStep__impl> {
+  return mirrorCall("editStep", editStep__impl, args);
+}
+
+/** mirrored for the plugin (see mirror.ts) */
+export function setPatternLength(...args: Parameters<typeof setPatternLength__impl>): ReturnType<typeof setPatternLength__impl> {
+  return mirrorCall("setPatternLength", setPatternLength__impl, args);
+}
+
+/** mirrored for the plugin (see mirror.ts) */
+export function clearPattern(...args: Parameters<typeof clearPattern__impl>): ReturnType<typeof clearPattern__impl> {
+  return mirrorCall("clearPattern", clearPattern__impl, args);
+}
+
+/** mirrored for the plugin (see mirror.ts) */
+export function startDrums(...args: Parameters<typeof startDrums__impl>): ReturnType<typeof startDrums__impl> {
+  return mirrorCall("startDrums", startDrums__impl, args);
+}
+
+/** mirrored for the plugin (see mirror.ts) */
+export function stopDrums(...args: Parameters<typeof stopDrums__impl>): ReturnType<typeof stopDrums__impl> {
+  return mirrorCall("stopDrums", stopDrums__impl, args);
+}
+
+/** A drum hit played from the UI (pads, kit audition), `inSec` seconds from now. */
+function playDrum__impl(v: DrumVoice, vel: number, inSec?: number): void {
+  const ctx = getAudioCtxIfAny();
+  triggerDrum(v, vel, inSec !== undefined && ctx ? ctx.currentTime + inSec : undefined);
+}
+
+export function playDrum(...args: Parameters<typeof playDrum__impl>): ReturnType<typeof playDrum__impl> {
+  return mirrorCall("playDrum", playDrum__impl, args);
 }

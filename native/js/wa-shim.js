@@ -2,6 +2,21 @@
 // Every node and AudioParam call is forwarded to native/wa (C++) through the
 // global `__wa` object that the host installs. Only what SY-1's engine code uses.
 (function () {
+  // In the plugin window (UI mode) the app's own engine runs only for the UI: no audio, a
+  // stand-in __wa that keeps ids and a clock, the scope fed from the plugin's output.
+  const UI = !!globalThis.__SY1_UI;
+  if (UI && !globalThis.__wa) {
+    let next = 1;
+    const t0 = performance.now();
+    const noop = () => {};
+    globalThis.__wa = {
+      sampleRate: globalThis.__SY1_RATE || 48000,
+      time: () => (performance.now() - t0) / 1000,
+      create: () => next++, connect: noop, connectParam: noop, disconnect: noop, param: noop,
+      paramSet: noop, paramGet: () => 0, prop: noop, curve: noop, buffer: () => next++, start: noop, stop: noop,
+      wkParam: noop, wkSnap: noop, wkMsg: noop, wkPath: noop, wave: () => next++
+    };
+  }
   const W = globalThis.__wa;
   class AudioParam {
     constructor(node, name) { this._n = node; this._p = name; }
@@ -73,11 +88,26 @@
       return n;
     }
     createChannelMerger(n) { return new AudioNode(W.create("merger", +(n || 6))); }
-    createAnalyser() { return new AudioNode(W.create("pass")); }
+    createAnalyser() {
+      const n = new AudioNode(W.create("pass"));
+      n.fftSize = 2048;
+      // the scope reads the plugin's output (pushed into __SY1_SCOPE by the plugin window)
+      n.getByteTimeDomainData = (arr) => {
+        const src = globalThis.__SY1_SCOPE;
+        for (let i = 0; i < arr.length; i++) { const v = src && src.length ? src[(i * src.length / arr.length) | 0] : 0; arr[i] = Math.max(0, Math.min(255, Math.round(128 + v * 128))); }
+      };
+      n.getFloatTimeDomainData = (arr) => { const src = globalThis.__SY1_SCOPE; for (let i = 0; i < arr.length; i++) arr[i] = src && src.length ? src[(i * src.length / arr.length) | 0] : 0; };
+      return n;
+    }
     createOscillator() {
       const n = params(new Scheduled(W.create("osc")), ["frequency", "detune"]);
       Object.defineProperty(n, "type", { set(v) { W.prop(n._id, "type", String(v)); }, get() { return "sine"; } });
+      n.setPeriodicWave = (w) => { if (w && w._w !== undefined) W.prop(n._id, "wave", w._w); };
       return n;
+    }
+    createPeriodicWave(real, imag, opts) {
+      const f = (a) => { const x = Float32Array.from(a); return x.buffer; };
+      return { _w: W.wave(f(real), f(imag), !!(opts && opts.disableNormalization)) };
     }
     createBuffer(ch, len, rate) { return new AudioBuffer(ch, len, rate); }
     createBufferSource() {
@@ -96,7 +126,17 @@
         postMessage(m) {
           if (!m) return;
           if (globalThis.__wkTransform) m = globalThis.__wkTransform(m);
-          if (m.t === "patch") { for (const k in m.patch) { const v = m.patch[k]; if (typeof v === "number" || typeof v === "string") W.wkParam(id, k, v); } W.wkSnap(id); }
+          if (m.t === "patch") {
+            for (const k in m.patch) { const v = m.patch[k]; if (typeof v === "number" || typeof v === "string") W.wkParam(id, k, v); }
+            if (typeof m.orbitRateHz === "number") W.wkParam(id, "orbitRateHz", m.orbitRateHz); // the vector engine's extra field
+            W.wkSnap(id);
+          }
+          else if (m.t === "path") {
+            if (!Array.isArray(m.pts) || m.pts.length < 2) return;
+            const n = Math.min(256, m.pts.length), f = new Float64Array(2 * n);
+            for (let i = 0; i < n; i++) { const p = m.pts[i]; f[2 * i] = Number(p?.[0]) || 0.5; f[2 * i + 1] = Number(p?.[1]) || 0.5; }
+            W.wkPath(id, f.buffer);
+          }
           else if (m.t === "param") { if (typeof m.value === "number" || typeof m.value === "string") W.wkParam(id, String(m.key), m.value); }
           else W.wkMsg(id, String(m.t), m.id | 0, Number(m.midi) || 0, Number(m.cents) || 0, m.vel === undefined ? 1 : Number(m.vel), Number(m.at) || 0, Number(m.from) || 0, Number(m.glide) || 0, Number(m.v) || 0);
         }
@@ -107,8 +147,11 @@
   globalThis.AudioParam = AudioParam;
   globalThis.__makeCtx = () => new Ctx();
   // the web app makes its context with `new AudioContext()`: always the one engine context
-  globalThis.window = globalThis;
+  if (!UI) globalThis.window = globalThis;
   globalThis.AudioContext = function () { return globalThis.__ctx || (globalThis.__ctx = new Ctx()); };
+  globalThis.webkitAudioContext = globalThis.AudioContext;
+  globalThis.AudioWorkletNode = AudioWorkletNode;
+  if (UI) return; // the browser keeps its own timers, document and storage handling below
   globalThis.performance = { now: () => W.time() * 1000 };
   const noEl = { classList: { toggle() {}, add() {}, remove() {}, contains() { return false; } }, setAttribute() {}, style: {} };
   globalThis.document = { querySelector: () => null, querySelectorAll: () => [], getElementById: () => null, addEventListener() {}, hidden: false, body: noEl };
@@ -127,5 +170,8 @@
   if (!globalThis.localStorage) {
     const m = new Map();
     globalThis.localStorage = { getItem: (k) => (m.has(k) ? m.get(k) : null), setItem: (k, v) => m.set(k, String(v)), removeItem: (k) => m.delete(k) };
+    // plugin state = this storage (the app saves machines, patches, banks and settings here)
+    globalThis.__dumpStorage = () => JSON.stringify(Object.fromEntries(m));
+    globalThis.__loadStorage = (json) => { m.clear(); try { const o = JSON.parse(json || "{}"); for (const k in o) m.set(k, String(o[k])); } catch (e) {} };
   }
 })();

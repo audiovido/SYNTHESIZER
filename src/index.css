@@ -3547,3 +3547,7 @@ button.synth-machine-select {
   .synth-rec-btn:not(.is-rec):not(.daw-rec-big) .rec-time { display: none; }
   .daw-body { padding: 8px 12px; }
 }
+
+/* inside the plugin: the DAW records the sound and MIDI itself; hide the in-app recorder and DAW routing */
+.is-plugin #rec-btn,
+.is-plugin .conn-daw-btn { display: none !important; }

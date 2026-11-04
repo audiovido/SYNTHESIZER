@@ -12,7 +12,7 @@
 
 import { escapeHtml } from "../engine/params";
 import { applyDrumKit, applyDrumStyle, getDrumKitId, getKeepKit, getMachine, getSynthPresetId, isDrumKitEdited, onDrumKitChange, onMachineChange, onPresetChange, setKeepKit } from "../engine/synth";
-import { DRUM_VOICES, isDrumPlaying, startDrums, triggerDrum } from "../engine/drums";
+import { DRUM_VOICES, isDrumPlaying, playDrum, startDrums } from "../engine/drums";
 import { getAudioCtxIfAny } from "../engine/bus";
 import type { DrumKitDef, DrumStyleDef, PresetDef } from "../machines/types";
 import { previewPreset, setPanelRenderHook } from "./panel";
@@ -254,7 +254,7 @@ function auditionKit(): void {
   const sd = 0.13;
   const seq: [string, number, number][] = [["kick", 0, 1], ["ch", 0, 0.7], ["ch", 1, 0.5], ["snare", 2, 1], ["ch", 2, 0.7], ["ch", 3, 0.5],
     ["kick", 4, 1], ["tom", 5, 0.8], ["rim", 5, 0.7], ["clap", 6, 1], ["oh", 6, 0.7], ["bell", 7, 0.8]];
-  seq.forEach(([v, i, vel]) => { if ((DRUM_VOICES as readonly string[]).includes(v)) triggerDrum(v as any, vel, t0 + i * sd); });
+  seq.forEach(([v, i, vel]) => { if ((DRUM_VOICES as readonly string[]).includes(v)) playDrum(v as any, vel, t0 + i * sd - ctx.currentTime); });
 }
 
 function render(keepFocus = false): void {

@@ -3,6 +3,8 @@
  * drum sequencer), with tap tempo.
  */
 
+import { mirrorCall } from "./mirror";
+
 const KEY = "sy1_bpm";
 let bpm = 110;
 try {
@@ -22,7 +24,7 @@ export function onTempoChange(cb: (bpm: number) => void): () => void {
   return () => listeners.delete(cb);
 }
 
-export function setTempo(v: number): void {
+function setTempo__impl(v: number): void {
   const next = Math.max(40, Math.min(240, Math.round(v)));
   if (next === bpm) return;
   bpm = next;
@@ -41,4 +43,9 @@ export function tapTempo(): void {
     setTempo(60000 / avg);
   }
   if (taps.length > 6) taps.shift();
+}
+
+/** mirrored for the plugin (see mirror.ts) */
+export function setTempo(...args: Parameters<typeof setTempo__impl>): ReturnType<typeof setTempo__impl> {
+  return mirrorCall("setTempo", setTempo__impl, args);
 }

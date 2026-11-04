@@ -73,7 +73,7 @@ import {
   stepFlam,
   stepProb,
   stepRoll,
-  triggerDrum
+  playDrum
 } from "../engine/drums";
 import type { ControlDef, SectionDef } from "../machines/types";
 import { euclidHit, onArpStep } from "../engine/arp";
@@ -990,7 +990,7 @@ export function initPanelInteractions(): void {
         drumVoice = btn.getAttribute("data-voice") as DrumVoice;
         refreshCustom("drum-steps");
         refreshCustom("drum-voice");
-        triggerDrum(drumVoice, 0.9);
+        playDrum(drumVoice, 0.9);
         break;
       }
       case "drum-step": editStep(drumVoice, Number(btn.getAttribute("data-index")), stepEdit); break;

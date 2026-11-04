@@ -2,6 +2,8 @@
  * SY-1 Engine — Audio Context & Shared FX Bus
  */
 
+import { mirrorCall } from "./mirror";
+
 interface ReverbComb {
   delay: DelayNode;
   damp: AudioNode;
@@ -71,7 +73,7 @@ export function getMasterVolume(): number {
 export function masterGainFor(v: number): number {
   return v * v;
 }
-export function setMasterVolume(v: number): void {
+function setMasterVolume__impl(v: number): void {
   const next = Math.max(0, Math.min(1, v));
   if (next === masterVol) return;
   masterVol = next;
@@ -532,4 +534,9 @@ export function getSynthBus(ctx: AudioContext, synthPatch: Record<string, any>):
 
   synthBuses.set(ctx, bus);
   return bus;
+}
+
+/** mirrored for the plugin (see mirror.ts) */
+export function setMasterVolume(...args: Parameters<typeof setMasterVolume__impl>): ReturnType<typeof setMasterVolume__impl> {
+  return mirrorCall("setMasterVolume", setMasterVolume__impl, args);
 }

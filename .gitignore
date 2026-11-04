@@ -7,3 +7,6 @@ coverage/
 .env*
 !.env.example
 native/js/dist/
+plugin/resources/
+plugin/build/
+plugin/build-ui/

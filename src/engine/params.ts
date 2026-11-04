@@ -1,6 +1,7 @@
 /**
  * SY-1 Engine — Parameters and Normalization
  */
+import { mirrorCall } from "./mirror";
 
 import { keyMap, SCALES } from "./scales";
 
@@ -300,7 +301,7 @@ export function getCustomTuning(machineId = "sy1"): number[] {
   return customTuningCache[machineId];
 }
 
-export function setCustomTuning(machineId: string, offsets: number[]): number[] {
+function setCustomTuning__impl(machineId: string, offsets: number[]): number[] {
   const clean = Array.from({ length: 12 }, (_, i) => clampCentOffset(offsets[i] ?? 0));
   customTuningCache[machineId] = clean;
   try {
@@ -420,3 +421,6 @@ export function synthDenorm(key: string, n: number): number {
   return d.min + n * (d.max - d.min);
 }
 
+export function setCustomTuning(...args: Parameters<typeof setCustomTuning__impl>): ReturnType<typeof setCustomTuning__impl> {
+  return mirrorCall("setCustomTuning", setCustomTuning__impl, args);
+}

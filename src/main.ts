@@ -38,8 +38,19 @@ import { initOrientalPanel } from "./ui/oriental-panel";
 import { initLibrary } from "./ui/library";
 import { initMachineBrowser } from "./ui/machine-browser";
 import { initDawPanel } from "./ui/daw-panel";
+import { setMirrorSink } from "./engine/mirror";
+import { applyEngineCall } from "./engine/calls";
 
 function initApp(): void {
+  // Inside the AU/VST3 plugin: the plugin's engine makes the sound; this window mirrors
+  // every engine call to it, and applies the calls the plugin sends back (DAW MIDI, tempo).
+  const plugin = (window as any).__SY1_PLUGIN__;
+  if (plugin) {
+    document.documentElement.classList.add("is-plugin");
+    plugin.onCall = (name: string, args: unknown[]) => applyEngineCall(name, args);
+    // mirror only what the player does from now on (the start-up calls below run in the plugin's engine already)
+    setTimeout(() => setMirrorSink((name, args) => plugin.send(name, args)), 0);
+  }
   // skin and keyboard follow the machine
   onMachineChange((m) => {
     applySkin(m.skin);
@@ -102,7 +113,7 @@ if (document.readyState === "loading") {
 }
 
 // PWA: offline support. Only in the production build (the dev server must not cache anything).
-if (import.meta.env.PROD && "serviceWorker" in navigator) {
+if (import.meta.env.PROD && "serviceWorker" in navigator && !(window as any).__SY1_PLUGIN__) {
   window.addEventListener("load", () => {
     navigator.serviceWorker.register("./sw.js").catch(() => {});
   });

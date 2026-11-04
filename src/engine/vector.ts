@@ -7,6 +7,7 @@
  * with full 4-corner vector morphing both in HQ and Classic modes (and on the
  * very first tap while the worklet module loads).
  */
+import { mirrorCall } from "./mirror";
 
 import processorUrl from "./worklet/vector-processor.ts?worker&url";
 import { getAudioCtxIfAny, getSharedNoiseBuffer, getSynthBus } from "./bus";
@@ -85,7 +86,7 @@ export function getVectorDrawnCenter(): [number, number] {
   return [drawnCx, drawnCy];
 }
 
-export function setVectorDrawnPath(points: [number, number][]): void {
+function setVectorDrawnPath__impl(points: [number, number][]): void {
   if (!points || points.length < 2) return;
   let out: [number, number][];
   if (points.length <= MAX_DRAWN_POINTS) {
@@ -562,4 +563,8 @@ export function createVectorVoice(
     }
   };
   return voice;
+}
+
+export function setVectorDrawnPath(...args: Parameters<typeof setVectorDrawnPath__impl>): ReturnType<typeof setVectorDrawnPath__impl> {
+  return mirrorCall("setVectorDrawnPath", setVectorDrawnPath__impl, args);
 }

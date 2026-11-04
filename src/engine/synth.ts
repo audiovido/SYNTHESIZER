@@ -8,6 +8,8 @@
  * (with mono/legato, HOLD, sustain pedal and tuning applied).
  */
 
+import { mirrorCall } from "./mirror";
+
 import { getAudioCtx, getAudioCtxIfAny, getSynthBus, makeDriveCurve, setMainToFx, setReverbSize, unlockAudio } from "./bus";
 import { getCustomTuning, setCustomTuning, setOrbitSyncFormat, SYNC_DIVS, SYNTH_PARAMS, SynthPatch, synthDefaults, tuningCents } from "./params";
 import { createHQVoice, EngineId, hqPost, initHQ, setEngine, useHQ } from "./hq";
@@ -118,7 +120,7 @@ export function onDrumKitChange(cb: () => void): () => void { kitListeners.add(c
 export function getKeepKit(): boolean {
   try { return localStorage.getItem(KEEP_KIT_KEY) === "1"; } catch (e) { return false; }
 }
-export function setKeepKit(on: boolean): void {
+function setKeepKit__impl(on: boolean): void {
   try { localStorage.setItem(KEEP_KIT_KEY, on ? "1" : "0"); } catch (e) {}
 }
 
@@ -132,7 +134,7 @@ function saveKitSoon(): void {
 }
 
 /** Load a kit's sound; the pattern bank, tempo, swing and accent stay as they are. */
-export function applyDrumKit(id: string): void {
+function applyDrumKit__impl(id: string): void {
   const kit = machine.kits?.find((k) => k.id === id);
   if (!kit) return;
   const groove = { drumSwing: synthPatch.drumSwing, drumAccent: synthPatch.drumAccent };
@@ -149,7 +151,7 @@ export function applyDrumKit(id: string): void {
 }
 
 /** Load a style: tempo, swing, accent and its patterns (and its own kit unless keepKit). */
-export function applyDrumStyle(id: string, keepKit = getKeepKit()): void {
+function applyDrumStyle__impl(id: string, keepKit = getKeepKit()): void {
   const st = machine.styles?.find((x) => x.id === id);
   if (!st) return;
   if (!keepKit || !drumKitId) applyDrumKit(st.kit);
@@ -190,7 +192,7 @@ function syncedLfoRate(): number | null {
   return getTempo() / 60 / div.beats; // cycles per second
 }
 
-export function setSynthParam(
+function setSynthParam__impl(
   key: string,
   value: any,
   { fromPreset = false, internal = false }: { fromPreset?: boolean; internal?: boolean } = {}
@@ -292,7 +294,7 @@ export function setSynthParam(
   savePatchSoon();
 }
 
-export function updateCustomTuningOffsets(offsets?: number[]): number[] {
+function updateCustomTuningOffsets__impl(offsets?: number[]): number[] {
   const machineId = machine.id;
   const clean = offsets ? setCustomTuning(machineId, offsets) : getCustomTuning(machineId);
   retuneActiveVoices();
@@ -317,7 +319,7 @@ function findPreset(id: string): PresetDef | undefined {
   return machine.presets.find((p) => p.id === id);
 }
 
-export function applySynthPreset(id: string): void {
+function applySynthPreset__impl(id: string): void {
   // drum machines: a preset is a style played on its own kit
   if (machine.kind === "drums" && machine.styles) {
     applyDrumStyle(id, false);
@@ -342,7 +344,7 @@ export function applySynthPreset(id: string): void {
   savePatchSoon();
 }
 
-export function stepPreset(dir: number): void {
+function stepPreset__impl(dir: number): void {
   const list = machine.presets;
   const i = list.findIndex((p) => p.id === synthPresetId);
   const next = list[(Math.max(0, i) + dir + list.length) % list.length];
@@ -351,7 +353,7 @@ export function stepPreset(dir: number): void {
 }
 
 /** Switch instrument: stop everything, load its saved patch (or first preset). */
-export function setMachine(id: string): void {
+function setMachine__impl(id: string): void {
   const next = getMachineDef(id);
   setSynthParam("hold", "off", { internal: true });
   releaseEverything();
@@ -411,7 +413,7 @@ export function setMachine(id: string): void {
 }
 
 // ------------------------------------------------------- pitch bend etc. ----
-export function setPitchBend(norm: number): void {
+function setPitchBend__impl(norm: number): void {
   setVoicePitchBend(norm);
   const v = getVoicePitchBend();
   pitchBendOut(v);
@@ -424,7 +426,7 @@ export function setPitchBend(norm: number): void {
 export function getPitchBend(): number {
   return getVoicePitchBend();
 }
-export function setModWheel(norm: number): void {
+function setModWheel__impl(norm: number): void {
   setVoiceModWheel(norm);
   const v = getVoiceModWheel();
   modWheelOut(v);
@@ -454,7 +456,7 @@ export function prepareAudio(): void {
 }
 
 /** Switch engines (releases every note first so nothing hangs). */
-export function switchEngine(id: EngineId): void {
+function switchEngine__impl(id: EngineId): void {
   allNotesOff();
   setEngine(id);
 }
@@ -686,7 +688,7 @@ function releaseHeldByHold(): void {
   }
 }
 
-export function setSustainPedal(down: boolean): void {
+function setSustainPedal__impl(down: boolean): void {
   sustainPedal = down;
   if (!down) releaseHeldByHold();
   syncOut();
@@ -825,7 +827,7 @@ function polyOff(midi: number): void {
 }
 
 /** Note on from keyboard, pads or MIDI (velocity 0..1). */
-export function noteOn(midi: number, velocity = 1): void {
+function noteOn__impl(midi: number, velocity = 1): void {
   prepareAudio();
   const ctx = getAudioCtx();
   if (!ctx) return;
@@ -846,7 +848,7 @@ export function noteOn(midi: number, velocity = 1): void {
   syncOut();
 }
 
-export function noteOff(midi: number): void {
+function noteOff__impl(midi: number): void {
   if (machine.kind === "drums") {
     markKey(midi, false);
     return;
@@ -863,7 +865,7 @@ export function noteOff(midi: number): void {
 }
 
 /** Release only physically held keys (window blur / tab hidden); keeps HOLD-latched notes and sustain pedal. */
-export function releasePhysicalNotes(): void {
+function releasePhysicalNotes__impl(): void {
   const fromKeys = Array.from(downKeys.values());
   downKeys.clear();
   fromKeys.forEach((m) => noteOff(m));
@@ -905,7 +907,7 @@ function releaseEverything(): void {
   midiOutAllOff();
 }
 
-export function allNotesOff(): void {
+function allNotesOff__impl(): void {
   sustainPedal = false;
   downKeys.clear();
   setVoicePitchBend(0);
@@ -960,4 +962,84 @@ setDrumTempoSource(getTempo);
 /** Load the remembered machine at startup (call once, before the first render). */
 export function initMachine(): void {
   setMachine(machine.id);
+}
+
+/** mirrored for the plugin (see mirror.ts) */
+export function setSynthParam(...args: Parameters<typeof setSynthParam__impl>): ReturnType<typeof setSynthParam__impl> {
+  return mirrorCall("setSynthParam", setSynthParam__impl, args);
+}
+
+/** mirrored for the plugin (see mirror.ts) */
+export function applySynthPreset(...args: Parameters<typeof applySynthPreset__impl>): ReturnType<typeof applySynthPreset__impl> {
+  return mirrorCall("applySynthPreset", applySynthPreset__impl, args);
+}
+
+/** mirrored for the plugin (see mirror.ts) */
+export function stepPreset(...args: Parameters<typeof stepPreset__impl>): ReturnType<typeof stepPreset__impl> {
+  return mirrorCall("stepPreset", stepPreset__impl, args);
+}
+
+/** mirrored for the plugin (see mirror.ts) */
+export function setMachine(...args: Parameters<typeof setMachine__impl>): ReturnType<typeof setMachine__impl> {
+  return mirrorCall("setMachine", setMachine__impl, args);
+}
+
+/** mirrored for the plugin (see mirror.ts) */
+export function applyDrumKit(...args: Parameters<typeof applyDrumKit__impl>): ReturnType<typeof applyDrumKit__impl> {
+  return mirrorCall("applyDrumKit", applyDrumKit__impl, args);
+}
+
+/** mirrored for the plugin (see mirror.ts) */
+export function applyDrumStyle(...args: Parameters<typeof applyDrumStyle__impl>): ReturnType<typeof applyDrumStyle__impl> {
+  return mirrorCall("applyDrumStyle", applyDrumStyle__impl, args);
+}
+
+/** mirrored for the plugin (see mirror.ts) */
+export function setKeepKit(...args: Parameters<typeof setKeepKit__impl>): ReturnType<typeof setKeepKit__impl> {
+  return mirrorCall("setKeepKit", setKeepKit__impl, args);
+}
+
+/** mirrored for the plugin (see mirror.ts) */
+export function updateCustomTuningOffsets(...args: Parameters<typeof updateCustomTuningOffsets__impl>): ReturnType<typeof updateCustomTuningOffsets__impl> {
+  return mirrorCall("updateCustomTuningOffsets", updateCustomTuningOffsets__impl, args);
+}
+
+/** mirrored for the plugin (see mirror.ts) */
+export function setPitchBend(...args: Parameters<typeof setPitchBend__impl>): ReturnType<typeof setPitchBend__impl> {
+  return mirrorCall("setPitchBend", setPitchBend__impl, args);
+}
+
+/** mirrored for the plugin (see mirror.ts) */
+export function setModWheel(...args: Parameters<typeof setModWheel__impl>): ReturnType<typeof setModWheel__impl> {
+  return mirrorCall("setModWheel", setModWheel__impl, args);
+}
+
+/** mirrored for the plugin (see mirror.ts) */
+export function setSustainPedal(...args: Parameters<typeof setSustainPedal__impl>): ReturnType<typeof setSustainPedal__impl> {
+  return mirrorCall("setSustainPedal", setSustainPedal__impl, args);
+}
+
+/** mirrored for the plugin (see mirror.ts) */
+export function noteOn(...args: Parameters<typeof noteOn__impl>): ReturnType<typeof noteOn__impl> {
+  return mirrorCall("noteOn", noteOn__impl, args);
+}
+
+/** mirrored for the plugin (see mirror.ts) */
+export function noteOff(...args: Parameters<typeof noteOff__impl>): ReturnType<typeof noteOff__impl> {
+  return mirrorCall("noteOff", noteOff__impl, args);
+}
+
+/** mirrored for the plugin (see mirror.ts) */
+export function releasePhysicalNotes(...args: Parameters<typeof releasePhysicalNotes__impl>): ReturnType<typeof releasePhysicalNotes__impl> {
+  return mirrorCall("releasePhysicalNotes", releasePhysicalNotes__impl, args);
+}
+
+/** mirrored for the plugin (see mirror.ts) */
+export function allNotesOff(...args: Parameters<typeof allNotesOff__impl>): ReturnType<typeof allNotesOff__impl> {
+  return mirrorCall("allNotesOff", allNotesOff__impl, args);
+}
+
+/** mirrored for the plugin (see mirror.ts) */
+export function switchEngine(...args: Parameters<typeof switchEngine__impl>): ReturnType<typeof switchEngine__impl> {
+  return mirrorCall("switchEngine", switchEngine__impl, args);
 }

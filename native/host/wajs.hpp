@@ -22,6 +22,7 @@ extern "C" {
 #include "worklets.hpp"
 #include "../dsp/fm.hpp"
 #include "../dsp/strings.hpp"
+#include "../dsp/vector.hpp"
 
 namespace sy1 {
 
@@ -51,7 +52,21 @@ class WaJs {
     std::string err;
     if (JS_IsException(v)) err = exceptionText();
     JS_FreeValue(ctx_, v);
+    runJobs();  // promise callbacks run right after each script, as in a browser
     return err;
+  }
+  void runJobs() {
+    JSContext* c;
+    while (JS_ExecutePendingJob(rt_, &c) > 0) {}
+  }
+  /** Evaluate an expression and return its value as a string ("" on error). */
+  std::string evalString(const std::string& code) {
+    JSValue v = JS_Eval(ctx_, code.c_str(), code.size(), "<expr>", JS_EVAL_TYPE_GLOBAL);
+    std::string out;
+    if (!JS_IsException(v)) out = str(ctx_, v);
+    else JS_FreeValue(ctx_, JS_GetException(ctx_));
+    JS_FreeValue(ctx_, v);
+    return out;
   }
   /** Call a global function path like "SY1E.triggerDrum" with numeric/string args given as a JS expression. */
   std::string run(const std::string& expr) { return eval(expr, "<run>"); }
@@ -78,6 +93,7 @@ class WaJs {
   std::vector<wa::Node*> nodes_;  // id -> node (nullptr once freed)
   std::vector<size_t> born_;
   std::vector<std::shared_ptr<std::vector<float>>> buffers_{nullptr};
+  std::vector<std::shared_ptr<wa::PeriodicWave>> waves_;
   std::vector<double> bufferRates_{0};
   size_t blocks_ = 0;
   int apCount_ = 0;
@@ -199,6 +215,7 @@ class WaJs {
       else if (name == "sy1-analog") n = h->g.make<AnalogWorklet>();
       else if (name == "sy1-fm") n = h->g.make<FmWorklet>();
       else if (name == "sy1-strings") n = h->g.make<StringsWorklet>();
+      else if (name == "sy1-vector") n = h->g.make<VectorWorklet>();
       else return JS_ThrowTypeError(c, "worklet %s is not available natively yet", name.c_str());
     }
     else if (ty == "iir") {
@@ -288,6 +305,9 @@ class WaJs {
       if (k == "type") {
         const std::string t = str(c, argv[2]);
         o->setType(t == "square" ? PeriodicWave::Square : t == "sawtooth" ? PeriodicWave::Sawtooth : t == "triangle" ? PeriodicWave::Triangle : PeriodicWave::Sine);
+      } else if (k == "wave") {
+        const int id = static_cast<int>(num(c, argv[2]));
+        if (id >= 0 && id < static_cast<int>(h->waves_.size())) o->setPeriodicWave(h->waves_[id]);
       }
     } else if (auto s = dynamic_cast<WaveShaper*>(n)) {
       if (k == "oversample") { const std::string t = str(c, argv[2]); s->setOversample(t == "2x" ? WaveShaper::X2 : t == "4x" ? WaveShaper::X4 : WaveShaper::None); }
@@ -355,6 +375,29 @@ class WaJs {
     w->post([=] { w->message(t, id, a3, a4, a5, a6, a7, a8, a9); });
     return JS_UNDEFINED;
   }
+  static std::vector<float> floats(JSContext* c, JSValueConst v) {
+    size_t len = 0;
+    uint8_t* p = JS_GetArrayBuffer(c, &len, v);
+    std::vector<float> f(p ? len / sizeof(float) : 0);
+    if (p) std::memcpy(f.data(), p, f.size() * sizeof(float));
+    return f;
+  }
+  /** createPeriodicWave(real, imag, {disableNormalization}) */
+  static JSValue fnWave(JSContext* c, JSValueConst, int, JSValueConst* argv) {
+    WaJs* h = self(c);
+    h->waves_.push_back(std::make_shared<wa::PeriodicWave>(h->g.ctx.sampleRate, floats(c, argv[0]), floats(c, argv[1]), JS_ToBool(c, argv[2]) != 0));
+    return JS_NewInt32(c, static_cast<int>(h->waves_.size() - 1));
+  }
+  static JSValue fnWkPath(JSContext* c, JSValueConst, int, JSValueConst* argv) {
+    auto* w = dynamic_cast<WorkletNode*>(self(c)->node(c, argv[0]));
+    if (!w) return JS_UNDEFINED;
+    size_t len = 0;
+    uint8_t* p = JS_GetArrayBuffer(c, &len, argv[1]);
+    std::vector<double> pts(p ? len / sizeof(double) : 0);
+    if (p) std::memcpy(pts.data(), p, pts.size() * sizeof(double));
+    w->post([w, pts] { w->path(pts); });
+    return JS_UNDEFINED;
+  }
   static JSValue fnLog(JSContext* c, JSValueConst, int argc, JSValueConst* argv) {
     for (int i = 0; i < argc; i++) std::fprintf(stderr, "%s%s", i ? " " : "", str(c, argv[i]).c_str());
     std::fprintf(stderr, "\n");
@@ -381,6 +424,8 @@ class WaJs {
     fn("wkParam", fnWkParam, 3);
     fn("wkSnap", fnWkSnap, 1);
     fn("wkMsg", fnWkMsg, 10);
+    fn("wkPath", fnWkPath, 2);
+    fn("wave", fnWave, 3);
     JS_SetPropertyStr(ctx_, wa, "sampleRate", JS_NewFloat64(ctx_, g.ctx.sampleRate));
     JS_SetPropertyStr(ctx_, global, "__wa", wa);
     JSValue console = JS_NewObject(ctx_);

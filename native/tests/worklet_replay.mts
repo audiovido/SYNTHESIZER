@@ -16,7 +16,8 @@ const flat: string[] = [];
 // one line per engine call, for the C++ replay (no JSON parsing there)
 const flatten = (t: number, m: any): string[] => {
   const val = (v: any) => (typeof v === "string" ? `s\t${v}` : `n\t${v}`);
-  if (m.t === "patch") return [...Object.entries(m.patch).map(([k, v]) => `P\t${t}\t${k}\t${val(v)}`), `S\t${t}`];
+  if (m.t === "patch") return [...Object.entries(m.patch).map(([k, v]) => `P\t${t}\t${k}\t${val(v)}`), ...(typeof m.orbitRateHz === "number" ? [`P\t${t}\torbitRateHz\tn\t${m.orbitRateHz}`] : []), `S\t${t}`];
+  if (m.t === "path") return Array.isArray(m.pts) && m.pts.length >= 2 ? [`W\t${t}\t` + m.pts.slice(0, 256).map((p: any) => `${Number(p?.[0]) || 0.5}\t${Number(p?.[1]) || 0.5}`).join("\t")] : [];
   if (m.t === "param") return typeof m.value === "number" || typeof m.value === "string" ? [`P\t${t}\t${m.key}\t${val(m.value)}`] : [];
   return [`M\t${t}\t${m.t}\t${m.id | 0}\t${Number(m.midi) || 0}\t${Number(m.cents) || 0}\t${m.vel === undefined ? 1 : Number(m.vel)}\t${Number(m.at) || 0}\t${Number(m.from) || 0}\t${Number(m.glide) || 0}\t${Number(m.v) || 0}`];
 };
@@ -33,5 +34,5 @@ for (let f = 0; f < N; f += 128) {
   (globalThis as any).currentTime = t;
   proc.process([], [[L.subarray(f, f + 128), R.subarray(f, f + 128)]]);
 }
-writeFileSync(process.argv[5], Buffer.from(L.buffer));
+writeFileSync(process.argv[5], Buffer.concat([Buffer.from(L.buffer), Buffer.from(R.buffer)]));
 writeFileSync(process.argv[5] + ".calls", flat.join("\n"));
