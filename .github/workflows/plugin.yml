@@ -76,15 +76,26 @@ jobs:
           killall -9 AudioComponentRegistrar 2>/dev/null || true
           sleep 3
           auval -v aumu Sy1x Avdo
-      - name: pluginval (industry plugin test, macOS)
+      - name: pluginval (industry plugin test, macOS; 3 rounds each)
         if: runner.os == 'macOS'
-        continue-on-error: true
         run: |
           curl -sL -o pv.zip https://github.com/Tracktion/pluginval/releases/latest/download/pluginval_macOS.zip
           unzip -q pv.zip
           A=plugin/build/SY1_artefacts/Release
-          ./pluginval.app/Contents/MacOS/pluginval --strictness-level 8 --timeout-ms 300000 --validate "$A/VST3/SY-1.vst3" 2>&1 | tee pluginval-vst3.txt | tail -60
-          ./pluginval.app/Contents/MacOS/pluginval --strictness-level 8 --timeout-ms 300000 --validate ~/Library/Audio/Plug-Ins/Components/SY-1.component 2>&1 | tee pluginval-au.txt | tail -30
+          fail=0
+          for round in 1 2 3; do
+            for p in "$A/VST3/SY-1.vst3" ~/Library/Audio/Plug-Ins/Components/SY-1.component; do
+              if ./pluginval.app/Contents/MacOS/pluginval --strictness-level 8 --timeout-ms 300000 --validate "$p" > pv.txt 2>&1; then
+                echo "round $round $(basename "$p"): SUCCESS"
+              else
+                echo "round $round $(basename "$p"): FAILED"; tail -40 pv.txt; fail=1
+              fi
+            done
+          done
+          if [ $fail = 1 ]; then
+            for f in ~/Library/Logs/DiagnosticReports/pluginval*; do [ -f "$f" ] && head -c 20000 "$f"; done
+            exit 1
+          fi
       - name: Collect
         shell: bash
         run: |
