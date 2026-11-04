@@ -77,16 +77,27 @@ try {
 } catch (e) {}
 
 let saveTimer: ReturnType<typeof setTimeout> | null = null;
+let pendingSave: (() => void) | null = null;
 function savePatchSoon(): void {
   if (saveTimer) clearTimeout(saveTimer);
   const id = machine.id;
-  saveTimer = setTimeout(() => {
+  pendingSave = () => {
+    saveTimer = null;
+    pendingSave = null;
     try {
       const { hold: _hold, ...toSave } = synthPatch;
       localStorage.setItem(patchKey(id), JSON.stringify(toSave));
       localStorage.setItem(presetKey(id), synthPresetId);
     } catch (e) {}
-  }, 300);
+  };
+  saveTimer = setTimeout(pendingSave, 300);
+}
+
+/** Save a pending patch change now (the plugin, when the DAW saves the project). */
+export function flushPatchSave(): void {
+  if (!pendingSave) return;
+  if (saveTimer) clearTimeout(saveTimer);
+  pendingSave();
 }
 
 export function getSynthPatch(): SynthPatch {

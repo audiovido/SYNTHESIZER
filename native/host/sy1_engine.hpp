@@ -80,6 +80,7 @@ class Sy1Engine {
         pushScope();
         idleGc();
         if (saveRequest_.exchange(false)) {
+          run("SY1E.flushPatchSave();");  // a knob turned just before the save is in it too
           saveState();
           std::lock_guard<std::mutex> l(stateMu_);
           saveSeq_++;
