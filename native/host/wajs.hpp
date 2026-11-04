@@ -8,6 +8,7 @@
 // audio thread between 128-frame quanta). Nodes no longer reachable from the
 // output are freed by sweep().
 #pragma once
+#include <cstdlib>
 #include <cstring>
 #include <memory>
 #include <sstream>
@@ -18,6 +19,7 @@ extern "C" {
 #include "../third_party/quickjs/quickjs.h"
 }
 #include "../wa/wa.hpp"
+#include "worklets.hpp"
 
 namespace sy1 {
 
@@ -76,6 +78,7 @@ class WaJs {
   std::vector<std::shared_ptr<std::vector<float>>> buffers_{nullptr};
   std::vector<double> bufferRates_{0};
   size_t blocks_ = 0;
+  int apCount_ = 0;
 
   static WaJs* self(JSContext* c) { return static_cast<WaJs*>(JS_GetContextOpaque(c)); }
   std::string exceptionText() {
@@ -188,6 +191,12 @@ class WaJs {
     else if (ty == "buffersrc") n = h->g.make<BufferSource>();
     else if (ty == "pass") n = h->g.make<Passthrough>();
     else if (ty == "merger") n = h->g.make<Merger>(argc > 1 ? static_cast<int>(num(c, argv[1])) : 6);
+    else if (ty == "worklet") {
+      const std::string name = str(c, argv[1]);
+      if (name == "sy1-voices") n = h->g.make<HQWorklet>();
+      else if (name == "sy1-analog") n = h->g.make<AnalogWorklet>();
+      else return JS_ThrowTypeError(c, "worklet %s is not available natively yet", name.c_str());
+    }
     else if (ty == "iir") {
       auto parse = [&](const std::string& s) { std::vector<double> v; std::stringstream ss(s); std::string x; while (std::getline(ss, x, ',')) v.push_back(std::stod(x)); return v; };
       n = h->g.make<IIR>(parse(str(c, argv[1])), parse(str(c, argv[2])));
@@ -200,7 +209,17 @@ class WaJs {
     wa::Node *a = h->node(c, argv[0]), *b = h->node(c, argv[1]);
     int32_t input = 0;
     JS_ToInt32(c, &input, argv[2]);
-    if (a && b && input >= 0 && input < static_cast<int>(b->inputs.size())) { a->connect(b, input); h->g.changed(); }
+    if (a && b && input >= 0 && input < static_cast<int>(b->inputs.size())) {
+      a->connect(b, input);
+      // Test hook (parity tests only): Chrome pulls the reverb allpass branches (-g*u gain, delay) in a
+      // per-page-load order; SY1_AP_ORDER=mask puts allpass i's delay first when bit i is set.
+      static const char* mask = std::getenv("SY1_AP_ORDER");
+      if (mask && dynamic_cast<wa::Delay*>(a) && dynamic_cast<wa::Gain*>(b) && b->inputs[0].size() == 2 && dynamic_cast<wa::Gain*>(b->inputs[0][0])) {
+        if (std::atoi(mask) & (1 << h->apCount_)) std::swap(b->inputs[0][0], b->inputs[0][1]);
+        h->apCount_++;
+      }
+      h->g.changed();
+    }
     return JS_UNDEFINED;
   }
   static JSValue fnConnectParam(JSContext* c, JSValueConst, int, JSValueConst* argv) {
@@ -310,6 +329,28 @@ class WaJs {
     if (auto s = dynamic_cast<wa::Source*>(h->node(c, argv[0]))) s->stop(num(c, argv[1]));
     return JS_UNDEFINED;
   }
+  static JSValue fnWkParam(JSContext* c, JSValueConst, int, JSValueConst* argv) {
+    auto* w = dynamic_cast<WorkletNode*>(self(c)->node(c, argv[0]));
+    if (!w) return JS_UNDEFINED;
+    const std::string k = str(c, argv[1]);
+    if (JS_IsString(argv[2])) { const std::string v = str(c, argv[2]); w->post([w, k, v] { w->param(k, v); }); }
+    else { const double v = num(c, argv[2]); w->post([w, k, v] { w->param(k, v); }); }
+    return JS_UNDEFINED;
+  }
+  static JSValue fnWkSnap(JSContext* c, JSValueConst, int, JSValueConst* argv) {
+    if (auto* w = dynamic_cast<WorkletNode*>(self(c)->node(c, argv[0]))) w->post([w] { w->snap(); });
+    return JS_UNDEFINED;
+  }
+  static JSValue fnWkMsg(JSContext* c, JSValueConst, int, JSValueConst* argv) {
+    auto* w = dynamic_cast<WorkletNode*>(self(c)->node(c, argv[0]));
+    if (!w) return JS_UNDEFINED;
+    int32_t id = 0;
+    JS_ToInt32(c, &id, argv[2]);
+    const std::string t = str(c, argv[1]);
+    const double a3 = num(c, argv[3]), a4 = num(c, argv[4]), a5 = num(c, argv[5]), a6 = num(c, argv[6]), a7 = num(c, argv[7]), a8 = num(c, argv[8]), a9 = num(c, argv[9]);
+    w->post([=] { w->message(t, id, a3, a4, a5, a6, a7, a8, a9); });
+    return JS_UNDEFINED;
+  }
   static JSValue fnLog(JSContext* c, JSValueConst, int argc, JSValueConst* argv) {
     for (int i = 0; i < argc; i++) std::fprintf(stderr, "%s%s", i ? " " : "", str(c, argv[i]).c_str());
     std::fprintf(stderr, "\n");
@@ -333,6 +374,9 @@ class WaJs {
     fn("buffer", fnBuffer, 2);
     fn("start", fnStart, 3);
     fn("stop", fnStop, 2);
+    fn("wkParam", fnWkParam, 3);
+    fn("wkSnap", fnWkSnap, 1);
+    fn("wkMsg", fnWkMsg, 10);
     JS_SetPropertyStr(ctx_, wa, "sampleRate", JS_NewFloat64(ctx_, g.ctx.sampleRate));
     JS_SetPropertyStr(ctx_, global, "__wa", wa);
     JSValue console = JS_NewObject(ctx_);

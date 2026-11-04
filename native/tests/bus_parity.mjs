@@ -18,6 +18,7 @@ const scenes0 = [
   { name: "drive + eq", feed: ["chord", 1, 0.5], patch: { drive: 0.35, eqLow: 4, eqMid: -3, eqHigh: 5 } },
   { name: "delay", feed: ["burst", 4, 0.6], patch: { delayTime: 0.27, delayFb: 0.7, delayMix: 0.6 } },
   { name: "chorus", feed: ["chord", 2, 0.5], patch: { chorusMix: 0.8, chorusDepth: 0.7, chorusRate: 0.9 } },
+  { name: "chorus baku", feed: ["chord", 2, 0.5], patch: { chorusMix: 0.4, chorusDepth: 0.5, chorusRate: 0.5, volume: 0.7 } },
   { name: "reverb", feed: ["burst", 5, 0.6], patch: { revMix: 0.7, revSize: 3.5 } },
   { name: "everything + limiter", feed: ["chord", 3, 1.6], patch: { drive: 0.2, delayMix: 0.4, delayFb: 0.5, chorusMix: 0.5, revMix: 0.6, volume: 1 } },
   { name: "knob moves", feed: ["chord", 6, 0.6], patch: { revMix: 0.3, delayMix: 0.3 },

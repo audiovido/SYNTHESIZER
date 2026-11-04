@@ -83,3 +83,17 @@ knobs and a fusion kit in Chrome and in QuickJS + wa. Last result
 runs on the audio clock (sample-accurate). CPU: a very busy acoustic groove
 (16ths, 3-4 voices per step) costs ~22 % of one cloud x86 core; to be measured
 on Apple Silicon.
+
+## The whole web engine in the plugin (`js/engine-entry.ts`, `host/worklets.hpp`)
+`js/dist/engine.js` bundles `src/engine/synth.ts` and everything it uses
+(notes, mono/legato, HOLD, sustain, arpeggiator, machines, presets, kits,
+styles, drum machines, the real `bus.ts`), unchanged. AudioWorklet engines are
+native wa nodes with the same message protocol and timing: `sy1-voices` (HQ)
+and `sy1-analog` (Tabriz). FM, Strings and Vector are not native yet.
+
+Parity: `node native/tests/engine_parity.mjs` (vite dev server on :3344) runs the
+real app in Chrome (OfflineAudioContext, timers on the render clock) and the
+same scenes in the plugin engine. Last result (2026-11-04), within 91-120 dB of
+Chrome: SY-1 chord, SY-1 chorus, Yazd pad, Tabriz mono legato with glide, Konya
+Euclid arpeggio, Kerman and Bushehr drum styles. Open: Baku with its chorus
+(-24 dB, dry Baku matches), and the SY-1 "knob moves" scene (-50 dB).

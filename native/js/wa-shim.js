@@ -32,7 +32,13 @@
     getChannelData(i) { return this._d[i]; }
   }
   class Ctx {
-    constructor() { this.sampleRate = W.sampleRate; this.state = "running"; this.destination = new AudioNode(0); }
+    constructor() {
+      this.sampleRate = W.sampleRate; this.state = "running"; this.destination = new AudioNode(0);
+      this.audioWorklet = { addModule: () => Promise.resolve() };
+    }
+    resume() { return Promise.resolve(); }
+    suspend() { return Promise.resolve(); }
+    getOutputTimestamp() { return { contextTime: this.currentTime, performanceTime: this.currentTime * 1000 }; }
     get currentTime() { return W.time(); }
     createGain() { return params(new AudioNode(W.create("gain")), ["gain"]); }
     createBiquadFilter() {
@@ -49,7 +55,23 @@
     }
     createDynamicsCompressor() { return params(new AudioNode(W.create("comp")), ["threshold", "knee", "ratio", "attack", "release"]); }
     createStereoPanner() { return params(new AudioNode(W.create("panner")), ["pan"]); }
-    createIIRFilter(ff, fb) { return new AudioNode(W.create("iir", Array.from(ff).join(","), Array.from(fb).join(","))); }
+    createIIRFilter(ff, fb) {
+      const n = new AudioNode(W.create("iir", Array.from(ff).join(","), Array.from(fb).join(",")));
+      const b = Array.from(ff, Number), a = Array.from(fb, Number);
+      // |H| and phase at each frequency (Chrome evaluates the transfer function in double)
+      n.getFrequencyResponse = (freqs, mag, phase) => {
+        const nyq = this.sampleRate / 2;
+        for (let i = 0; i < freqs.length; i++) {
+          const w = Math.PI * (freqs[i] / nyq);
+          let nr = 0, ni = 0, dr = 0, di = 0;
+          for (let k = 0; k < b.length; k++) { nr += b[k] * Math.cos(-w * k); ni += b[k] * Math.sin(-w * k); }
+          for (let k = 0; k < a.length; k++) { dr += a[k] * Math.cos(-w * k); di += a[k] * Math.sin(-w * k); }
+          const den = dr * dr + di * di, hr = (nr * dr + ni * di) / den, hi = (ni * dr - nr * di) / den;
+          mag[i] = Math.hypot(hr, hi); if (phase) phase[i] = Math.atan2(hi, hr);
+        }
+      };
+      return n;
+    }
     createChannelMerger(n) { return new AudioNode(W.create("merger", +(n || 6))); }
     createAnalyser() { return new AudioNode(W.create("pass")); }
     createOscillator() {
@@ -65,8 +87,31 @@
       return n;
     }
   }
+  class AudioWorkletNode extends AudioNode {
+    constructor(ctx, name) {
+      super(W.create("worklet", String(name)));
+      const id = this._id;
+      this.port = {
+        onmessage: null,
+        postMessage(m) {
+          if (!m) return;
+          if (globalThis.__wkTransform) m = globalThis.__wkTransform(m);
+          if (m.t === "patch") { for (const k in m.patch) { const v = m.patch[k]; if (typeof v === "number" || typeof v === "string") W.wkParam(id, k, v); } W.wkSnap(id); }
+          else if (m.t === "param") { if (typeof m.value === "number" || typeof m.value === "string") W.wkParam(id, String(m.key), m.value); }
+          else W.wkMsg(id, String(m.t), m.id | 0, Number(m.midi) || 0, Number(m.cents) || 0, m.vel === undefined ? 1 : Number(m.vel), Number(m.at) || 0, Number(m.from) || 0, Number(m.glide) || 0, Number(m.v) || 0);
+        }
+      };
+    }
+  }
+  globalThis.AudioWorkletNode = AudioWorkletNode;
   globalThis.AudioParam = AudioParam;
   globalThis.__makeCtx = () => new Ctx();
+  // the web app makes its context with `new AudioContext()`: always the one engine context
+  globalThis.window = globalThis;
+  globalThis.AudioContext = function () { return globalThis.__ctx || (globalThis.__ctx = new Ctx()); };
+  globalThis.performance = { now: () => W.time() * 1000 };
+  const noEl = { classList: { toggle() {}, add() {}, remove() {}, contains() { return false; } }, setAttribute() {}, style: {} };
+  globalThis.document = { querySelector: () => null, querySelectorAll: () => [], getElementById: () => null, addEventListener() {}, hidden: false, body: noEl };
   // timers on the audio clock (the host calls __runTimers every block)
   let timers = [], nextId = 1;
   globalThis.setTimeout = (fn, ms) => { const id = nextId++; timers.push({ id, at: W.time() * 1000 + (+ms || 0), fn }); return id; };
