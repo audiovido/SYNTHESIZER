@@ -77,6 +77,10 @@ jobs:
           A=plugin/build/SY1_artefacts/Release
           cp -R "$A/VST3/SY-1.vst3" out/
           if [ -d "$A/AU" ]; then cp -R "$A/AU/SY-1.component" out/; cp -R "$A/Standalone/SY-1.app" out/; else cp "$A/Standalone/SY-1.exe" out/; fi
+      # macOS bundles need their file permissions: pack them with ditto first
+      - name: Pack (macOS)
+        if: runner.os == 'macOS'
+        run: ditto -c -k --keepParent out SY-1-mac.zip && rm -rf out && mkdir out && mv SY-1-mac.zip out/
       - uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.name }}
