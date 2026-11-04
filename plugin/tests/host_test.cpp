@@ -282,6 +282,56 @@ int main() {
     check(s2 == "false 90", "SYNC off comes back with the project, with the app's own tempo");
   }
 
+  std::printf("10. MIDI Learn from the DAW: a CC and a DAW macro, pickup, saved with the project\n");
+  {
+    Run r("sy1");
+    auto js = [&](const char* e) { return r.p.engine().js()->evalString(e); };
+    r.render(2048, 512);
+    r.p.engine().post("setLearnMode", "[true]");
+    r.p.engine().post("selectLearnParam", "[\"cutoff\"]");
+    r.render(1024, 512);
+    r.render(1024, 512, {{r.pos + 100, juce::MidiMessage::controllerEvent(1, 74, 10)}});
+    r.render(1024, 512, {{r.pos + 100, juce::MidiMessage::controllerEvent(1, 74, 127)}});
+    const std::string c = js("String(Math.round(SY1E.getSynthPatch().cutoff))");
+    std::printf("     CC 74 learned -> cutoff %s at value 127\n", c.c_str());
+    check(c == "18000", "a DAW CC moves the learned knob");
+    r.p.engine().post("selectLearnParam", "[\"res\"]");
+    r.render(1024, 512);
+    auto* macro3 = r.p.getParameters()[2];
+    macro3->setValueNotifyingHost(0.25f);
+    r.render(1024, 512);
+    macro3->setValueNotifyingHost(1.0f);
+    r.render(1024, 512);
+    r.p.engine().post("setLearnMode", "[false]");
+    const std::string res = js("String(SY1E.getSynthPatch().res)");
+    const std::string map = js("localStorage.getItem('musicher_synth_midi_map')");
+    std::printf("     Macro 3 learned -> res %s; map %s\n", res.c_str(), map.c_str());
+    check(res == "18" && map.find("\"74\":\"cutoff\"") != std::string::npos && map.find("\"130\":\"res\"") != std::string::npos,
+          "a DAW automation macro moves its knob; both mappings stored");
+    r.p.engine().post("setMidiPickup", "[true]");
+    r.p.engine().post("setSynthParam", "[\"cutoff\", 1000]");
+    r.render(1024, 512, {{r.pos + 10, juce::MidiMessage::controllerEvent(1, 74, 5)}});
+    const std::string held = js("String(Math.round(SY1E.getSynthPatch().cutoff))");
+    // cutoff 1000 Hz is at about 0.56 of the knob (log 40..18000): CC 60 is below, 90 above
+    r.render(1024, 512, {{r.pos + 10, juce::MidiMessage::controllerEvent(1, 74, 60)},
+                         {r.pos + 300, juce::MidiMessage::controllerEvent(1, 74, 90)}});
+    const std::string took = js("String(Math.round(SY1E.getSynthPatch().cutoff))");
+    std::printf("     pickup: far CC keeps %s Hz; after passing the knob it follows: %s Hz\n", held.c_str(), took.c_str());
+    check(held == "1000" && took != "1000", "PICKUP: no jump, takes over once the controller passes the knob");
+    juce::MemoryBlock mb;
+    std::thread saver([&] { r.p.getStateInformation(mb); });
+    r.render(48000 / 4, 512);
+    saver.join();
+    Run r2("kerman");
+    r2.p.setStateInformation(mb.getData(), static_cast<int>(mb.getSize()));
+    r2.render(2048, 512);
+    r2.render(1024, 512, {{r2.pos + 10, juce::MidiMessage::controllerEvent(1, 74, 0)}});
+    const std::string c2 = r2.p.engine().js()->evalString("String(Math.round(SY1E.getSynthPatch().cutoff))");
+    std::printf("     reloaded project: CC 74 at 0 -> cutoff %s (pickup off after reload? %s)\n", c2.c_str(),
+                r2.p.engine().js()->evalString("localStorage.getItem('sy1_midi_pickup')").c_str());
+    check(r2.p.engine().js()->evalString("localStorage.getItem('musicher_synth_midi_map')") == map, "mappings come back with the project");
+  }
+
   std::printf(failures ? "\n%d FAILED\n" : "\nall passed\n", failures);
   return failures ? 1 : 0;
 }

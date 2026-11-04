@@ -60,6 +60,15 @@ Design (standard behaviour, like Ableton Link / host sync in other plugins):
 - Code: `src/engine/tempo.ts` (`hostLocked`, `setHostTempo`) → make the lock follow the SYNC flag; `plugin/Source/PluginProcessor.cpp hostClockFor()` → only send `setHostTempo`/`hostStep` when SYNC is on; when off, `hostTransport(false)` and let `startDrums` work. CSS: replace the hide rule for `.tempo-step-btn/.tempo-tap-btn` with a disabled state when `is-plugin.is-synced`.
 
 ### 5.2 MIDI Learn that works inside the plugin (any controller, any synth)
+
+**Built (5 Nov 2026).**
+- `src/engine/cc-map.ts`: one mapping table for the web app and the plugin (CC 0..127 + DAW macros as slots 128..143), learn state, channel (omni/1-16), PICKUP (soft takeover). Every change is a mirrored call (`setLearnMode`, `selectLearnParam`, `mapCcToParam`, `removeParamMapping`, `setMidiChannel`, `setMidiPickup`), so engine and window keep the same table; it is in localStorage = the plugin state. `midi.ts` (Web MIDI) uses it.
+- Plugin: every CC except 120/123 goes to the engine as `hostCC(ch, cc, value)` (mod wheel 1 and sustain 64 keep their built-in job unless mapped). 16 DAW parameters "Macro 1..16" → `hostMacro(slot, 0..1)` when they move (first values after load are only remembered, so a project load never moves knobs).
+- Window (plugin): LEARN, PICKUP and the MIDI channel are in Connections. Learn: LEARN → click a knob → move a controller or a macro in the DAW. Right-click / long-press a mapped knob = clear.
+- Not yet: relative-encoder mode; knob → macro feedback (moving a mapped knob in the window does not move the DAW's macro).
+- Test: host_test 10.
+
+Original design notes:
 There is MIDI learn in the web app (`src/engine/midi.ts`, `learnMode`, Web MIDI) but in the plugin Web MIDI doesn't exist; MIDI comes from the DAW.
 Design:
 - Plugin: forward incoming **CC messages** (all except 1/64/120-123 which are already handled) from `handleMidi()` to the engine as `hostCC(channel, cc, value)`.

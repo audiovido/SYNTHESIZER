@@ -4,6 +4,12 @@
 
 #include "PluginEditor.h"
 
+static std::string num(double v) {
+  char b[64];
+  std::snprintf(b, sizeof b, "%.10g", v);
+  return b;
+}
+
 static std::string resource(const char* name) {
   int size = 0;
   if (const char* d = BinaryData::getNamedResource(name, size)) return std::string(d, static_cast<size_t>(size));
@@ -11,7 +17,28 @@ static std::string resource(const char* name) {
 }
 
 SY1Processor::SY1Processor()
-    : AudioProcessor(BusesProperties().withOutput("Output", juce::AudioChannelSet::stereo(), true)) {}
+    : AudioProcessor(BusesProperties().withOutput("Output", juce::AudioChannelSet::stereo(), true)) {
+  // 16 DAW automation parameters: map any knob to one with LEARN (click a knob, move the macro)
+  for (int i = 0; i < kMacros; i++) {
+    auto* p = new juce::AudioParameterFloat(juce::ParameterID{"macro" + juce::String(i + 1), 1}, "Macro " + juce::String(i + 1),
+                                            juce::NormalisableRange<float>(0.0f, 1.0f), 0.0f);
+    macros_[static_cast<size_t>(i)] = p;
+    addParameter(p);
+  }
+}
+
+/** Macros that moved since the last engine block go to the engine (slots 128..143 of the MIDI map).
+ *  The first values seen are only remembered, so loading a project never moves a knob. */
+void SY1Processor::macrosToEngine() {
+  for (int i = 0; i < kMacros; i++) {
+    const float v = macros_[static_cast<size_t>(i)]->get();
+    float& last = lastMacro_[static_cast<size_t>(i)];
+    if (std::isnan(last)) { last = v; continue; }
+    if (std::fabs(v - last) < 1e-6f) continue;
+    last = v;
+    engine_.hostCall("hostMacro", "[" + num(i) + ", " + num(v) + "]");
+  }
+}
 
 bool SY1Processor::isBusesLayoutSupported(const BusesLayout& layouts) const {
   return layouts.getMainOutputChannelSet() == juce::AudioChannelSet::stereo();
@@ -44,20 +71,15 @@ void SY1Processor::prepareToPlay(double sampleRate, int) {
   pending_.reserve(2048);
 }
 
-static std::string num(double v) {
-  char b[64];
-  std::snprintf(b, sizeof b, "%.10g", v);
-  return b;
-}
 
 void SY1Processor::handleMidi(const juce::MidiMessage& m, double at) {
   if (m.isNoteOn()) engine_.hostCall("noteOn", "[" + num(m.getNoteNumber()) + ", " + num(m.getFloatVelocity()) + "]", at);
   else if (m.isNoteOff()) engine_.hostCall("noteOff", "[" + num(m.getNoteNumber()) + "]", at);
   else if (m.isPitchWheel()) engine_.hostCall("setPitchBend", "[" + num((m.getPitchWheelValue() - 8192) / 8192.0) + "]", at);
-  else if (m.isControllerOfType(1)) engine_.hostCall("setModWheel", "[" + num(m.getControllerValue() / 127.0) + "]", at);
-  else if (m.isSustainPedalOn()) engine_.hostCall("setSustainPedal", "[true]", at);
-  else if (m.isSustainPedalOff()) engine_.hostCall("setSustainPedal", "[false]", at);
   else if (m.isAllNotesOff() || m.isAllSoundOff()) engine_.hostCall("allNotesOff", "[]", at);
+  // every other controller (mod wheel and sustain too): MIDI Learn mappings first, then the built-ins
+  else if (m.isController())
+    engine_.hostCall("hostCC", "[" + num(m.getChannel()) + ", " + num(m.getControllerNumber()) + ", " + num(m.getControllerValue()) + "]", at);
 }
 
 void SY1Processor::readPlayHead() {
@@ -128,6 +150,7 @@ void SY1Processor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuff
     // this engine block covers DAW samples [q0, q0 + 128) and is heard 128 samples later
     const int64_t q0 = dawPos_ + i - wa::RQ;
     hostClockFor(q0);
+    macrosToEngine();
     size_t k = 0;
     for (; k < pending_.size() && pending_[k].t < q0 + wa::RQ; k++)
       handleMidi(pending_[k].m, std::max<int64_t>(0, pending_[k].t - q0) / rate_);
@@ -160,6 +183,7 @@ void SY1Processor::setStateInformation(const void* data, int sizeInBytes) {
     lastBpm_ = -1;
     wasPlaying_ = false;
     uiPlaying_.store(false, std::memory_order_relaxed);
+    lastMacro_.fill(std::numeric_limits<float>::quiet_NaN());
     suspendProcessing(false);
     // the window is rebuilt on the message thread (hosts may load a state from any thread)
     std::weak_ptr<int> alive = alive_;

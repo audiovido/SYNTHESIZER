@@ -3554,9 +3554,10 @@ button.synth-machine-select {
 /* in the plugin, MIDI comes from the DAW: no browser MIDI controls */
 .is-plugin #midi-btn,
 .is-plugin #midi-led,
-.is-plugin #midi-learn-btn,
-.is-plugin #midi-msg,
-.is-plugin #conn-pop-selects { display: none !important; }
+.is-plugin #midi-device { display: none !important; }
+/* MIDI Learn works in the plugin (MIDI and macros from the DAW); PICKUP is plugin only */
+.midi-pickup-btn { display: none !important; }
+.is-plugin .midi-pickup-btn { display: inline-flex !important; align-items: center; }
 /* SYNC (plugin only): on = the DAW sets the tempo, the app's own tempo controls are greyed */
 .tempo-sync-btn { display: none !important; }
 .is-plugin .tempo-sync-btn { display: inline-flex !important; align-items: center; }

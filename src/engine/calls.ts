@@ -9,6 +9,7 @@ import * as vector from "./vector";
 import { setHostTempo, setSync, setTempo } from "./tempo";
 import { setMasterVolume } from "./bus";
 import { runUnmirrored } from "./mirror";
+import * as ccmap from "./cc-map";
 
 export const ENGINE_CALLS: Record<string, (...a: any[]) => unknown> = {
   setSynthParam: synth.setSynthParam,
@@ -42,6 +43,14 @@ export const ENGINE_CALLS: Record<string, (...a: any[]) => unknown> = {
   hostStep,
   setHostTempo,
   setSync,
+  setLearnMode: ccmap.setLearnMode,
+  selectLearnParam: ccmap.selectLearnParam,
+  mapCcToParam: ccmap.mapCcToParam,
+  removeParamMapping: ccmap.removeParamMapping,
+  setMidiChannel: ccmap.setMidiChannel,
+  setMidiPickup: ccmap.setMidiPickup,
+  hostCC: ccmap.hostCC,
+  hostMacro: ccmap.hostMacro,
   uiStore
 };
 

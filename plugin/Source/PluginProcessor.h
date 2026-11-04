@@ -1,5 +1,7 @@
 #pragma once
+#include <array>
 #include <atomic>
+#include <cmath>
 #include <cstdint>
 #include <limits>
 #include <vector>
@@ -62,6 +64,10 @@ class SY1Processor : public juce::AudioProcessor {
   struct Pending { int64_t t; juce::MidiMessage m; };
   std::vector<Pending> pending_;
   int64_t nextAllowed_ = 0;
+  static constexpr int kMacros = 16;
+  std::array<juce::AudioParameterFloat*, kMacros> macros_{};
+  std::array<float, kMacros> lastMacro_ = [] { std::array<float, kMacros> a; a.fill(std::numeric_limits<float>::quiet_NaN()); return a; }();
+  void macrosToEngine();
   void readPlayHead();
   void hostClockFor(int64_t q0);
   std::shared_ptr<int> alive_ = std::make_shared<int>(0);  // lets queued UI work see that the plugin is gone

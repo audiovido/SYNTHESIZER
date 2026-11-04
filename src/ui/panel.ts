@@ -15,6 +15,7 @@ import {
   getSelectedMidiDevice,
   isLearnMode,
   isMidiEnabled,
+  isLearnUnavailable,
   isMidiUnavailable,
   isParamMapped,
   onMidiStateChange,
@@ -51,6 +52,7 @@ import {
 } from "../engine/synth";
 import { evalOrbitPoint, getVectorLiveXY, setVectorDrawnPath } from "../engine/vector";
 import { getEngine, getHQState, onEngineChange } from "../engine/hq";
+import { getMidiPickup, HOST_MIDI, setMidiPickup } from "../engine/cc-map";
 import { fmtBpm, getSync, getTempo, isHostSynced, onSyncChange, onTempoChange, setSync, setTempo, tapTempo } from "../engine/tempo";
 import {
   clearPattern,
@@ -704,6 +706,7 @@ export function renderSynthPanelHtml(): string {
               <button type="button" class="synth-midi-btn" id="midi-btn" data-action="midi-enable">MIDI</button>
               <span class="midi-led" id="midi-led" title="MIDI Activity" aria-hidden="true"></span>
               <button type="button" class="synth-midi-btn" id="midi-learn-btn" data-action="midi-learn" title="Click LEARN, click a knob, then move a MIDI CC">LEARN</button>
+              <button type="button" class="synth-midi-btn midi-pickup-btn" id="midi-pickup-btn" data-action="midi-pickup" aria-pressed="false" title="PICKUP: a controller moves a knob only after it reaches the knob's position (no jumps)">PICKUP</button>
               <button type="button" class="synth-midi-btn synth-panic-btn" id="midi-panic-btn" data-action="synth-panic" title="Release all notes">PANIC</button>
               <button type="button" class="synth-midi-btn" id="engine-btn" data-action="engine-toggle" aria-pressed="false">HQ</button>
             </div>
@@ -741,7 +744,8 @@ export function updateSynthPresetDOM(): void {
 export function updateMidiBarDOM(): void {
   const unavail = isMidiUnavailable();
   const enabled = !unavail && isMidiEnabled();
-  const learning = !unavail && isLearnMode();
+  const learnUnavail = isLearnUnavailable();
+  const learning = isLearnMode();
   const midiBtn = document.getElementById("midi-btn") as HTMLButtonElement | null;
   const devSelect = document.getElementById("midi-device") as HTMLSelectElement | null;
   const chSelect = document.getElementById("midi-channel") as HTMLSelectElement | null;
@@ -757,20 +761,26 @@ export function updateMidiBarDOM(): void {
     midiBtn.setAttribute("aria-disabled", unavail ? "true" : "false");
     midiBtn.textContent = enabled ? "MIDI ON" : "MIDI";
   }
-  if (selectsWrap) selectsWrap.hidden = !enabled;
+  // in the plugin MIDI comes from the DAW: only the channel choice is shown (no devices)
+  if (selectsWrap) selectsWrap.hidden = !enabled && !HOST_MIDI;
   if (devSelect) {
     devSelect.hidden = !enabled;
     if (enabled) { devSelect.innerHTML = renderDeviceOptions(); devSelect.value = getSelectedMidiDevice(); }
   }
   if (chSelect) {
-    chSelect.hidden = !enabled;
-    if (enabled) chSelect.value = String(getSelectedMidiChannel());
+    chSelect.hidden = !enabled && !HOST_MIDI;
+    if (enabled || HOST_MIDI) chSelect.value = String(getSelectedMidiChannel());
   }
   if (learnBtn) {
-    learnBtn.disabled = unavail;
-    learnBtn.classList.toggle("is-disabled", unavail);
+    learnBtn.disabled = learnUnavail;
+    learnBtn.classList.toggle("is-disabled", learnUnavail);
     learnBtn.classList.toggle("active", learning);
-    learnBtn.setAttribute("aria-disabled", unavail ? "true" : "false");
+    learnBtn.setAttribute("aria-disabled", learnUnavail ? "true" : "false");
+  }
+  const pickupBtn = document.getElementById("midi-pickup-btn");
+  if (pickupBtn) {
+    pickupBtn.classList.toggle("active", getMidiPickup());
+    pickupBtn.setAttribute("aria-pressed", getMidiPickup() ? "true" : "false");
   }
   if (connDot) {
     connDot.className =
@@ -785,13 +795,16 @@ export function updateMidiBarDOM(): void {
   }
   if (msgEl) {
     const statusMsg = getMidiStatusMessage();
-    if (unavail) {
+    if (learning) {
+      const target = getLearnTargetParam();
+      const what = HOST_MIDI ? "a MIDI controller (or a SY-1 macro in the DAW)" : "a CC";
+      msgEl.textContent = target ? `Move ${what} to map ${target}…` : `Click a knob, then move ${what}…`;
+    } else if (HOST_MIDI) {
+      msgEl.textContent = "";
+    } else if (unavail) {
       msgEl.textContent = "MIDI needs Chrome or Edge on desktop or Android";
     } else if (statusMsg) {
       msgEl.textContent = statusMsg;
-    } else if (learning) {
-      const target = getLearnTargetParam();
-      msgEl.textContent = target ? `Move a CC to map ${target}…` : "Click a knob, then move a CC…";
     } else {
       msgEl.textContent = "";
     }
@@ -995,7 +1008,8 @@ export function initPanelInteractions(): void {
       case "tempo-sync": setSync(!getSync()); break;
       case "engine-toggle": switchEngine(getEngine() === "hq" ? "classic" : "hq"); break;
       case "midi-enable": if (!isMidiUnavailable()) requestMidi(); break;
-      case "midi-learn": if (!isMidiUnavailable()) toggleLearnMode(); break;
+      case "midi-learn": if (!isLearnUnavailable()) toggleLearnMode(); break;
+      case "midi-pickup": setMidiPickup(!getMidiPickup()); break;
       case "synth-panic": stopDrums(); allNotesOff(); break;
       // drum machine
       case "drum-play":
