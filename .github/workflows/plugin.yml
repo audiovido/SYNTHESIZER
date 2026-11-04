@@ -37,7 +37,7 @@ jobs:
           V=$(node -p "JSON.parse(require('fs').readFileSync('node_modules/rolldown/package.json')).version")
           C=$(node -p "JSON.parse(require('fs').readFileSync('node_modules/lightningcss/package.json')).version")
           case "$RUNNER_OS" in
-            macOS) P="@rolldown/binding-darwin-arm64@$V lightningcss-darwin-arm64@$C" ;;
+            macOS) A=$([ "$(uname -m)" = arm64 ] && echo arm64 || echo x64); P="@rolldown/binding-darwin-$A@$V lightningcss-darwin-$A@$C" ;;
             Windows) P="@rolldown/binding-win32-x64-msvc@$V lightningcss-win32-x64-msvc@$C" ;;
           esac
           npm install --no-save $P
