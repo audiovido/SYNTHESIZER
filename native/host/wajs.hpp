@@ -30,6 +30,7 @@ class WaJs {
  public:
   explicit WaJs(double sampleRate) : g(sampleRate) {
     rt_ = JS_NewRuntime();
+    JS_SetMaxStackSize(rt_, 256 * 1024);  // fits the small stacks of DAW audio threads
     ctx_ = JS_NewContext(rt_);
     JS_SetContextOpaque(ctx_, this);
     dest_ = g.make<wa::Gain>();  // id 0 = ctx.destination
@@ -48,6 +49,7 @@ class WaJs {
 
   /** Evaluate a script (the shim, then the engine bundle). Returns "" or the error text. */
   std::string eval(const std::string& code, const char* name = "<eval>") {
+    JS_UpdateStackTop(rt_);  // the host may call in from any thread (audio thread, UI thread)
     JSValue v = JS_Eval(ctx_, code.c_str(), code.size(), name, JS_EVAL_TYPE_GLOBAL);
     std::string err;
     if (JS_IsException(v)) err = exceptionText();
@@ -61,6 +63,7 @@ class WaJs {
   }
   /** Evaluate an expression and return its value as a string ("" on error). */
   std::string evalString(const std::string& code) {
+    JS_UpdateStackTop(rt_);
     JSValue v = JS_Eval(ctx_, code.c_str(), code.size(), "<expr>", JS_EVAL_TYPE_GLOBAL);
     std::string out;
     if (!JS_IsException(v)) out = str(ctx_, v);
@@ -75,6 +78,7 @@ class WaJs {
   void render(float* L, float* R) {
     g.render(dest_, L, R);
     if (++blocks_ % 64 == 0) sweep();
+    JS_UpdateStackTop(rt_);
     JS_FreeValue(ctx_, JS_Eval(ctx_, "__runTimers()", 13, "<timers>", JS_EVAL_TYPE_GLOBAL));
     JSContext* c;
     while (JS_ExecutePendingJob(rt_, &c) > 0) {}

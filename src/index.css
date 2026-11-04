@@ -3551,3 +3551,9 @@ button.synth-machine-select {
 /* inside the plugin: the DAW records the sound and MIDI itself; hide the in-app recorder and DAW routing */
 .is-plugin #rec-btn,
 .is-plugin .conn-daw-btn { display: none !important; }
+/* in the plugin, MIDI comes from the DAW: no browser MIDI controls */
+.is-plugin #midi-btn,
+.is-plugin #midi-led,
+.is-plugin #midi-learn-btn,
+.is-plugin #midi-msg,
+.is-plugin #conn-pop-selects { display: none !important; }
