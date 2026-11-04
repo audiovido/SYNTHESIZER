@@ -215,6 +215,73 @@ int main() {
     check(m == "baku 777", "machine and the knob turned right before saving come back");
   }
 
+  std::printf("8. SYNC off: the app's own tempo and Play button, the DAW's Play ignored; SYNC on again\n");
+  {
+    Run r("kerman");
+    r.head.bpm = 79;
+    r.render(4096, 512);
+    r.p.engine().post("setSync", "[false]");
+    r.p.engine().post("setTempo", "[98]");
+    r.head.playing = true;
+    r.head.ppq = 0;
+    r.render(48000, 512);
+    auto js = [&](const char* e) { return r.p.engine().js()->evalString(e); };
+    const std::string tFree = js("String(SY1E.getTempo())");
+    const std::string playFree = js("String(SY1E.drums.isDrumPlaying())");
+    int hostSteps = 0;
+    auto log = r.log();
+    for (auto& e : *log.getArray()) if (static_cast<int>(e[0]) == 1) hostSteps++;
+    std::printf("     free: tempo %s, drums playing %s (DAW plays; %d DAW steps arrived)\n", tFree.c_str(), playFree.c_str(), hostSteps);
+    check(tFree == "98", "own tempo 98 while the DAW is at 79");
+    check(playFree == "false", "the DAW's Play does not start the pattern");
+    r.p.engine().post("startDrums", "[]");
+    const double peak = r.render(48000, 512);
+    const std::string playOwn = js("String(SY1E.drums.isDrumPlaying())");
+    std::printf("     own Play: drums playing %s, peak %.3f\n", playOwn.c_str(), peak);
+    check(playOwn == "true" && peak > 0.05, "the app's own Play works while the DAW plays");
+    r.p.engine().post("setSync", "[true]");
+    r.render(48000 / 2, 512);
+    const std::string tSync = js("String(SY1E.getTempo())");
+    const std::string playSync = js("String(SY1E.drums.isDrumPlaying())");
+    std::printf("     SYNC on: tempo %s, drums playing %s\n", tSync.c_str(), playSync.c_str());
+    check(tSync == "79" && playSync == "true", "SYNC on: back to the DAW's tempo, the DAW runs the pattern");
+    r.head.playing = false;
+    r.render(4096, 512);
+    check(js("String(SY1E.drums.isDrumPlaying())") == "false", "DAW Stop stops it");
+  }
+
+  std::printf("9. Project reload: the restored engine gets the DAW's tempo again; SYNC is saved\n");
+  {
+    Run r("kerman");
+    r.head.bpm = 79;
+    r.head.playing = true;
+    r.render(4096, 512);
+    r.p.engine().post("applyDrumStyle", "[\"boombap\"]");  // a style with its own tempo (90)
+    r.render(4096, 512);
+    juce::MemoryBlock mb;
+    std::thread saver0([&] { r.p.getStateInformation(mb); });
+    r.render(48000 / 4, 512);
+    saver0.join();
+    r.p.setStateInformation(mb.getData(), static_cast<int>(mb.getSize()));  // same instance (Ableton reload)
+    r.render(4096, 512);
+    const std::string t = r.p.engine().js()->evalString("String(SY1E.getTempo()) + ' ' + SY1E.drums.isDrumPlaying()");
+    std::printf("     after reload: tempo, playing = %s\n", t.c_str());
+    check(t == "79 true", "79 BPM from the DAW (not the style's 90), pattern on the DAW's Play");
+    r.p.engine().post("setSync", "[false]");
+    r.render(4096, 512);
+    juce::MemoryBlock mb2;
+    std::thread saver([&] { r.p.getStateInformation(mb2); });  // the newest state comes from the audio thread
+    r.render(48000 / 4, 512);
+    saver.join();
+    Run r2("sy1");
+    r2.head.bpm = 79;
+    r2.p.setStateInformation(mb2.getData(), static_cast<int>(mb2.getSize()));
+    r2.render(4096, 512);
+    const std::string s2 = r2.p.engine().js()->evalString("String(SY1E.getSync()) + ' ' + SY1E.getTempo()");
+    std::printf("     new instance: sync, tempo = %s\n", s2.c_str());
+    check(s2 == "false 90", "SYNC off comes back with the project, with the app's own tempo");
+  }
+
   std::printf(failures ? "\n%d FAILED\n" : "\nall passed\n", failures);
   return failures ? 1 : 0;
 }

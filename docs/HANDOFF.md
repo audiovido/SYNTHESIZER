@@ -41,6 +41,15 @@ Owner: Armin (music producer; uses Ableton Live and Logic Pro; Intel Mac). Repli
 ## 5. Open requests from Armin (next work) — designed, not built yet
 
 ### 5.1 Tempo control back on drum machines, in sync with the DAW
+
+**Built (5 Nov 2026).** SYNC button beside the tempo (plugin only, saved in the state, default on).
+- `src/engine/tempo.ts`: `setSync` (mirrored), `isHostSynced()` = SYNC on and a DAW tempo known. The app's own tempo (`setTempo`, a style's tempo) is always remembered and used when SYNC is off.
+- `src/engine/drums.ts`: the DAW's Play runs the pattern only while SYNC is on; off = the own Play button and clock. `arp.ts` aligns to the DAW grid only while synced.
+- Window: −/+/TAP greyed while synced; the drum library shows `style 98 · now 79 BPM`. The window gets the DAW tempo and Play state with every 30 ms update (`host` in the `sy1` event, `plugin.onHost` in `main.ts`), so it shows the real tempo even after it opened late or reloaded.
+- Bug fixed: after a project reload (`setStateInformation`) the new engine never heard the DAW tempo again (it stayed at the style's tempo). `lastBpm_`/`wasPlaying_` are reset so both are re-sent.
+- Tests: host_test 8 (SYNC off/on with the DAW playing) and 9 (reload + SYNC saved).
+
+Original design notes:
 Problem now: in the plugin the tempo is locked to the DAW and −/+/TAP are hidden. Also the drum style label shows its own BPM (e.g. "98BPM" while Ableton is at 79) — that label is the **style's** stored tempo (`applyDrumStyle` → `setTempo(st.bpm)` is ignored while locked), so it is misleading.
 Design (standard behaviour, like Ableton Link / host sync in other plugins):
 - Add a **SYNC** toggle (plugin only, saved in state), default ON:

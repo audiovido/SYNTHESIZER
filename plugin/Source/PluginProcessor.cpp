@@ -79,11 +79,13 @@ void SY1Processor::hostClockFor(int64_t q0) {
   if (host_.bpm > 0 && std::fabs(host_.bpm - lastBpm_) > 1e-6) {
     lastBpm_ = host_.bpm;
     engine_.hostCall("setHostTempo", "[" + num(host_.bpm) + "]");
+    uiBpm_.store(host_.bpm, std::memory_order_relaxed);
   }
   const bool playing = host_.playing && host_.hasPpq && host_.bpm > 0;
   if (playing != wasPlaying_) {
     wasPlaying_ = playing;
     engine_.hostCall("hostTransport", playing ? "[true]" : "[false]");
+    uiPlaying_.store(playing, std::memory_order_relaxed);
     nextAllowed_ = std::numeric_limits<int64_t>::min();
   }
   if (!playing) { engine_.setHostClock(false, 0, host_.bpm); return; }
@@ -154,6 +156,10 @@ void SY1Processor::setStateInformation(const void* data, int sizeInBytes) {
   if (rate_ > 0) {
     suspendProcessing(true);
     startEngine(rate_, s);
+    // the new engine has not heard the DAW's tempo or Play state yet: send them again at the next block
+    lastBpm_ = -1;
+    wasPlaying_ = false;
+    uiPlaying_.store(false, std::memory_order_relaxed);
     suspendProcessing(false);
     // the window is rebuilt on the message thread (hosts may load a state from any thread)
     std::weak_ptr<int> alive = alive_;

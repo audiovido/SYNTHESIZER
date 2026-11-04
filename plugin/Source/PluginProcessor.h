@@ -1,4 +1,5 @@
 #pragma once
+#include <atomic>
 #include <cstdint>
 #include <limits>
 #include <vector>
@@ -40,6 +41,10 @@ class SY1Processor : public juce::AudioProcessor {
   double engineRate() const { return rate_; }
   std::string currentState();
   juce::String engineError() const { return error_; }
+  /** The DAW's tempo (0 = none yet) and Play state, as last sent to the engine: the window gets them
+   *  with every update, so it shows the real tempo even if it opened (or reloaded) after they were sent. */
+  double hostBpmForUi() const { return uiBpm_.load(std::memory_order_relaxed); }
+  bool hostPlayingForUi() const { return uiPlaying_.load(std::memory_order_relaxed); }
 
  private:
   sy1::Sy1Engine engine_;
@@ -48,6 +53,8 @@ class SY1Processor : public juce::AudioProcessor {
   juce::String error_;
   double lastBpm_ = -1;
   bool wasPlaying_ = false;
+  std::atomic<double> uiBpm_{0};
+  std::atomic<bool> uiPlaying_{false};
   // the DAW's clock: sample position since prepareToPlay, the play head of the current DAW block,
   // MIDI events waiting for their engine block, and the last drum step sent
   int64_t dawPos_ = 0;

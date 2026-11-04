@@ -51,7 +51,7 @@ import {
 } from "../engine/synth";
 import { evalOrbitPoint, getVectorLiveXY, setVectorDrawnPath } from "../engine/vector";
 import { getEngine, getHQState, onEngineChange } from "../engine/hq";
-import { getTempo, onTempoChange, setTempo, tapTempo } from "../engine/tempo";
+import { fmtBpm, getSync, getTempo, isHostSynced, onSyncChange, onTempoChange, setSync, setTempo, tapTempo } from "../engine/tempo";
 import {
   clearPattern,
   drumLabel,
@@ -655,14 +655,30 @@ export function previewPreset(presetId: string): void {
   setTimeout(() => noteOff(note), 450);
 }
 
+/** SYNC (plugin): light the button; while the DAW sets the tempo the own tempo controls are greyed. */
+export function updateSyncDOM(): void {
+  const synced = isHostSynced();
+  document.documentElement.classList.toggle("is-synced", synced);
+  document.querySelectorAll<HTMLElement>(".tempo-sync-btn").forEach((b) => {
+    b.classList.toggle("active", getSync());
+    b.setAttribute("aria-pressed", getSync() ? "true" : "false");
+  });
+  document.querySelectorAll<HTMLButtonElement>('.synth-tempo [data-action^="tempo-"]:not(.tempo-sync-btn)').forEach((b) => {
+    if (b.dataset.title === undefined) b.dataset.title = b.title;
+    b.disabled = synced;
+    b.title = synced ? "Tempo from the DAW (turn SYNC off to set your own)" : b.dataset.title;
+  });
+}
+
 export function renderSynthPanelHtml(): string {
   const m = getMachine();
   const tempo = m.tempo
     ? `<div class="synth-tempo" role="group" aria-label="Tempo">
         <button type="button" class="synth-midi-btn tempo-step-btn" data-action="tempo-down" aria-label="Slower">−</button>
-        <button type="button" class="synth-tempo-val" id="tempo-val" data-action="tempo-tap" title="Tempo (BPM). Tap in time to set it.">${getTempo()}</button>
+        <button type="button" class="synth-tempo-val" id="tempo-val" data-action="tempo-tap" title="Tempo (BPM). Tap in time to set it.">${fmtBpm(getTempo())}</button>
         <button type="button" class="synth-midi-btn tempo-step-btn" data-action="tempo-up" aria-label="Faster">+</button>
         <button type="button" class="synth-midi-btn tempo-tap-btn" data-action="tempo-tap" title="Tap in time to set the tempo">TAP</button>
+        <button type="button" class="synth-midi-btn tempo-sync-btn${getSync() ? " active" : ""}" data-action="tempo-sync" aria-pressed="${getSync() ? "true" : "false"}" title="SYNC on: tempo and Play/Stop follow the DAW. Off: SY-1 keeps its own tempo.">SYNC</button>
       </div>`
     : "";
   return `
@@ -816,6 +832,7 @@ export function renderPanel(): void {
   updateEngineDOM();
   updateMidiBarDOM();
   renderHooks.forEach((fn) => fn());
+  updateSyncDOM();
   fitPanel();
 }
 
@@ -900,8 +917,10 @@ export function initPanelInteractions(): void {
   onEngineChange(updateEngineDOM);
   onMachineChange(() => { connOpen = false; renderPanel(); });
   onTempoChange((bpm) => {
-    document.querySelectorAll(".synth-tempo-val").forEach((el) => (el.textContent = String(bpm)));
+    document.querySelectorAll(".synth-tempo-val").forEach((el) => (el.textContent = fmtBpm(bpm)));
   });
+  onSyncChange(updateSyncDOM);
+  updateSyncDOM();
   onDrumChange(() => {
     refreshCustom("drum-transport");
     refreshCustom("drum-steps");
@@ -970,9 +989,10 @@ export function initPanelInteractions(): void {
       }
       case "preset-prev": stepPreset(-1); break;
       case "preset-next": stepPreset(1); break;
-      case "tempo-down": setTempo(getTempo() - 1); break;
-      case "tempo-up": setTempo(getTempo() + 1); break;
-      case "tempo-tap": tapTempo(); break;
+      case "tempo-down": if (!isHostSynced()) setTempo(Math.round(getTempo()) - 1); break;
+      case "tempo-up": if (!isHostSynced()) setTempo(Math.round(getTempo()) + 1); break;
+      case "tempo-tap": if (!isHostSynced()) tapTempo(); break;
+      case "tempo-sync": setSync(!getSync()); break;
       case "engine-toggle": switchEngine(getEngine() === "hq" ? "classic" : "hq"); break;
       case "midi-enable": if (!isMidiUnavailable()) requestMidi(); break;
       case "midi-learn": if (!isMidiUnavailable()) toggleLearnMode(); break;

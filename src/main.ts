@@ -48,6 +48,15 @@ function initApp(): void {
   if (plugin) {
     document.documentElement.classList.add("is-plugin");
     plugin.onCall = (name: string, args: unknown[]) => applyEngineCall(name, args);
+    // the DAW's tempo and Play state come with every update too: the window shows the real tempo
+    // even when it opened (or reloaded) after the plugin last sent them
+    let hostBpm = 0, hostPlaying = false;
+    plugin.onHost = (h: { bpm?: number; playing?: boolean }) => {
+      const bpm = Number(h && h.bpm) || 0;
+      if (bpm > 0 && bpm !== hostBpm) { hostBpm = bpm; applyEngineCall("setHostTempo", [bpm]); }
+      const playing = !!(h && h.playing);
+      if (playing !== hostPlaying) { hostPlaying = playing; applyEngineCall("hostTransport", [playing]); }
+    };
     // mirror only what the player does from now on (the start-up calls below run in the plugin's engine already)
     setTimeout(() => setMirrorSink((name, args) => plugin.send(name, args)), 0);
   }

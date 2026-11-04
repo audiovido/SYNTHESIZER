@@ -15,7 +15,7 @@
 
 import { getAudioCtxIfAny } from "./bus";
 import { SYNC_DIVS } from "./params";
-import { getTempo } from "./tempo";
+import { getTempo, isHostSynced } from "./tempo";
 
 type Patch = Record<string, any>;
 export interface ArpHooks {
@@ -144,7 +144,7 @@ function tick(): void {
 function alignToHost(ctx: AudioContext): void {
   const hc = (globalThis as any).__hostClock;
   const h = typeof hc === "function" ? hc() : null;
-  if (!h || !h.playing || !(h.bpm > 0) || !hooks) return;
+  if (!h || !h.playing || !(h.bpm > 0) || !hooks || !isHostSynced()) return;
   const p = hooks.getPatch();
   const rate = p.arpMode === "euclid" ? p.eucRate ?? 6 : p.arpRate || 6;
   const beats = SYNC_DIVS[Math.max(0, Math.min(SYNC_DIVS.length - 1, Math.round(rate) - 1))].beats;

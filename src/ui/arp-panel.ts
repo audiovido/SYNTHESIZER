@@ -7,9 +7,9 @@
  */
 
 import { getMachine, getSynthPatch, onParamChange } from "../engine/synth";
-import { getTempo } from "../engine/tempo";
+import { fmtBpm, getTempo } from "../engine/tempo";
 import { ARP_MODE_OPTS, choice, row, toggles } from "../machines/types";
-import { renderControl, setPanelRenderHook } from "./panel";
+import { renderControl, setPanelRenderHook, updateSyncDOM } from "./panel";
 
 let open = false;
 
@@ -18,7 +18,7 @@ function html(): string {
     <div class="arp-pop-head"><h4>ARPEGGIATOR</h4>
       <div class="synth-tempo" role="group" aria-label="Tempo">
         <button type="button" class="synth-midi-btn" data-action="tempo-down" aria-label="Slower">−</button>
-        <button type="button" class="synth-tempo-val" data-action="tempo-tap" title="Tempo (BPM). Tap in time to set it.">${getTempo()}</button>
+        <button type="button" class="synth-tempo-val" data-action="tempo-tap" title="Tempo (BPM). Tap in time to set it.">${fmtBpm(getTempo())}</button>
         <button type="button" class="synth-midi-btn" data-action="tempo-up" aria-label="Faster">+</button>
       </div>
       <button type="button" class="synth-midi-btn arp-pop-close" data-arp-close aria-label="Close">✕</button>
@@ -44,6 +44,7 @@ function render(): void {
   document.querySelectorAll(".arp-pop").forEach((el) => el.remove());
   const panel = document.querySelector(".synth-panel");
   if (open && panel && getMachine().kind === "synth") panel.insertAdjacentHTML("beforeend", html());
+  updateSyncDOM();
   syncButton();
 }
 

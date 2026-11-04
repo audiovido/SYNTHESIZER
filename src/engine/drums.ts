@@ -8,6 +8,7 @@
  */
 
 import { mirrorCall } from "./mirror";
+import { getSync, onSyncChange } from "./tempo";
 
 import { getAudioCtxIfAny, getSharedNoiseBuffer } from "./bus";
 import { acousticHit, classicHit, ClassicModel, driveCurve, HAT808, HitCtx, minimalHit, persianHit } from "./drum-models";
@@ -530,10 +531,14 @@ function playStep(ctx: AudioContext, step: number, t: number, swing: number, acc
 // While the DAW plays, the plugin sends every 16th note of the DAW's song (its number counted from
 // the start, and when it falls): the pattern plays exactly on the DAW's grid, follows loops and
 // jumps, and stops with the DAW. The internal clock is not used then.
+// With SYNC off the DAW's transport is ignored: the pattern runs on its own clock (Play button).
 let hostRunning = false;
+let dawPlaying = false;
 
-function hostDrums__impl(running: boolean): void {
-  if (running) {
+function applyHostRunning(): void {
+  const next = dawPlaying && getSync();
+  if (next === hostRunning) return;
+  if (next) {
     if (timer) clearInterval(timer);
     timer = null;
     hostRunning = true;
@@ -541,9 +546,17 @@ function hostDrums__impl(running: boolean): void {
   } else {
     hostRunning = false;
     playing = false;
+    if (timer) clearInterval(timer);
+    timer = null;
     stepListeners.forEach((cb) => cb(-1));
   }
   notify();
+}
+onSyncChange(applyHostRunning);
+
+function hostDrums__impl(running: boolean): void {
+  dawPlaying = !!running;
+  applyHostRunning();
 }
 
 /** The DAW's 16th note number `sixteenth` (from the song start) falls `inSec` seconds from now. */

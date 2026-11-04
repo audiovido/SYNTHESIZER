@@ -14,6 +14,7 @@ import { escapeHtml } from "../engine/params";
 import { applyDrumKit, applyDrumStyle, getDrumKitId, getKeepKit, getMachine, getSynthPresetId, isDrumKitEdited, onDrumKitChange, onMachineChange, onPresetChange, setKeepKit } from "../engine/synth";
 import { DRUM_VOICES, isDrumPlaying, playDrum, startDrums } from "../engine/drums";
 import { getAudioCtxIfAny } from "../engine/bus";
+import { fmtBpm, getTempo, isHostSynced } from "../engine/tempo";
 import type { DrumKitDef, DrumStyleDef, PresetDef } from "../machines/types";
 import { previewPreset, setPanelRenderHook } from "./panel";
 
@@ -170,7 +171,10 @@ function drumTile(it: Item): string {
     active = st.id === getSynthPresetId();
     icon = "rhythm";
     const len = st.patterns[0]?.len === 12 ? " · 12 steps" : "";
-    sub = `${st.bpm} BPM${len} · ${escapeHtml(kit ? kit.name : "")}`;
+    // the style's own tempo; while the DAW sets the tempo (SYNC) and it differs, show both
+    const now = getTempo();
+    const bpmTxt = isHostSynced() && Math.abs(now - st.bpm) > 0.005 ? `style ${st.bpm} · now ${fmtBpm(now)} BPM` : `${st.bpm} BPM`;
+    sub = `${bpmTxt}${len} · ${escapeHtml(kit ? kit.name : "")}`;
   }
   return `<div class="lib-tile${active ? " active" : ""}${desc ? " lib-tile-kit" : ""}" role="listitem">
       <button type="button" class="lib-pick" data-lib-pick="${escapeHtml(it.id)}" aria-pressed="${active}">

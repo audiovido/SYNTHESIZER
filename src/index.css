@@ -3557,7 +3557,9 @@ button.synth-machine-select {
 .is-plugin #midi-learn-btn,
 .is-plugin #midi-msg,
 .is-plugin #conn-pop-selects { display: none !important; }
-/* in the plugin the DAW sets the tempo: show it, without the app's own tempo controls */
-.is-plugin .tempo-step-btn,
-.is-plugin .tempo-tap-btn { display: none !important; }
-.is-plugin #tempo-val { pointer-events: none; }
+/* SYNC (plugin only): on = the DAW sets the tempo, the app's own tempo controls are greyed */
+.tempo-sync-btn { display: none !important; }
+.is-plugin .tempo-sync-btn { display: inline-flex !important; align-items: center; }
+.is-plugin .synth-tempo .tempo-sync-btn.active { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); box-shadow: 0 0 8px var(--accent-glow-soft, transparent); }
+.is-plugin.is-synced .synth-tempo button:disabled { opacity: 0.35; cursor: default; }
+.is-plugin.is-synced .synth-tempo .synth-tempo-val:disabled { opacity: 1; }

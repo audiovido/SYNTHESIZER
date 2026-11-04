@@ -72,7 +72,8 @@ juce::String SY1Editor::userScript() {
        "window.__SY1_PLUGIN__ = { onCall: null, send(name, args) { const b = window.__JUCE__ && window.__JUCE__.backend; if (b) b.emitEvent('sy1call', { name, args: JSON.stringify(args) }); } };\n"
        "(function hook() { const b = window.__JUCE__ && window.__JUCE__.backend; if (!b) { setTimeout(hook, 20); return; }\n"
        "  b.addEventListener('sy1', (e) => { if (e.scope) window.__SY1_SCOPE = e.scope;\n"
-       "    for (const c of e.calls || []) { try { const p = window.__SY1_PLUGIN__; if (p.onCall) p.onCall(c.name, JSON.parse(c.args)); } catch (x) {} } });\n"
+       "    for (const c of e.calls || []) { try { const p = window.__SY1_PLUGIN__; if (p.onCall) p.onCall(c.name, JSON.parse(c.args)); } catch (x) {} }\n"
+       "    try { const p = window.__SY1_PLUGIN__; if (e.host && p.onHost) p.onHost(e.host); } catch (x) {} });\n"
        "})();\n";
   return s;
 }
@@ -119,6 +120,10 @@ void SY1Editor::timerCallback() {
   juce::Array<juce::var> sc;
   for (size_t i = 0; i < scope.size(); i += 2) sc.add(scope[i]);
   obj->setProperty("scope", sc);
+  auto* host = new juce::DynamicObject();
+  host->setProperty("bpm", proc_.hostBpmForUi());
+  host->setProperty("playing", proc_.hostPlayingForUi());
+  obj->setProperty("host", juce::var(host));
   web_->emitEventIfBrowserIsVisible("sy1", juce::var(obj));
 }
 

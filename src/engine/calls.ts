@@ -6,7 +6,7 @@ import * as synth from "./synth";
 import * as drums from "./drums";
 import * as params from "./params";
 import * as vector from "./vector";
-import { setHostTempo, setTempo } from "./tempo";
+import { setHostTempo, setSync, setTempo } from "./tempo";
 import { setMasterVolume } from "./bus";
 import { runUnmirrored } from "./mirror";
 
@@ -41,6 +41,7 @@ export const ENGINE_CALLS: Record<string, (...a: any[]) => unknown> = {
   hostTransport,
   hostStep,
   setHostTempo,
+  setSync,
   uiStore
 };
 
