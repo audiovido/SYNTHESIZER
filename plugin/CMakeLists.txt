@@ -58,7 +58,8 @@ target_compile_definitions(SY1 PUBLIC
   JUCE_WEB_BROWSER=1
   JUCE_USE_CURL=0
   JUCE_VST3_CAN_REPLACE_VST2=0
-  JUCE_DISPLAY_SPLASH_SCREEN=0)
+  JUCE_DISPLAY_SPLASH_SCREEN=0
+  $<$<PLATFORM_ID:Windows>:JUCE_USE_WIN_WEBVIEW2_WITH_STATIC_LINKING=1>)
 # no fused multiply-add: the engine computes like the browser's JavaScript (same results on Apple Silicon)
 if(NOT MSVC)
   target_compile_options(SY1 PRIVATE -ffp-contract=off)
