@@ -8,6 +8,9 @@ on:
     paths: ["src/**", "native/**", "plugin/**", "index.html", "package.json", "vite.config.*", ".github/workflows/plugin.yml"]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build:
     strategy:
@@ -81,6 +84,14 @@ jobs:
       - name: Pack (macOS)
         if: runner.os == 'macOS'
         run: ditto -c -k --keepParent out SY-1-mac.zip && rm -rf out && mkdir out && mv SY-1-mac.zip out/
+      # the latest Mac build also goes to the plugin-builds branch (one commit, replaced each time)
+      - name: Publish to plugin-builds branch (macOS)
+        if: runner.os == 'macOS' && github.ref == 'refs/heads/main'
+        run: |
+          mkdir pb && cp out/SY-1-mac.zip pb/ && cd pb
+          git init -q -b plugin-builds && git add SY-1-mac.zip
+          git -c user.name=ci -c user.email=ci@users.noreply.github.com commit -qm "SY-1 Mac build ${GITHUB_SHA::7}"
+          git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" plugin-builds
       - uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.name }}
