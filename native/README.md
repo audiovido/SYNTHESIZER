@@ -93,7 +93,9 @@ and `sy1-analog` (Tabriz). FM, Strings and Vector are not native yet.
 
 Parity: `node native/tests/engine_parity.mjs` (vite dev server on :3344) runs the
 real app in Chrome (OfflineAudioContext, timers on the render clock) and the
-same scenes in the plugin engine. Last result (2026-11-04), within 91-120 dB of
-Chrome: SY-1 chord, SY-1 chorus, Yazd pad, Tabriz mono legato with glide, Konya
-Euclid arpeggio, Kerman and Bushehr drum styles. Open: Baku with its chorus
-(-24 dB, dry Baku matches), and the SY-1 "knob moves" scene (-50 dB).
+same scenes in the plugin engine. Last result (2026-11-04): every scene within
+97-123 dB of Chrome. The scenes cover SY-1 (chord, knob moves, chorus), Yazd,
+Tabriz mono legato with glide, Baku (arpeggio, chord, dry, chorus, delay),
+Konya Euclid, and the Kerman and Bushehr drum styles. Chrome itself sometimes
+renders a chorus scene differently on one page load (as with the reverb
+allpass order); a rerun matches.

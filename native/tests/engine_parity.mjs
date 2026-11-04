@@ -93,12 +93,13 @@ for (const [i, sc] of scenes.entries()) {
     const S = await import("/src/engine/synth.ts");
     const D = await import("/src/engine/drums.ts");
     const H = await import("/src/engine/hq.ts");
-    S.prepareAudio();
-    const ctx = new AudioContext();
     const pending = [];
     const at = (t, fn) => pending.push([t, fn]);
-    const SS = { ...S, drums: D };
+    const B = await import("/src/engine/bus.ts");
+    const SS = { ...S, drums: D, bus: B };
     (new Function("S", "at", js))(SS, at);
+    // the scene starts the audio (S.prepareAudio), exactly as in the plugin run
+    const ctx = new AudioContext();
     // let the worklet modules load (real time) before rendering starts
     for (let k = 0; k < 60 && H.getHQState() !== "ready"; k++) await new Promise((r) => window.__clock.realSet(r, 50));
     await new Promise((r) => window.__clock.realSet(r, 300));
