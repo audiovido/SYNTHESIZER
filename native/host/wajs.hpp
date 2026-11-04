@@ -20,6 +20,7 @@ extern "C" {
 }
 #include "../wa/wa.hpp"
 #include "worklets.hpp"
+#include "../dsp/fm.hpp"
 
 namespace sy1 {
 
@@ -195,6 +196,7 @@ class WaJs {
       const std::string name = str(c, argv[1]);
       if (name == "sy1-voices") n = h->g.make<HQWorklet>();
       else if (name == "sy1-analog") n = h->g.make<AnalogWorklet>();
+      else if (name == "sy1-fm") n = h->g.make<FmWorklet>();
       else return JS_ThrowTypeError(c, "worklet %s is not available natively yet", name.c_str());
     }
     else if (ty == "iir") {

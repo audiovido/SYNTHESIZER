@@ -89,7 +89,8 @@ on Apple Silicon.
 (notes, mono/legato, HOLD, sustain, arpeggiator, machines, presets, kits,
 styles, drum machines, the real `bus.ts`), unchanged. AudioWorklet engines are
 native wa nodes with the same message protocol and timing: `sy1-voices` (HQ)
-and `sy1-analog` (Tabriz). FM, Strings and Vector are not native yet.
+`sy1-analog` (Tabriz) and `sy1-fm` (Kashan, `dsp/fm.hpp`, bit-identical to
+fm-processor.ts on the same message sequence). Strings and Vector are not native yet.
 
 Parity: `node native/tests/engine_parity.mjs` (vite dev server on :3344) runs the
 real app in Chrome (OfflineAudioContext, timers on the render clock) and the
@@ -98,4 +99,6 @@ same scenes in the plugin engine. Last result (2026-11-04): every scene within
 Tabriz mono legato with glide, Baku (arpeggio, chord, dry, chorus, delay),
 Konya Euclid, and the Kerman and Bushehr drum styles. Chrome itself sometimes
 renders a chorus scene differently on one page load (as with the reverb
-allpass order); a rerun matches.
+allpass order); a rerun matches. Kashan FM chord matches (-109 dB). Open: switching
+Kashan presets while an earlier note still rings (FM itself is bit-identical on the same
+messages, so this is in when Chrome delivers the burst of ~450 preset messages).

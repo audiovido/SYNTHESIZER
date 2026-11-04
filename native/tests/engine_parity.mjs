@@ -44,6 +44,8 @@ const scenes0 = [
   { name: "SY-1 chorus", len: 3, js: machine("sy1") + `S.setSynthParam("chorusMix", 0.4); S.setSynthParam("chorusRate", 0.5);` + chord([48, 52, 55], 0.2, 2.0) },
   { name: "SY-1 chorus at start", len: 3, js: `S.setMachine("sy1"); S.setSynthParam("chorusMix", 0.4); S.setSynthParam("revMix", 0); S.prepareAudio();` + chord([48, 52, 55], 0.2, 2.0) },
   { name: "Baku chorus at start", len: 3, js: `S.setMachine("baku"); S.setSynthParam("arpOn", "off"); S.setSynthParam("revMix", 0); S.setSynthParam("delayMix", 0); S.prepareAudio();` + chord([48, 52, 55], 0.2, 2.0) },
+  { name: "Kashan FM chord", len: 3, js: machine("kashan") + chord([52, 59, 64], 0.2, 1.6, 0.9) + chord([71], 0.5, 1.2, 0.4) },
+  { name: "Kashan presets", len: 4, js: `S.setMachine("kashan"); S.prepareAudio(); const ps = S.getMachine().presets; ` + [0.2, 1.0, 1.8, 2.6].map((t, i) => `at(${T(t)}, () => { S.applySynthPreset(ps[${i * 3} % ps.length].id); S.noteOn(57, 0.8); S.noteOn(64, 0.6); }); at(${T(t + 0.6)}, () => { S.noteOff(57); S.noteOff(64); });`).join("\n") + `at(${T(1.4)}, () => S.setModWheel(0.8)); at(${T(2.2)}, () => S.setPitchBend(-0.4));` },
   { name: "Konya euclid", len: 4, js: machine("konya") + chord([50, 53, 57], 0.2, 3.2) },
   { name: "Kerman drums (style)", len: 4, js: machine("kerman") + `at(${T(0.2)}, () => S.drums.startDrums());` },
   { name: "Bushehr drums (style)", len: 4, js: machine("bushehr") + `at(${T(0.2)}, () => S.drums.startDrums());` }
