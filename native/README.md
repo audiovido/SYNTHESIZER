@@ -66,3 +66,20 @@ Note: in Chrome the reverb's four allpass stages break their feedback cycle in
 hash-set order, which changes per page load (16 variants). The plugin always
 uses the true Schroeder allpass order (`apOrderMask_ = 0`); the parity test
 finds the order Chrome used on that load and then matches it exactly.
+
+## Drum machines in the plugin (`host/wajs.hpp`, `js/`)
+The drum machines are not re-written in C++: the plugin runs the web app's own
+`src/engine/drums.ts` + `drum-models.ts` (sequencer included) in an embedded
+QuickJS-ng (`third_party/quickjs`, v0.16.2, MIT). `js/wa-shim.js` gives that
+code a Web Audio API whose nodes are the Chrome-exact `wa/` nodes, so the
+drums stay identical to the web version by construction, including future
+changes. `bun native/js/build.ts` bundles the code (`bus.ts` replaced by
+`js/bus-stub.ts`) into `js/dist/drums.js`.
+
+Parity: `node native/tests/drum_parity.mjs` renders every model (808 analog,
+909, 707, 606, CR-78, 80s gated, acoustic, Persian, minimal), the per-voice
+knobs and a fusion kit in Chrome and in QuickJS + wa. Last result
+(2026-11-04): all within 121-134 dB of Chrome (float rounding). The sequencer
+runs on the audio clock (sample-accurate). CPU: a very busy acoustic groove
+(16ths, 3-4 voices per step) costs ~22 % of one cloud x86 core; to be measured
+on Apple Silicon.

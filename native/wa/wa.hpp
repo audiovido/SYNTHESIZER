@@ -81,6 +81,9 @@ class Node {
     if (mode == Mode::ClampedMax) mx = std::min(mx, channelCount);
     return mx;
   }
+  /** The node's AudioParams (for graph walks). */
+  virtual void params(std::vector<Param*>&) {}
+  int mark = 0;  // scratch flag for graph walks
   /** Channels this node outputs, given its inputs (structural; see Graph::updateChannels). */
   virtual int outputChannels() const { return inputChannels(0); }
 
@@ -336,6 +339,7 @@ class Gain : public Node {
   explicit Gain(Context* c, float g = 1) : Node(c), gain(c, 1, -3.4028235e38f, 3.4028235e38f) {
     if (g != 1) gain.setValue(g);
   }
+  void params(std::vector<Param*>& v) override { v.push_back(&gain); }
  protected:
   void process() override {
     const Bus& b = in[0];
@@ -390,6 +394,7 @@ class Biquad : public Node {
         Q(c, 1, -3.4028235e38f, 3.4028235e38f),
         gain(c, 0, -3.4028235e38f, 1541),
         detune(c, 0, -153600, 153600) {}
+  void params(std::vector<Param*>& v) override { v.push_back(&frequency); v.push_back(&Q); v.push_back(&gain); v.push_back(&detune); }
 
  protected:
   struct Kernel { double x1 = 0, x2 = 0, y1 = 0, y2 = 0; };
@@ -576,6 +581,7 @@ class Delay : public Node {
   Delay(Context* c, double maxDelay = 1) : Node(c), delayTime(c, 0, 0, static_cast<float>(maxDelay)), max_(maxDelay) {
     len_ = RQ + timeToSampleFrame(maxDelay, c->sampleRate, 2);
   }
+  void params(std::vector<Param*>& v) override { v.push_back(&delayTime); }
  protected:
   double max_;
   size_t len_;
@@ -646,15 +652,23 @@ namespace detail {
 struct DirectConvolver {
   std::vector<float> kernel, buffer;
   int block;
+  std::vector<float> rev;  // kernel reversed, so the inner loop runs forward (vectorizes)
   DirectConvolver(int blockSize, std::vector<float> k) : kernel(std::move(k)), block(blockSize) {
     buffer.assign(kernel.size() - 1 + blockSize, 0.0f);
+    rev.assign(kernel.rbegin(), kernel.rend());
   }
   void process(const float* src, float* dst) {
     const size_t ks = kernel.size(), hist = ks - 1;
     std::memcpy(&buffer[hist], src, block * sizeof(float));
+    const float* r = rev.data();
     for (int i = 0; i < block; i++) {
-      float sum = 0;
-      for (size_t j = 0; j < ks; j++) sum += buffer[i + j] * kernel[ks - 1 - j];
+      const float* b = &buffer[i];
+      float acc[8] = {0, 0, 0, 0, 0, 0, 0, 0};
+      size_t j = 0;
+      for (; j + 8 <= ks; j += 8)
+        for (int m = 0; m < 8; m++) acc[m] += b[j + m] * r[j + m];
+      float sum = ((acc[0] + acc[4]) + (acc[1] + acc[5])) + ((acc[2] + acc[6]) + (acc[3] + acc[7]));
+      for (; j < ks; j++) sum += b[j] * r[j];
       dst[i] = sum;
     }
     std::memmove(&buffer[0], &buffer[block], hist * sizeof(float));
@@ -794,6 +808,7 @@ class Compressor : public Node {
     for (auto& p : pre_) p.fill(0.0f);
   }
   int outputChannels() const override { return 2; }
+  void params(std::vector<Param*>& v) override { v.push_back(&threshold); v.push_back(&knee); v.push_back(&ratio); v.push_back(&attack); v.push_back(&release); }
 
  protected:
   static constexpr int kMaxPre = 1024, kMask = kMaxPre - 1;
@@ -948,6 +963,7 @@ class StereoPanner : public Node {
  public:
   Param pan;
   explicit StereoPanner(Context* c) : Node(c), pan(c, 0, -1, 1) { channelCount = 2; mode = Mode::ClampedMax; }
+  void params(std::vector<Param*>& v) override { v.push_back(&pan); }
   int outputChannels() const override { return 2; }
  protected:
   void process() override {
@@ -1039,7 +1055,15 @@ class PeriodicWave {
         rateScale_(static_cast<float>(size_ / sampleRate)) {
     build(real, imag, disableNorm);
   }
+  /** The four built-in shapes, built once per sample rate and shared (Chrome caches them per context too). */
   static std::shared_ptr<PeriodicWave> basic(double sr, Shape s) {
+    static std::vector<std::pair<double, std::shared_ptr<PeriodicWave>>> cache[4];
+    for (auto& e : cache[s]) if (e.first == sr) return e.second;
+    auto w = build(sr, s);
+    cache[s].push_back({sr, w});
+    return w;
+  }
+  static std::shared_ptr<PeriodicWave> build(double sr, Shape s) {
     const unsigned size = sr <= 24000 ? 2048 : sr <= 88200 ? 4096 : 16384, half = size / 2;
     std::vector<float> re(half, 0.0f), im(half, 0.0f);
     for (unsigned n = 1; n < half; n++) {
@@ -1134,6 +1158,7 @@ class Oscillator : public Source {
       : Source(c), frequency(c, 440, -static_cast<float>(c->sampleRate / 2), static_cast<float>(c->sampleRate / 2)),
         detune(c, 0, -153600, 153600) { setType(s); }
   void setType(PeriodicWave::Shape s) { wave_ = PeriodicWave::basic(ctx->sampleRate, s); }
+  void params(std::vector<Param*>& v) override { v.push_back(&frequency); v.push_back(&detune); }
   void setPeriodicWave(std::shared_ptr<PeriodicWave> w) { wave_ = std::move(w); }
 
  protected:
@@ -1324,6 +1349,7 @@ class BufferSource : public Source {
   bool loop = false;
   explicit BufferSource(Context* c) : Source(c), playbackRate(c, 1, -3.4028235e38f, 3.4028235e38f, false), detune(c, 0, -3.4028235e38f, 3.4028235e38f, false) {}
   void setBuffer(std::shared_ptr<const std::vector<float>> b, double bufferRate) { buf_ = std::move(b); bufRate_ = bufferRate; }
+  void params(std::vector<Param*>& v) override { v.push_back(&playbackRate); v.push_back(&detune); }
   void start(double when, double offset = 0) {
     Source::start(when);
     const double dur = buf_ ? buf_->size() / bufRate_ : 0;
