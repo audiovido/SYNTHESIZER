@@ -67,7 +67,7 @@ for ext in vst3 component; do
   [ "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$plist")" = com.audiovido.sy1 ]
   exe=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleExecutable' "$plist")
   [ "$exe" = SY-1 ] && [ -x "$src/Contents/MacOS/$exe" ]
-  /usr/bin/lipo -verify_arch "$ARCH" "$src/Contents/MacOS/$exe"
+  /usr/bin/lipo "$src/Contents/MacOS/$exe" -verify_arch "$ARCH"
   /usr/bin/codesign --verify --deep --strict "$src"
   if [ "$ext" = vst3 ]; then sub=VST3; else sub=Components; fi
   dir="$HOME/Library/Audio/Plug-Ins/$sub"
