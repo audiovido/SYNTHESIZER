@@ -6,7 +6,7 @@ on:
   pull_request:
     branches: [main]
   push:
-    branches: [main, fix/sy1-live-midi-installer]
+    branches: [main, fix/sy1-live-midi-installer, fix/live-controller-performance]
     paths: ["src/**", "native/**", "plugin/**", "index.html", "package.json", "vite.config.*", ".github/workflows/plugin.yml"]
   workflow_dispatch:
 
@@ -15,15 +15,26 @@ permissions:
 
 jobs:
   materialize:
-    if: github.ref == 'refs/heads/fix/sy1-live-midi-installer' && github.event_name == 'push'
+    if: (github.ref == 'refs/heads/fix/sy1-live-midi-installer' || github.ref == 'refs/heads/fix/live-controller-performance') && github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: fix/sy1-live-midi-installer
+          ref: ${{ github.ref_name }}
       - name: Materialize reviewed repair on feature branch only
         shell: bash
         run: |
+          if [ "$GITHUB_REF_NAME" = fix/live-controller-performance ]; then
+            if [ ! -f plugin/performance.patch ]; then exit 0; fi
+            echo 'f90813afefd28257008476c1cdac8d470504f715224436ac68b68464f7f5b164  plugin/performance.patch' | sha256sum -c -
+            git apply --check plugin/performance.patch
+            git apply plugin/performance.patch
+            git rm plugin/performance.patch
+            git add native plugin docs/LIVE-PERFORMANCE.md
+            git -c user.name=audiovido -c user.email=294141510+audiovido@users.noreply.github.com commit -m "Reduce MIDI dispatch cost and remove audio-to-UI mutex without changing sound"
+            git push origin HEAD:fix/live-controller-performance
+            exit 0
+          fi
           if [ ! -f plugin/repair.patch ]; then exit 0; fi
           echo '0283c842a339e1228414864d66979e90d5a772dc9608104db3b073e1e100d8a4  plugin/repair.patch' | sha256sum -c -
           git apply --check plugin/repair.patch
@@ -89,6 +100,8 @@ jobs:
       - name: Host simulation test (Windows)
         if: runner.os == 'Windows'
         run: plugin/build/SY1HostTest_artefacts/Release/SY1HostTest.exe
+      - name: Concurrent UI queue test
+        run: ctest --test-dir plugin/build -C Release --output-on-failure
       - name: Sign (ad-hoc)
         if: runner.os == 'macOS'
         run: |
@@ -158,6 +171,7 @@ jobs:
         shell: bash
         run: |
           mkdir out
+          git rev-parse HEAD > out/SY-1-source-commit.txt
           A=plugin/build/SY1_artefacts/Release
           cp -R "$A/VST3/SY-1.vst3" out/
           if [ -d "$A/AU" ]; then cp -R "$A/AU/SY-1.component" out/; cp -R "$A/Standalone/SY-1.app" out/; else cp "$A/Standalone/SY-1.exe" out/; fi
