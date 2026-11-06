@@ -23,5 +23,5 @@
     "allowImportingTsExtensions": true,
     "noEmit": true
   },
-  "exclude": ["dist", "scripts", "native"]
+  "exclude": ["dist", "scripts", "native", "plugin/build", "plugin/build-ui", "plugin/resources"]
 }

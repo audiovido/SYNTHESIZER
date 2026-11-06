@@ -3,7 +3,7 @@
  */
 
 import { beginMidiIn, endMidiIn, getMidiOutName, handleRealtime } from "./daw";
-import { noteOff, noteOn, setPitchBend } from "./synth";
+import { allNotesOff, noteOff, noteOn, setPitchBend } from "./synth";
 import * as cc from "./cc-map";
 export { getParamMappedCc, isParamMapped, mapCcToParam, removeParamMapping } from "./cc-map";
 
@@ -207,7 +207,9 @@ export async function requestMidi(): Promise<void> {
     midiRejected = false;
     midiStatusMessage = "";
     bindMidiInputs();
-    access.onstatechange = () => {
+    access.onstatechange = (event: any) => {
+      if (event.port?.type === "input" && event.port?.state === "disconnected") allNotesOff();
+      cc.setMidiPickup(cc.getMidiPickup()); // reconnect starts with pickup armed again
       bindMidiInputs();
       notifyMidiState();
     };

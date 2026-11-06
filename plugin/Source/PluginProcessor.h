@@ -4,16 +4,20 @@
 #include <cmath>
 #include <cstdint>
 #include <limits>
+#include <mutex>
 #include <vector>
 #include <juce_audio_processors/juce_audio_processors.h>
 
 #include "host/sy1_engine.hpp"
 
 /** SY-1 as an instrument plugin: the web app's engine, run natively (see native/README.md). */
-class SY1Processor : public juce::AudioProcessor {
+class SY1Processor : public juce::AudioProcessor, private juce::Timer {
  public:
   SY1Processor();
-  ~SY1Processor() override = default;
+  ~SY1Processor() override;
+  // Message-thread bridge used by the WebView. Stable macro IDs remain macro1..macro16.
+  void setMacroFromUi(int slot, float value);
+  void macroGesture(int slot, bool begin);
 
   void prepareToPlay(double sampleRate, int samplesPerBlock) override;
   void releaseResources() override {}
@@ -50,8 +54,10 @@ class SY1Processor : public juce::AudioProcessor {
 
  private:
   sy1::Sy1Engine engine_;
+  std::mutex lifecycle_; // state replacement and rendering never use QuickJS concurrently
   double rate_ = 0;
   std::string pendingState_;
+  std::mutex pendingStateMu_;
   juce::String error_;
   double lastBpm_ = -1;
   bool wasPlaying_ = false;
@@ -68,6 +74,10 @@ class SY1Processor : public juce::AudioProcessor {
   static constexpr int kMacros = 16;
   std::array<juce::AudioParameterFloat*, kMacros> macros_{};
   std::array<float, kMacros> lastMacro_ = [] { std::array<float, kMacros> a; a.fill(std::numeric_limits<float>::quiet_NaN()); return a; }();
+  std::array<std::atomic<float>, kMacros> feedback_{};
+  std::array<std::atomic<float>, kMacros> echo_{};
+  std::array<bool, kMacros> gesturing_{};
+  void timerCallback() override;
   void macrosToEngine();
   void readPlayHead();
   void hostClockFor(int64_t q0);

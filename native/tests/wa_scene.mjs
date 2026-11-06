@@ -6,7 +6,7 @@ import { execFileSync } from "node:child_process";
 import { readFileSync, existsSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import pw from "/opt/node-tools/node_modules/playwright/index.js";
+import pw from "playwright";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const bin = "/tmp/wa_scene";

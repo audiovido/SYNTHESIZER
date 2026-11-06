@@ -15,6 +15,22 @@
 
 import { DRUM_NOTES, DRUM_VOICES, DrumPattern, DrumVoice, stepFlam, stepProb, stepRoll } from "./drums";
 import { getTempo, onTempoChange, setTempo } from "./tempo";
+import { mirrorCall } from "./mirror";
+
+const PLUGIN_MIDI_KEY = "sy1.pluginMidiOut";
+let pluginMidiOut = true;
+try { pluginMidiOut = localStorage.getItem(PLUGIN_MIDI_KEY) !== "off"; } catch (e) {}
+export function getPluginMidiOut(): boolean { return pluginMidiOut; }
+function setPluginMidiOut__impl(on: boolean): void {
+  pluginMidiOut = !!on;
+  const host = (globalThis as any).__wa;
+  if (!pluginMidiOut && typeof host?.midiOut === "function") host.midiOut(0xb9, 123, 0, audioNow());
+  try { localStorage.setItem(PLUGIN_MIDI_KEY, pluginMidiOut ? "on" : "off"); } catch (e) {}
+  notify();
+}
+export function setPluginMidiOut(...a: Parameters<typeof setPluginMidiOut__impl>): void {
+  mirrorCall("setPluginMidiOut", setPluginMidiOut__impl, a);
+}
 
 // ---------------------------------------------------------------- hooks ----
 interface DawHooks {
@@ -206,7 +222,7 @@ export function drumHit(v: DrumVoice, vel: number, at: number): void {
   // the plugin: every hit the drum machine makes itself (pattern, pads, keys) goes to the DAW as MIDI
   // (channel 10, General MIDI drums); hits played by the DAW's own MIDI are not sent back
   const host = (globalThis as any).__wa;
-  if (host && typeof host.midiOut === "function" && fromIn === 0) {
+  if (pluginMidiOut && host && typeof host.midiOut === "function" && fromIn === 0) {
     const v7 = vel7(vel);
     host.midiOut(0x99, note, v7, at);
     host.midiOut(0x89, note, 0, at + 0.06);

@@ -52,7 +52,8 @@ import {
 } from "../engine/synth";
 import { evalOrbitPoint, getVectorLiveXY, setVectorDrawnPath } from "../engine/vector";
 import { getEngine, getHQState, onEngineChange } from "../engine/hq";
-import { getMidiPickup, HOST_MIDI, setMidiPickup } from "../engine/cc-map";
+import { getMidiPickup, getMidiMode, HOST_MIDI, MIDI_MODES, MidiMode, setMidiMode, setMidiPickup } from "../engine/cc-map";
+import { getPluginMidiOut, onDawChange, setPluginMidiOut } from "../engine/daw";
 import { exportDrumMidi } from "./drum-export";
 import { fmtBpm, getSync, getTempo, isHostSynced, onSyncChange, onTempoChange, setSync, setTempo, tapTempo } from "../engine/tempo";
 import {
@@ -717,6 +718,10 @@ export function renderSynthPanelHtml(): string {
               <select class="synth-midi-select" id="midi-channel" aria-label="MIDI Channel" hidden>${renderChannelOptions()}</select>
             </div>
             <div class="synth-midi-msg" id="midi-msg" role="status" aria-live="polite" hidden></div>
+            <div class="conn-pop-row">
+              <label>CC mode <select class="synth-midi-select" id="midi-mode" aria-label="MIDI CC mode">${MIDI_MODES.map((m) => `<option value="${m}"${m === getMidiMode() ? " selected" : ""}>${m === "absolute" ? "Absolute" : `Relative: ${m}`}</option>`).join("")}</select></label>
+              ${HOST_MIDI ? `<button type="button" class="synth-midi-btn" id="plugin-midi-out" data-action="plugin-midi-out" aria-pressed="${getPluginMidiOut()}">DRUM MIDI OUT ${getPluginMidiOut() ? "ON" : "OFF"}</button>` : ""}
+            </div>
             <button type="button" class="synth-midi-btn conn-daw-btn" data-daw="open">DAW &amp; RECORDING…</button>
           </div>
         </div>
@@ -813,6 +818,13 @@ export function updateMidiBarDOM(): void {
     msgEl.hidden = !msgEl.textContent;
   }
   updateMidiLearnDOM();
+  const modeSelect = document.getElementById("midi-mode") as HTMLSelectElement | null;
+  if (modeSelect) modeSelect.value = getMidiMode();
+  const outBtn = document.getElementById("plugin-midi-out");
+  if (outBtn) {
+    outBtn.textContent = `DRUM MIDI OUT ${getPluginMidiOut() ? "ON" : "OFF"}`;
+    outBtn.setAttribute("aria-pressed", String(getPluginMidiOut()));
+  }
 }
 
 function updateEngineDOM(): void {
@@ -883,6 +895,7 @@ window.addEventListener("resize", () => {
 });
 
 function bindPanelElements(): void {
+  document.getElementById("midi-mode")?.addEventListener("change", (e) => setMidiMode((e.target as HTMLSelectElement).value as MidiMode));
   const devSelect = document.getElementById("midi-device") as HTMLSelectElement | null;
   if (devSelect) devSelect.addEventListener("change", () => setSelectedMidiDevice(devSelect.value));
   const chSelect = document.getElementById("midi-channel") as HTMLSelectElement | null;
@@ -929,6 +942,7 @@ export function initPanelInteractions(): void {
     renderKeyboard();
   });
   onMidiStateChange(() => updateMidiBarDOM());
+  onDawChange(() => updateMidiBarDOM());
   onEngineChange(updateEngineDOM);
   onMachineChange(() => { connOpen = false; renderPanel(); });
   onTempoChange((bpm) => {
@@ -1012,6 +1026,7 @@ export function initPanelInteractions(): void {
       case "midi-enable": if (!isMidiUnavailable()) requestMidi(); break;
       case "midi-learn": if (!isLearnUnavailable()) toggleLearnMode(); break;
       case "midi-pickup": setMidiPickup(!getMidiPickup()); break;
+      case "plugin-midi-out": setPluginMidiOut(!getPluginMidiOut()); break;
       case "synth-panic": stopDrums(); allNotesOff(); break;
       // drum machine
       case "drum-play":

@@ -70,10 +70,19 @@ target_link_libraries(SY1 PRIVATE SY1Resources quickjs
 
 # Host simulation test (not part of the plugin): cmake -DSY1_TESTS=ON
 if(SY1_TESTS)
-  juce_add_console_app(SY1HostTest PRODUCT_NAME "SY1HostTest" NEEDS_WEB_BROWSER TRUE)
-  target_sources(SY1HostTest PRIVATE tests/host_test.cpp Source/PluginProcessor.cpp Source/PluginEditor.cpp)
+  option(SY1_TESTS_HEADLESS "Build processor tests without a WebView (Linux CI)" OFF)
+  if(SY1_TESTS_HEADLESS)
+    juce_add_console_app(SY1HostTest PRODUCT_NAME "SY1HostTest" NEEDS_WEB_BROWSER FALSE)
+    target_sources(SY1HostTest PRIVATE tests/host_test.cpp Source/PluginProcessor.cpp)
+    target_compile_definitions(SY1HostTest PRIVATE SY1_HEADLESS_TEST=1 JUCE_WEB_BROWSER=0)
+  else()
+    juce_add_console_app(SY1HostTest PRODUCT_NAME "SY1HostTest" NEEDS_WEB_BROWSER TRUE NEEDS_WEBVIEW2 TRUE)
+    target_sources(SY1HostTest PRIVATE tests/host_test.cpp Source/PluginProcessor.cpp Source/PluginEditor.cpp)
+    target_compile_definitions(SY1HostTest PRIVATE JUCE_WEB_BROWSER=1
+      $<$<PLATFORM_ID:Windows>:JUCE_USE_WIN_WEBVIEW2_WITH_STATIC_LINKING=1>)
+  endif()
   target_include_directories(SY1HostTest PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../native ${CMAKE_CURRENT_SOURCE_DIR}/Source)
-  target_compile_definitions(SY1HostTest PRIVATE JUCE_WEB_BROWSER=1 JUCE_USE_CURL=0 JucePlugin_Name="SY-1"
-    JucePlugin_IsSynth=1 JucePlugin_WantsMidiInput=1 JucePlugin_ProducesMidiOutput=0 JucePlugin_IsMidiEffect=0)
+  target_compile_definitions(SY1HostTest PRIVATE JUCE_USE_CURL=0 JucePlugin_Name="SY-1"
+    JucePlugin_IsSynth=1 JucePlugin_WantsMidiInput=1 JucePlugin_ProducesMidiOutput=1 JucePlugin_IsMidiEffect=0)
   target_link_libraries(SY1HostTest PRIVATE SY1Resources quickjs juce::juce_audio_utils juce::juce_gui_extra)
 endif()

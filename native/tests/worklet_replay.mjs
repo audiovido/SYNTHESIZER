@@ -47,3 +47,4 @@ for (const sc of scenes) {
   if (max !== 0 || peak === 0) ok = false;
 }
 console.log(ok ? "all bit-identical" : "MISMATCH");
+if (!ok) process.exitCode = 1;

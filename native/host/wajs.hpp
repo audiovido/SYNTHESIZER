@@ -9,6 +9,8 @@
 // output are freed by sweep().
 #pragma once
 #include <cstdlib>
+#include <array>
+#include <limits>
 #include <cstring>
 #include <memory>
 #include <sstream>
@@ -95,6 +97,8 @@ class WaJs {
    *  takes them after each block (audio thread only, no allocation while playing). */
   struct MidiOut { uint8_t b0, b1, b2; double t; };
   std::vector<MidiOut> midiOut = [] { std::vector<MidiOut> v; v.reserve(1024); return v; }();
+  // Hardware feedback to the host; fixed-size, consumed on the audio thread.
+  std::array<double, 16> macroOut = [] { std::array<double, 16> a; a.fill(std::numeric_limits<double>::quiet_NaN()); return a; }();
 
   void collectGarbage() { JS_UpdateStackTop(rt_); JS_RunGC(rt_); }
 
@@ -444,6 +448,14 @@ class WaJs {
     return JS_UNDEFINED;
   }
 
+  static JSValue fnMacroOut(JSContext* c, JSValueConst, int argc, JSValueConst* argv) {
+    int32_t slot = -1;
+    double value = 0;
+    if (argc < 2 || JS_ToInt32(c, &slot, argv[0]) || JS_ToFloat64(c, &value, argv[1])
+        || slot < 0 || slot >= 16 || !std::isfinite(value)) return JS_UNDEFINED;
+    self(c)->macroOut[static_cast<size_t>(slot)] = std::clamp(value, 0.0, 1.0);
+    return JS_UNDEFINED;
+  }
   void installApi() {
     JSValue global = JS_GetGlobalObject(ctx_);
     JSValue wa = JS_NewObject(ctx_);
@@ -468,6 +480,7 @@ class WaJs {
     fn("wave", fnWave, 3);
     fn("host", fnHost, 0);
     fn("midiOut", fnMidiOut, 4);
+    fn("macroOut", fnMacroOut, 2);
     JS_SetPropertyStr(ctx_, wa, "sampleRate", JS_NewFloat64(ctx_, g.ctx.sampleRate));
     JS_SetPropertyStr(ctx_, global, "__wa", wa);
     JSValue console = JS_NewObject(ctx_);

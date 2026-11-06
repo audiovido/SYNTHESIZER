@@ -6,7 +6,7 @@
 // at every 128-frame boundary, exactly like the plugin runs them.
 import { execFileSync, spawnSync } from "node:child_process";
 import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
-import pw from "/opt/node-tools/node_modules/playwright/index.js";
+import pw from "playwright";
 
 const tmp = "/tmp/engine_parity";
 mkdirSync(tmp, { recursive: true });

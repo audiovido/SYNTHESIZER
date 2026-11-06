@@ -378,6 +378,97 @@ int main() {
     check(pad == 1, "a pad tapped in the window goes out as MIDI");
   }
 
+  std::printf("12. Relative encoders, pickup by default, CC + macro coexist, project state\n");
+  {
+    Run r("sy1");
+    auto js = [&](const char* e) { return r.p.engine().js()->evalString(e); };
+    r.render(2048, 512);
+    r.p.engine().post("mapCcToParam", "[74,\"cutoff\"]");
+    r.p.engine().post("mapCcToParam", "[128,\"cutoff\"]");
+    r.p.engine().post("setSynthParam", "[\"cutoff\",1000]");
+    r.render(1024, 512, {{r.pos + 10, juce::MidiMessage::controllerEvent(1, 74, 0)}});
+    check(js("String(SY1E.getSynthPatch().cutoff)") == "1000", "default pickup prevents a jump");
+    const auto map = js("localStorage.getItem('musicher_synth_midi_map')");
+    check(map.find("\"74\":\"cutoff\"") != std::string::npos && map.find("\"128\":\"cutoff\"") != std::string::npos,
+          "hardware CC and DAW macro coexist on the same knob");
+    for (const auto mode : {"twos-complement", "signed-bit", "offset-binary"}) {
+      r.p.engine().post("setMidiMode", std::string("[\"") + mode + "\"]");
+      r.p.engine().post("setSynthParam", "[\"cutoff\",1000]");
+      r.render(1024, 512);
+      const int up = std::string(mode) == "offset-binary" ? 65 : 1;
+      const int down = std::string(mode) == "twos-complement" ? 127 : (std::string(mode) == "signed-bit" ? 65 : 63);
+      r.render(1024, 512, {{r.pos + 10, juce::MidiMessage::controllerEvent(1, 74, up)}});
+      const double higher = std::stod(js("String(SY1E.getSynthPatch().cutoff)"));
+      r.render(1024, 512, {{r.pos + 10, juce::MidiMessage::controllerEvent(1, 74, down)}});
+      const double lower = std::stod(js("String(SY1E.getSynthPatch().cutoff)"));
+      check(higher > 1000 && std::fabs(lower - 1000) < 1, "relative encoder moves up and down from current value");
+    }
+    r.p.setMacroFromUi(0, 0.37f);
+    r.p.getParameters()[5]->setValueNotifyingHost(0.71f);
+    r.render(1024, 512);
+    juce::MemoryBlock state;
+    std::thread saver([&] { r.p.getStateInformation(state); });
+    r.render(8192, 512);
+    saver.join();
+    Run other("sy1");
+    other.p.setStateInformation(state.getData(), static_cast<int>(state.getSize()));
+    other.render(2048, 512);
+    check(std::fabs(other.p.getParameters()[0]->getValue() - 0.37f) < 1e-6f
+          && std::fabs(other.p.getParameters()[5]->getValue() - 0.71f) < 1e-6f,
+          "all macro values restore with the project");
+    check(other.p.engine().js()->evalString("localStorage.getItem('sy1_midi_cc_mode')") == "offset-binary", "relative encoder mode is saved");
+    other.p.engine().post("removeParamMapping", "[\"cutoff\"]");
+    other.render(1024, 512);
+    check(r.p.engine().js()->evalString("localStorage.getItem('musicher_synth_midi_map')") == map, "instances keep independent mapping tables");
+  }
+
+  std::printf("13. Host notification and gestures; UI edits are not echoed into the engine\n");
+  {
+    struct Listener : juce::AudioProcessorParameter::Listener {
+      int values = 0, begins = 0, ends = 0;
+      void parameterValueChanged(int, float) override { values++; }
+      void parameterGestureChanged(int, bool begin) override { if (begin) begins++; else ends++; }
+    } listener;
+    Run r("sy1");
+    r.render(2048, 512);
+    auto* macro = r.p.getParameters()[2];
+    macro->addListener(&listener);
+    r.p.macroGesture(2, true);
+    r.p.setMacroFromUi(2, 0.25f);
+    r.p.setMacroFromUi(2, 0.75f);
+    r.p.macroGesture(2, false);
+    check(listener.values == 2 && listener.begins == 1 && listener.ends == 1, "one balanced host gesture surrounds the drag");
+    r.render(2048, 512);
+    auto calls = r.p.engine().takeOutgoing();
+    int echoes = 0;
+    for (const auto& call : calls) if (call.first == "hostMacro") echoes++;
+    check(echoes == 0, "UI macro changes do not echo as DAW playback");
+    macro->setValueNotifyingHost(0.5f);
+    r.render(2048, 512);
+    calls = r.p.engine().takeOutgoing();
+    int playback = 0;
+    for (const auto& call : calls) if (call.first == "hostMacro") playback++;
+    check(playback == 1, "a subsequent host automation edit reaches the engine once");
+    macro->removeListener(&listener);
+  }
+
+  std::printf("14. MIDI output switch does not change audio or echo input\n");
+  {
+    Run r("kerman");
+    r.render(24000, 512);
+    r.p.engine().post("setPluginMidiOut", "[false]");
+    r.p.engine().post("playDrum", "[\"kick\",0.8]");
+    const double peak = r.render(8192, 512);
+    int ons = 0;
+    for (const auto& event : r.out) if (event.second.isNoteOn()) ons++;
+    check(ons == 0 && peak > 0.01, "output OFF suppresses MIDI notes while the drum still sounds");
+    r.p.engine().post("setPluginMidiOut", "[true]");
+    r.p.engine().post("playDrum", "[\"kick\",0.8]");
+    r.render(8192, 512);
+    for (const auto& event : r.out) if (event.second.isNoteOn()) ons++;
+    check(ons == 1, "output ON resumes MIDI");
+  }
+
   std::printf(failures ? "\n%d FAILED\n" : "\nall passed\n", failures);
   return failures ? 1 : 0;
 }

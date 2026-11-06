@@ -12,6 +12,13 @@ import {
 } from "../engine/midi";
 import { escapeHtml, SYNTH_PARAMS, synthDenorm, synthNorm } from "../engine/params";
 import { getSynthPatch, prepareAudio, setSynthParam } from "../engine/synth";
+import { getParamMacro, mappingLabel } from "../engine/cc-map";
+
+function gesture(key: string, phase: "begin" | "end"): void {
+  const i = getParamMacro(key);
+  const plugin = (globalThis as any).__SY1_PLUGIN__;
+  if (i !== undefined && plugin) plugin.send("macroGesture", [i, phase]);
+}
 
 function buildKnobScaleSvg(bipolar: boolean): string {
   let lines = "";
@@ -60,7 +67,7 @@ export function renderSynthKnob(key: string, label: string): string {
   const mapped = isParamMapped(key);
   const cc = getParamMappedCc(key);
   const learning = isLearnMode() && getLearnTargetParam() === key;
-  const titleAttr = mapped ? ` title="Mapped to CC${cc} (right-click, or long-press in LEARN, to unmap)"` : "";
+  const titleAttr = mapped ? ` title="Mapped to ${mappingLabel(key)} (right-click, or long-press in LEARN, to unmap)"` : "";
   const isBipolar = typeof def?.min === "number" && typeof def?.max === "number" && def.min < 0 && def.max > 0;
   const scaleSvg = isBipolar ? BIPOLAR_SCALE_SVG : UNIPOLAR_SCALE_SVG;
 
@@ -117,7 +124,7 @@ export function updateMidiLearnDOM(): void {
     el.classList.toggle("is-mapped", mapped);
     el.classList.toggle("is-learning", learningKey === key);
     if (mapped) {
-      el.setAttribute("title", `Mapped to CC${cc} (right-click, or long-press in LEARN, to unmap)`);
+      el.setAttribute("title", `Mapped to ${mappingLabel(key)} (right-click, or long-press in LEARN, to unmap)`);
     } else {
       el.removeAttribute("title");
     }
@@ -202,6 +209,7 @@ export function initKnobInteractions(): void {
       return;
     }
 
+    gesture(key, "begin");
     synthDrag = {
       key,
       startY: e.clientY,
@@ -239,11 +247,13 @@ export function initKnobInteractions(): void {
     }
     if (!synthDrag || (e && e.pointerId !== synthDrag.id)) return;
     synthDrag.el.classList.remove("dragging");
+    gesture(synthDrag.key, "end");
     synthDrag = null;
   };
 
   document.addEventListener("pointerup", endSynthDrag);
   document.addEventListener("pointercancel", endSynthDrag);
+  window.addEventListener("blur", () => endSynthDrag());
 
   document.addEventListener("dblclick", (e) => {
     const knob = (e.target as HTMLElement)?.closest?.(".sk") as HTMLElement | null;

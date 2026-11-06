@@ -58,7 +58,13 @@ export function exportDrumMidi(all: boolean): void {
 document.addEventListener("dragstart", (e) => {
   const btn = (e.target as HTMLElement).closest?.(".drum-export");
   if (!btn || !e.dataTransfer) return;
-  if ((window as any).__SY1_PLUGIN__) { e.preventDefault(); return; }
+  const plugin = (window as any).__SY1_PLUGIN__;
+  if (plugin) {
+    e.preventDefault();
+    const { blob, name } = drumMidiFile(e.shiftKey);
+    blob.arrayBuffer().then((b) => plugin.send("dragFile", [name + ".mid", toBase64(new Uint8Array(b))]));
+    return;
+  }
   const { blob, name } = drumMidiFile(e.shiftKey);
   const url = URL.createObjectURL(blob);
   e.dataTransfer.setData("DownloadURL", `audio/midi:${name}.mid:${url}`);

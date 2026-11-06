@@ -10,7 +10,7 @@ import { setHostTempo, setSync, setTempo } from "./tempo";
 import { setMasterVolume } from "./bus";
 import { runUnmirrored } from "./mirror";
 import * as ccmap from "./cc-map";
-import { beginMidiIn, endMidiIn } from "./daw";
+import { beginMidiIn, endMidiIn, setPluginMidiOut } from "./daw";
 
 export const ENGINE_CALLS: Record<string, (...a: any[]) => unknown> = {
   setSynthParam: synth.setSynthParam,
@@ -50,6 +50,10 @@ export const ENGINE_CALLS: Record<string, (...a: any[]) => unknown> = {
   removeParamMapping: ccmap.removeParamMapping,
   setMidiChannel: ccmap.setMidiChannel,
   setMidiPickup: ccmap.setMidiPickup,
+  setMidiMode: ccmap.setMidiMode,
+  setPluginMidiOut,
+  midiPitchBend,
+  midiPanic,
   hostCC: ccmap.hostCC,
   hostMacro: ccmap.hostMacro,
   midiNoteOn,
@@ -64,11 +68,20 @@ function uiStore(key: string, value: string): void {
 }
 
 /** A note from the DAW's MIDI (plugin): played like any note, but never echoed to the MIDI out. */
-function midiNoteOn(midi: number, vel: number): void {
+function acceptsChannel(ch: number): boolean { return !ch || !ccmap.getMidiChannel() || ch === ccmap.getMidiChannel(); }
+function midiPitchBend(value: number, ch = 0): void {
+  if (acceptsChannel(ch)) synth.setPitchBend(value);
+}
+function midiPanic(ch = 0): void {
+  if (acceptsChannel(ch)) synth.allNotesOff();
+}
+function midiNoteOn(midi: number, vel: number, ch = 0): void {
+  if (!acceptsChannel(ch)) return;
   beginMidiIn();
   try { synth.noteOn(midi, vel); } finally { endMidiIn(); }
 }
-function midiNoteOff(midi: number): void {
+function midiNoteOff(midi: number, ch = 0): void {
+  if (!acceptsChannel(ch)) return;
   beginMidiIn();
   try { synth.noteOff(midi); } finally { endMidiIn(); }
 }

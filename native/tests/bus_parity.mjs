@@ -2,7 +2,7 @@
 // rendered by Chromium. Run from the repo root:  node native/tests/bus_parity.mjs
 import { execFileSync } from "node:child_process";
 import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
-import pw from "/opt/node-tools/node_modules/playwright/index.js";
+import pw from "playwright";
 
 const tmp = "/tmp/bus_parity";
 mkdirSync(tmp, { recursive: true });
