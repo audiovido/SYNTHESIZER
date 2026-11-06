@@ -6,7 +6,6 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
-  actions: read
 jobs:
   native-install:
     strategy:
@@ -16,19 +15,17 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/download-artifact@v4
-        with:
-          name: SY-1-mac
-          run-id: 42221820050
-          github-token: ${{ github.token }}
-          path: payload
-      - name: Exercise real macOS installation with the validated 5ff2184 payload
+      - name: Download immutable fallback payload
+        run: |
+          mkdir payload
+          curl --fail --location --retry 3 --output payload/SY-1-mac.zip https://raw.githubusercontent.com/audiovido/SYNTHESIZER/8ff78706bd19515cf0a35be82088b396ba5e3f3f/SY-1-mac.zip
+      - name: Exercise real macOS installation with the pinned fallback payload
         shell: bash
         run: |
           python3 - <<'PYTEST'
           import hashlib, os, pathlib, shutil, subprocess, tempfile
           payload = pathlib.Path('payload/SY-1-mac.zip').resolve()
-          digest = '252de4213d1039d8814a8e9c9b5325b5dfdaa2ee31317d2005759932bba286d8'
+          digest = 'b03afb0bcc3beea649eef67fa21084dfb869ca5ddc00dd098812f59fa87603cc'
           assert hashlib.sha256(payload.read_bytes()).hexdigest() == digest
           root = pathlib.Path(tempfile.mkdtemp(prefix='SY1 native installer '))
           contents = root / 'App with spaces.app/Contents'
@@ -36,7 +33,6 @@ jobs:
           (contents / 'Resources').mkdir()
           shutil.copyfile(payload, contents / 'Resources/SY-1-mac.zip')
           source = pathlib.Path('plugin/installer/install-mac.sh').read_text()
-          source = source.replace('8c1f5c2', '5ff2184').replace('b03afb0bcc3beea649eef67fa21084dfb869ca5ddc00dd098812f59fa87603cc', digest)
           # Only the modal dialog is suppressed. lipo, ditto, codesign, xattr,
           # PlistBuddy, permissions, backup, replacement and diff are real.
           source = source.replace('/usr/bin/osascript', '/usr/bin/true')
