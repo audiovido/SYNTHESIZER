@@ -3,8 +3,10 @@
 name: plugin
 
 on:
-  push:
+  pull_request:
     branches: [main]
+  push:
+    branches: [main, fix/sy1-live-midi-installer]
     paths: ["src/**", "native/**", "plugin/**", "index.html", "package.json", "vite.config.*", ".github/workflows/plugin.yml"]
   workflow_dispatch:
 
@@ -12,7 +14,28 @@ permissions:
   contents: write
 
 jobs:
+  materialize:
+    if: github.ref == 'refs/heads/fix/sy1-live-midi-installer' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/sy1-live-midi-installer
+      - name: Materialize reviewed repair on feature branch only
+        shell: bash
+        run: |
+          if [ ! -f plugin/repair.patch ]; then exit 0; fi
+          echo '0283c842a339e1228414864d66979e90d5a772dc9608104db3b073e1e100d8a4  plugin/repair.patch' | sha256sum -c -
+          git apply --check plugin/repair.patch
+          git apply plugin/repair.patch
+          git rm plugin/repair.patch
+          git add native plugin src scripts/midi-audit.mjs tsconfig.json
+          git -c user.name=audiovido -c user.email=294141510+audiovido@users.noreply.github.com commit -m "Repair MIDI mapping, automation, safe state restore and Mac installer"
+          git push origin HEAD:fix/sy1-live-midi-installer
+
   build:
+    needs: materialize
+    if: always() && (needs.materialize.result == 'success' || needs.materialize.result == 'skipped')
     strategy:
       fail-fast: false
       matrix:
@@ -24,6 +47,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref || github.ref_name }}
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -40,7 +65,7 @@ jobs:
             macOS) A=$([ "$(uname -m)" = arm64 ] && echo arm64 || echo x64); P="@rolldown/binding-darwin-$A@$V lightningcss-darwin-$A@$C" ;;
             Windows) P="@rolldown/binding-win32-x64-msvc@$V lightningcss-win32-x64-msvc@$C" ;;
           esac
-          npm install --no-save $P
+          npm install --no-save --package-lock=false $P
           git checkout -- package.json package-lock.json 2>/dev/null || true
       - name: Bundle engine and UI
         shell: bash
@@ -54,13 +79,16 @@ jobs:
         run: nuget install Microsoft.Web.WebView2 -Version 1.0.1901.177 -OutputDirectory "$env:RUNNER_TEMP\wv2"
       - name: Configure (Windows)
         if: runner.os == 'Windows'
-        run: cmake -S plugin -B plugin/build -A x64 "-DJUCE_WEBVIEW2_PACKAGE_LOCATION=$env:RUNNER_TEMP\wv2"
+        run: cmake -S plugin -B plugin/build -A x64 -DSY1_TESTS=ON "-DJUCE_WEBVIEW2_PACKAGE_LOCATION=$env:RUNNER_TEMP\wv2"
       - name: Build
         run: cmake --build plugin/build --config Release --parallel 4
 
       - name: Host simulation test (DAW clock, MIDI timing, loops, state)
         if: runner.os == 'macOS'
         run: plugin/build/SY1HostTest_artefacts/Release/SY1HostTest
+      - name: Host simulation test (Windows)
+        if: runner.os == 'Windows'
+        run: plugin/build/SY1HostTest_artefacts/Release/SY1HostTest.exe
       - name: Sign (ad-hoc)
         if: runner.os == 'macOS'
         run: |
@@ -68,27 +96,30 @@ jobs:
           for b in "$A/AU/SY-1.component" "$A/VST3/SY-1.vst3" "$A/Standalone/SY-1.app"; do codesign --force --deep -s - "$b"; done
       - name: Validate AU (auval)
         if: runner.os == 'macOS'
-        continue-on-error: true
         run: |
           A=plugin/build/SY1_artefacts/Release
           mkdir -p ~/Library/Audio/Plug-Ins/Components
           cp -R "$A/AU/SY-1.component" ~/Library/Audio/Plug-Ins/Components/
           killall -9 AudioComponentRegistrar 2>/dev/null || true
           sleep 3
-          auval -v aumu Sy1x Avdo
+          set -o pipefail
+          mkdir -p validation-logs
+          auval -strict -stress 20 -v aumu Sy1x Avdo 2>&1 | tee validation-logs/auval.txt
       - name: pluginval (industry plugin test, macOS; 3 rounds each)
         if: runner.os == 'macOS'
         run: |
-          curl -sL -o pv.zip https://github.com/Tracktion/pluginval/releases/latest/download/pluginval_macOS.zip
+          curl --fail -sL -o pv.zip https://github.com/Tracktion/pluginval/releases/download/v1.0.4/pluginval_macOS.zip
+          echo '3c4c533bda0c5059eea3ddaea752d757ee2025041f0f47e6bcb0e87f6082b29f  pv.zip' | shasum -a 256 -c -
           unzip -q pv.zip
           A=plugin/build/SY1_artefacts/Release
           fail=0
           for round in 1 2 3; do
             for p in "$A/VST3/SY-1.vst3" ~/Library/Audio/Plug-Ins/Components/SY-1.component; do
-              if ./pluginval.app/Contents/MacOS/pluginval --strictness-level 8 --timeout-ms 300000 --validate "$p" > pv.txt 2>&1; then
+              log="validation-logs/round-$round-$(basename "$p").txt"
+              if python3 plugin/tests/validate.py "$log" ./pluginval.app/Contents/MacOS/pluginval --verbose --strictness-level 8 --timeout-ms 300000 --validate "$p"; then
                 echo "round $round $(basename "$p"): SUCCESS"
               else
-                echo "round $round $(basename "$p"): FAILED"; tail -40 pv.txt; fail=1
+                echo "round $round $(basename "$p"): FAILED"; tail -100 "$log"; fail=1
               fi
             done
           done
@@ -96,6 +127,33 @@ jobs:
             for f in ~/Library/Logs/DiagnosticReports/pluginval*; do [ -f "$f" ] && head -c 20000 "$f"; done
             exit 1
           fi
+      - name: Keep complete validation logs and hang diagnostics
+        if: always() && runner.os == 'macOS'
+        uses: actions/upload-artifact@v4
+        with:
+          name: validation-${{ matrix.name }}-${{ github.sha }}
+          path: validation-logs
+          if-no-files-found: warn
+      - name: pluginval (Windows VST3; strictness 8, 3 rounds)
+        if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          curl --fail -sL -o pv-win.zip https://github.com/Tracktion/pluginval/releases/download/v1.0.4/pluginval_Windows.zip
+          echo 'c08e61ce3b96db41636f8ec7e76f4c7e2c13ebdac7fa1b5a1f52b4f32ec715ab  pv-win.zip' | sha256sum -c -
+          unzip -q pv-win.zip -d pv-win
+          validator=$(find pv-win -name pluginval.exe -print -quit)
+          test -n "$validator"
+          mkdir -p validation-logs
+          for round in 1 2 3; do
+            "$validator" --verbose --strictness-level 8 --timeout-ms 300000 --validate plugin/build/SY1_artefacts/Release/VST3/SY-1.vst3 > "validation-logs/round-$round-vst3.txt" 2>&1 || { cat "validation-logs/round-$round-vst3.txt"; exit 1; }
+          done
+      - name: Keep Windows validation logs
+        if: always() && runner.os == 'Windows'
+        uses: actions/upload-artifact@v4
+        with:
+          name: validation-${{ matrix.name }}-${{ github.sha }}
+          path: validation-logs
+          if-no-files-found: warn
       - name: Collect
         shell: bash
         run: |
@@ -107,15 +165,27 @@ jobs:
       - name: Pack (macOS)
         if: runner.os == 'macOS'
         run: ditto -c -k --keepParent out SY-1-mac.zip && rm -rf out && mkdir out && mv SY-1-mac.zip out/
-      # the latest Mac build also goes to the plugin-builds branch (one commit, replaced each time)
-      - name: Publish to plugin-builds branch (macOS)
-        if: runner.os == 'macOS' && github.ref == 'refs/heads/main'
-        run: |
-          mkdir pb && cp out/SY-1-mac.zip pb/ && cd pb
-          git init -q -b plugin-builds && git add SY-1-mac.zip
-          git -c user.name=ci -c user.email=ci@users.noreply.github.com commit -qm "SY-1 Mac build ${GITHUB_SHA::7}"
-          git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" plugin-builds
       - uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.name }}
           path: out
+
+  publish:
+    needs: build
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: SY-1-mac
+          path: verified
+      - name: Publish only after both platform jobs pass
+        working-directory: verified
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          test -s SY-1-mac.zip
+          git init -q -b plugin-builds
+          git add SY-1-mac.zip
+          git -c user.name=ci -c user.email=ci@users.noreply.github.com commit -qm "SY-1 Mac build ${GITHUB_SHA::7}"
+          git push -f "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" plugin-builds

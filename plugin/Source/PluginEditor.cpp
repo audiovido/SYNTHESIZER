@@ -35,7 +35,10 @@ SY1Editor::SY1Editor(SY1Processor& p) : AudioProcessorEditor(&p), proc_(p) {
   startTimerHz(30);
 }
 
-SY1Editor::~SY1Editor() { stopTimer(); }
+SY1Editor::~SY1Editor() {
+  stopTimer();
+  for (int i = 0; i < 16; i++) proc_.macroGesture(i, false);
+}
 
 std::optional<juce::WebBrowserComponent::Resource> SY1Editor::serve(const juce::String& url) {
   // UI files are stored flat (vite names are unique): serve by file name
@@ -91,6 +94,14 @@ void SY1Editor::build() {
                        const juce::String name = v.getProperty("name", {}).toString();
                        const juce::String args = v.getProperty("args", "[]").toString();
                        if (name == "saveFile") { saveFile(args); return; }
+                       if (name == "dragFile") { saveFile(args, true); return; }
+                       if (name == "macroValue" || name == "macroGesture") {
+                         const auto a = juce::JSON::parse(args);
+                         if (!a.isArray() || a.size() != 2) return;
+                         if (name == "macroValue") proc_.setMacroFromUi(static_cast<int>(a[0]), static_cast<float>(a[1]));
+                         else proc_.macroGesture(static_cast<int>(a[0]), a[1].toString() == "begin");
+                         return;
+                       }
                        if (name.isNotEmpty()) proc_.engine().post(name.toStdString(), args.toStdString());
                      });
   web_ = std::make_unique<juce::WebBrowserComponent>(options);
@@ -101,7 +112,7 @@ void SY1Editor::build() {
 
 /** A file from the window (the drum pattern as MIDI): written to Music/SY-1 and shown in
  *  Finder / Explorer, from where it is dragged into the DAW. args = [fileName, base64]. */
-void SY1Editor::saveFile(const juce::String& argsJson) {
+void SY1Editor::saveFile(const juce::String& argsJson, bool drag) {
   const juce::var a = juce::JSON::parse(argsJson);
   if (!a.isArray() || a.size() < 2) return;
   juce::String fileName = juce::File::createLegalFileName(a[0].toString());
@@ -112,7 +123,12 @@ void SY1Editor::saveFile(const juce::String& argsJson) {
   if (!dir.createDirectory()) return;
   const juce::File f = dir.getNonexistentChildFile(juce::File(dir.getChildFile(fileName)).getFileNameWithoutExtension(),
                                                    juce::File(fileName).getFileExtension(), false);
-  if (f.replaceWithData(bytes.getData(), bytes.getDataSize())) f.revealToUser();
+  if (!f.replaceWithData(bytes.getData(), bytes.getDataSize())) {
+    juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::WarningIcon, "SY-1 MIDI export", "Could not write " + f.getFullPathName());
+    return;
+  }
+  if (drag && juce::DragAndDropContainer::performExternalDragDropOfFiles({f.getFullPathName()}, false, this)) return;
+  f.revealToUser();
 }
 
 void SY1Editor::reloadUi() {

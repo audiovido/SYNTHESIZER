@@ -40,6 +40,7 @@ import { initMachineBrowser } from "./ui/machine-browser";
 import { initDawPanel } from "./ui/daw-panel";
 import { setMirrorSink } from "./engine/mirror";
 import { applyEngineCall } from "./engine/calls";
+import { getParamMacro, paramNorm } from "./engine/cc-map";
 
 function initApp(): void {
   // Inside the AU/VST3 plugin: the plugin's engine makes the sound; this window mirrors
@@ -58,7 +59,16 @@ function initApp(): void {
       if (playing !== hostPlaying) { hostPlaying = playing; applyEngineCall("hostTransport", [playing]); }
     };
     // mirror only what the player does from now on (the start-up calls below run in the plugin's engine already)
-    setTimeout(() => setMirrorSink((name, args) => plugin.send(name, args)), 0);
+    setTimeout(() => setMirrorSink((name, args) => {
+      plugin.send(name, args);
+      // Only a direct player edit is reported. Incoming DAW calls and nested preset
+      // changes are unmirrored, preventing automation feedback and preset jumps.
+      if (name === "setSynthParam") {
+        const key = String(args[0]);
+        const macro = getParamMacro(key);
+        if (macro !== undefined) plugin.send("macroValue", [macro, paramNorm(key, args[1])]);
+      }
+    }), 0);
   }
   // skin and keyboard follow the machine
   onMachineChange((m) => {

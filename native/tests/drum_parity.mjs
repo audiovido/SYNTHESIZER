@@ -2,7 +2,7 @@
 // Chrome vs the same code in QuickJS on native/wa.   node native/tests/drum_parity.mjs
 import { execFileSync } from "node:child_process";
 import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
-import pw from "/opt/node-tools/node_modules/playwright/index.js";
+import pw from "playwright";
 
 const tmp = "/tmp/drum_parity";
 mkdirSync(tmp, { recursive: true });
