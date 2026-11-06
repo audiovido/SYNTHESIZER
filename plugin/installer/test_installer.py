@@ -28,7 +28,8 @@ with tempfile.TemporaryDirectory(prefix='sy1-installer-test-') as tmp:
     mock('osascript', 'cat >/dev/null; echo "$*" >>"$HOME/dialogs"')
     mock('codesign', '[ "${FAIL_INSTALL:-0}" != 1 ] || [[ "$*" != *"/Plug-Ins/"* || "$*" == *".sy1-stage"* ]]')
     mock('xattr', 'exit 0')
-    mock('lipo', 'exit 0')
+    # Match Apple's input-first syntax: -verify_arch consumes every later token.
+    mock('lipo', '[ "$#" = 3 ] && [ -f "$1" ] && [ "$2" = -verify_arch ] && [[ "$3" = x86_64 || "$3" = arm64 ]]')
     mock('PlistBuddy', 'if [[ "$*" == *CFBundleIdentifier* ]]; then echo com.audiovido.sy1; else echo SY-1; fi')
     mock('ditto', 'if [ "$1" = -x ]; then /usr/bin/unzip -q "$3" -d "$4"; else /bin/cp -a "$1" "$2"; fi')
     contents = root / 'app/Contents'
