@@ -19,7 +19,7 @@ shutil.copyfile(payload, contents / 'Resources' / 'SY-1-mac.zip')
 (contents / 'Info.plist').write_bytes(plistlib.dumps({
     'CFBundleExecutable': 'install', 'CFBundleIdentifier': 'com.audiovido.sy1.installer',
     'CFBundleName': 'SY-1 Install 8c1f5c2', 'CFBundlePackageType': 'APPL',
-    'CFBundleVersion': '1', 'CFBundleShortVersionString': '8c1f5c2',
+    'CFBundleVersion': '2', 'CFBundleShortVersionString': '0.1.0',
     'LSMinimumSystemVersion': '11.0', 'LSUIElement': True,
 }))
 with zipfile.ZipFile(output, 'w', zipfile.ZIP_DEFLATED) as z:
