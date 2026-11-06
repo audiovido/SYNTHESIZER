@@ -1,0 +1,1446 @@
+diff --git a/native/host/wajs.hpp b/native/host/wajs.hpp
+index 24f6806..27974e8 100644
+--- a/native/host/wajs.hpp
++++ b/native/host/wajs.hpp
+@@ -9,6 +9,8 @@
+ // output are freed by sweep().
+ #pragma once
+ #include <cstdlib>
++#include <array>
++#include <limits>
+ #include <cstring>
+ #include <memory>
+ #include <sstream>
+@@ -95,6 +97,8 @@ class WaJs {
+    *  takes them after each block (audio thread only, no allocation while playing). */
+   struct MidiOut { uint8_t b0, b1, b2; double t; };
+   std::vector<MidiOut> midiOut = [] { std::vector<MidiOut> v; v.reserve(1024); return v; }();
++  // Hardware feedback to the host; fixed-size, consumed on the audio thread.
++  std::array<double, 16> macroOut = [] { std::array<double, 16> a; a.fill(std::numeric_limits<double>::quiet_NaN()); return a; }();
+ 
+   void collectGarbage() { JS_UpdateStackTop(rt_); JS_RunGC(rt_); }
+ 
+@@ -444,6 +448,14 @@ class WaJs {
+     return JS_UNDEFINED;
+   }
+ 
++  static JSValue fnMacroOut(JSContext* c, JSValueConst, int argc, JSValueConst* argv) {
++    int32_t slot = -1;
++    double value = 0;
++    if (argc < 2 || JS_ToInt32(c, &slot, argv[0]) || JS_ToFloat64(c, &value, argv[1])
++        || slot < 0 || slot >= 16 || !std::isfinite(value)) return JS_UNDEFINED;
++    self(c)->macroOut[static_cast<size_t>(slot)] = std::clamp(value, 0.0, 1.0);
++    return JS_UNDEFINED;
++  }
+   void installApi() {
+     JSValue global = JS_GetGlobalObject(ctx_);
+     JSValue wa = JS_NewObject(ctx_);
+@@ -468,6 +480,7 @@ class WaJs {
+     fn("wave", fnWave, 3);
+     fn("host", fnHost, 0);
+     fn("midiOut", fnMidiOut, 4);
++    fn("macroOut", fnMacroOut, 2);
+     JS_SetPropertyStr(ctx_, wa, "sampleRate", JS_NewFloat64(ctx_, g.ctx.sampleRate));
+     JS_SetPropertyStr(ctx_, global, "__wa", wa);
+     JSValue console = JS_NewObject(ctx_);
+diff --git a/native/tests/bus_parity.mjs b/native/tests/bus_parity.mjs
+index ea15cf5..13d1ac5 100644
+--- a/native/tests/bus_parity.mjs
++++ b/native/tests/bus_parity.mjs
+@@ -2,7 +2,7 @@
+ // rendered by Chromium. Run from the repo root:  node native/tests/bus_parity.mjs
+ import { execFileSync } from "node:child_process";
+ import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
+-import pw from "/opt/node-tools/node_modules/playwright/index.js";
++import pw from "playwright";
+ 
+ const tmp = "/tmp/bus_parity";
+ mkdirSync(tmp, { recursive: true });
+diff --git a/native/tests/drum_parity.mjs b/native/tests/drum_parity.mjs
+index c9c976c..5194b0f 100644
+--- a/native/tests/drum_parity.mjs
++++ b/native/tests/drum_parity.mjs
+@@ -2,7 +2,7 @@
+ // Chrome vs the same code in QuickJS on native/wa.   node native/tests/drum_parity.mjs
+ import { execFileSync } from "node:child_process";
+ import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
+-import pw from "/opt/node-tools/node_modules/playwright/index.js";
++import pw from "playwright";
+ 
+ const tmp = "/tmp/drum_parity";
+ mkdirSync(tmp, { recursive: true });
+diff --git a/native/tests/engine_parity.mjs b/native/tests/engine_parity.mjs
+index 94a2fef..9bce267 100644
+--- a/native/tests/engine_parity.mjs
++++ b/native/tests/engine_parity.mjs
+@@ -6,7 +6,7 @@
+ // at every 128-frame boundary, exactly like the plugin runs them.
+ import { execFileSync, spawnSync } from "node:child_process";
+ import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
+-import pw from "/opt/node-tools/node_modules/playwright/index.js";
++import pw from "playwright";
+ 
+ const tmp = "/tmp/engine_parity";
+ mkdirSync(tmp, { recursive: true });
+diff --git a/native/tests/sound_regression.mjs b/native/tests/sound_regression.mjs
+new file mode 100644
+index 0000000..2406829
+--- /dev/null
++++ b/native/tests/sound_regression.mjs
+@@ -0,0 +1,37 @@
++// Compare the complete native audio output against an unchanged checkout.
++// Usage: node native/tests/sound_regression.mjs /absolute/path/to/baseline
++import { execFileSync } from 'node:child_process';
++import { readFileSync, writeFileSync, mkdtempSync } from 'node:fs';
++import { tmpdir } from 'node:os';
++import path from 'node:path';
++const base = path.resolve(process.argv[2]);
++const current = process.cwd();
++const temp = mkdtempSync(path.join(tmpdir(), 'sy1-sound-regression-'));
++const objects = [];
++for (const f of ['quickjs.c', 'libregexp.c', 'libunicode.c', 'dtoa.c']) {
++  const out = path.join(temp, f + '.o');
++  execFileSync('gcc', ['-O2', '-c', `native/third_party/quickjs/${f}`, '-o', out]);
++  objects.push(out);
++}
++for (const [i, cwd] of [base, current].entries()) {
++  execFileSync('bun', ['native/js/build.ts'], { cwd, stdio: 'pipe' });
++  execFileSync('g++', ['-O2', '-ffp-contract=off', '-std=c++17', '-Inative/third_party/quickjs',
++    'native/tests/engine_render.cpp', ...objects, '-lm', '-o', `${temp}/render${i}`], { cwd });
++}
++const machines = ['sy1','yazd','tabriz','baku','konya','kashan','shiraz','nishapur','merv','isfahan','bam','kerman','bushehr','rasht','hormoz'];
++for (const id of machines) {
++  const drum = ['kerman','bushehr','rasht','hormoz'].includes(id);
++  const scene = `{
++    let seed = 123456; Math.random = () => { seed ^= seed << 13; seed ^= seed >>> 17; seed ^= seed << 5; return (seed >>> 0) / 4294967296; };
++    S.setMachine(${JSON.stringify(id)}); S.prepareAudio();
++    at(0.128, () => ${drum ? 'S.drums.startDrums()' : 'S.noteOn(60, 0.8)'});
++    at(0.768, () => S.applySynthPreset(S.getMachine().presets[1].id));
++    at(1.28, () => ${drum ? 'S.drums.stopDrums()' : 'S.noteOff(60)'});
++  }`;
++  writeFileSync(`${temp}/scene.js`, scene);
++  for (const [i, cwd] of [base, current].entries()) execFileSync(`${temp}/render${i}`, ['48000', '2', `${temp}/scene.js`, `${temp}/${i}.f32`], { cwd, stdio: 'pipe' });
++  const a = readFileSync(`${temp}/0.f32`), b = readFileSync(`${temp}/1.f32`);
++  if (!a.equals(b)) throw new Error(`${id}: audio changed from baseline`);
++  console.log(`${id}: ${a.length / 8} stereo frames, bit-identical to baseline`);
++}
++console.log('All 15 machines: audio unchanged from baseline');
+diff --git a/native/tests/wa_scene.mjs b/native/tests/wa_scene.mjs
+index b10ed65..47a39d3 100644
+--- a/native/tests/wa_scene.mjs
++++ b/native/tests/wa_scene.mjs
+@@ -6,7 +6,7 @@ import { execFileSync } from "node:child_process";
+ import { readFileSync, existsSync } from "node:fs";
+ import path from "node:path";
+ import { fileURLToPath } from "node:url";
+-import pw from "/opt/node-tools/node_modules/playwright/index.js";
++import pw from "playwright";
+ 
+ const here = path.dirname(fileURLToPath(import.meta.url));
+ const bin = "/tmp/wa_scene";
+diff --git a/native/tests/worklet_replay.mjs b/native/tests/worklet_replay.mjs
+index b2d9866..ed4dcb7 100644
+--- a/native/tests/worklet_replay.mjs
++++ b/native/tests/worklet_replay.mjs
+@@ -47,3 +47,4 @@ for (const sc of scenes) {
+   if (max !== 0 || peak === 0) ok = false;
+ }
+ console.log(ok ? "all bit-identical" : "MISMATCH");
++if (!ok) process.exitCode = 1;
+diff --git a/plugin/CMakeLists.txt b/plugin/CMakeLists.txt
+index 99241d2..0f9979c 100644
+--- a/plugin/CMakeLists.txt
++++ b/plugin/CMakeLists.txt
+@@ -70,10 +70,19 @@ target_link_libraries(SY1 PRIVATE SY1Resources quickjs
+ 
+ # Host simulation test (not part of the plugin): cmake -DSY1_TESTS=ON
+ if(SY1_TESTS)
+-  juce_add_console_app(SY1HostTest PRODUCT_NAME "SY1HostTest" NEEDS_WEB_BROWSER TRUE)
+-  target_sources(SY1HostTest PRIVATE tests/host_test.cpp Source/PluginProcessor.cpp Source/PluginEditor.cpp)
++  option(SY1_TESTS_HEADLESS "Build processor tests without a WebView (Linux CI)" OFF)
++  if(SY1_TESTS_HEADLESS)
++    juce_add_console_app(SY1HostTest PRODUCT_NAME "SY1HostTest" NEEDS_WEB_BROWSER FALSE)
++    target_sources(SY1HostTest PRIVATE tests/host_test.cpp Source/PluginProcessor.cpp)
++    target_compile_definitions(SY1HostTest PRIVATE SY1_HEADLESS_TEST=1 JUCE_WEB_BROWSER=0)
++  else()
++    juce_add_console_app(SY1HostTest PRODUCT_NAME "SY1HostTest" NEEDS_WEB_BROWSER TRUE NEEDS_WEBVIEW2 TRUE)
++    target_sources(SY1HostTest PRIVATE tests/host_test.cpp Source/PluginProcessor.cpp Source/PluginEditor.cpp)
++    target_compile_definitions(SY1HostTest PRIVATE JUCE_WEB_BROWSER=1
++      $<$<PLATFORM_ID:Windows>:JUCE_USE_WIN_WEBVIEW2_WITH_STATIC_LINKING=1>)
++  endif()
+   target_include_directories(SY1HostTest PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../native ${CMAKE_CURRENT_SOURCE_DIR}/Source)
+-  target_compile_definitions(SY1HostTest PRIVATE JUCE_WEB_BROWSER=1 JUCE_USE_CURL=0 JucePlugin_Name="SY-1"
+-    JucePlugin_IsSynth=1 JucePlugin_WantsMidiInput=1 JucePlugin_ProducesMidiOutput=0 JucePlugin_IsMidiEffect=0)
++  target_compile_definitions(SY1HostTest PRIVATE JUCE_USE_CURL=0 JucePlugin_Name="SY-1"
++    JucePlugin_IsSynth=1 JucePlugin_WantsMidiInput=1 JucePlugin_ProducesMidiOutput=1 JucePlugin_IsMidiEffect=0)
+   target_link_libraries(SY1HostTest PRIVATE SY1Resources quickjs juce::juce_audio_utils juce::juce_gui_extra)
+ endif()
+diff --git a/plugin/Source/PluginEditor.cpp b/plugin/Source/PluginEditor.cpp
+index 40340c7..753a9fe 100644
+--- a/plugin/Source/PluginEditor.cpp
++++ b/plugin/Source/PluginEditor.cpp
+@@ -35,7 +35,10 @@ SY1Editor::SY1Editor(SY1Processor& p) : AudioProcessorEditor(&p), proc_(p) {
+   startTimerHz(30);
+ }
+ 
+-SY1Editor::~SY1Editor() { stopTimer(); }
++SY1Editor::~SY1Editor() {
++  stopTimer();
++  for (int i = 0; i < 16; i++) proc_.macroGesture(i, false);
++}
+ 
+ std::optional<juce::WebBrowserComponent::Resource> SY1Editor::serve(const juce::String& url) {
+   // UI files are stored flat (vite names are unique): serve by file name
+@@ -91,6 +94,14 @@ void SY1Editor::build() {
+                        const juce::String name = v.getProperty("name", {}).toString();
+                        const juce::String args = v.getProperty("args", "[]").toString();
+                        if (name == "saveFile") { saveFile(args); return; }
++                       if (name == "dragFile") { saveFile(args, true); return; }
++                       if (name == "macroValue" || name == "macroGesture") {
++                         const auto a = juce::JSON::parse(args);
++                         if (!a.isArray() || a.size() != 2) return;
++                         if (name == "macroValue") proc_.setMacroFromUi(static_cast<int>(a[0]), static_cast<float>(a[1]));
++                         else proc_.macroGesture(static_cast<int>(a[0]), a[1].toString() == "begin");
++                         return;
++                       }
+                        if (name.isNotEmpty()) proc_.engine().post(name.toStdString(), args.toStdString());
+                      });
+   web_ = std::make_unique<juce::WebBrowserComponent>(options);
+@@ -101,7 +112,7 @@ void SY1Editor::build() {
+ 
+ /** A file from the window (the drum pattern as MIDI): written to Music/SY-1 and shown in
+  *  Finder / Explorer, from where it is dragged into the DAW. args = [fileName, base64]. */
+-void SY1Editor::saveFile(const juce::String& argsJson) {
++void SY1Editor::saveFile(const juce::String& argsJson, bool drag) {
+   const juce::var a = juce::JSON::parse(argsJson);
+   if (!a.isArray() || a.size() < 2) return;
+   juce::String fileName = juce::File::createLegalFileName(a[0].toString());
+@@ -112,7 +123,12 @@ void SY1Editor::saveFile(const juce::String& argsJson) {
+   if (!dir.createDirectory()) return;
+   const juce::File f = dir.getNonexistentChildFile(juce::File(dir.getChildFile(fileName)).getFileNameWithoutExtension(),
+                                                    juce::File(fileName).getFileExtension(), false);
+-  if (f.replaceWithData(bytes.getData(), bytes.getDataSize())) f.revealToUser();
++  if (!f.replaceWithData(bytes.getData(), bytes.getDataSize())) {
++    juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::WarningIcon, "SY-1 MIDI export", "Could not write " + f.getFullPathName());
++    return;
++  }
++  if (drag && juce::DragAndDropContainer::performExternalDragDropOfFiles({f.getFullPathName()}, false, this)) return;
++  f.revealToUser();
+ }
+ 
+ void SY1Editor::reloadUi() {
+diff --git a/plugin/Source/PluginEditor.h b/plugin/Source/PluginEditor.h
+index 4459980..8a03912 100644
+--- a/plugin/Source/PluginEditor.h
++++ b/plugin/Source/PluginEditor.h
+@@ -20,7 +20,7 @@ class SY1Editor : public juce::AudioProcessorEditor, private juce::Timer {
+   std::optional<juce::WebBrowserComponent::Resource> serve(const juce::String& url);
+   juce::String userScript();
+   void build();
+-  void saveFile(const juce::String& argsJson);
++  void saveFile(const juce::String& argsJson, bool drag = false);
+ 
+   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SY1Editor)
+ };
+diff --git a/plugin/Source/PluginProcessor.cpp b/plugin/Source/PluginProcessor.cpp
+index 37944c5..27934e9 100644
+--- a/plugin/Source/PluginProcessor.cpp
++++ b/plugin/Source/PluginProcessor.cpp
+@@ -2,7 +2,9 @@
+ 
+ #include <BinaryData.h>
+ 
+-#include "PluginEditor.h"
++#if !SY1_HEADLESS_TEST
++ #include "PluginEditor.h"
++#endif
+ 
+ static std::string num(double v) {
+   char b[64];
+@@ -24,6 +26,40 @@ SY1Processor::SY1Processor()
+                                             juce::NormalisableRange<float>(0.0f, 1.0f), 0.0f);
+     macros_[static_cast<size_t>(i)] = p;
+     addParameter(p);
++    feedback_[static_cast<size_t>(i)].store(-1);
++    echo_[static_cast<size_t>(i)].store(-1);
++  }
++  startTimerHz(60);
++}
++
++SY1Processor::~SY1Processor() {
++  stopTimer();
++  for (int i = 0; i < kMacros; i++) macroGesture(i, false);
++}
++
++void SY1Processor::macroGesture(int slot, bool begin) {
++  if (slot < 0 || slot >= kMacros) return;
++  const auto i = static_cast<size_t>(slot);
++  if (gesturing_[i] == begin) return;
++  gesturing_[i] = begin;
++  if (begin) macros_[i]->beginChangeGesture(); else macros_[i]->endChangeGesture();
++}
++
++void SY1Processor::setMacroFromUi(int slot, float value) {
++  if (slot < 0 || slot >= kMacros || !std::isfinite(value)) return;
++  const auto i = static_cast<size_t>(slot);
++  value = std::clamp(value, 0.0f, 1.0f);
++  const bool oneShot = !gesturing_[i];
++  if (oneShot) macroGesture(slot, true);
++  echo_[i].store(value, std::memory_order_release);
++  macros_[i]->setValueNotifyingHost(value);
++  if (oneShot) macroGesture(slot, false);
++}
++
++void SY1Processor::timerCallback() {
++  for (int i = 0; i < kMacros; i++) {
++    const float value = feedback_[static_cast<size_t>(i)].exchange(-1, std::memory_order_acq_rel);
++    if (value >= 0) setMacroFromUi(i, value);
+   }
+ }
+ 
+@@ -36,6 +72,8 @@ void SY1Processor::macrosToEngine() {
+     if (std::isnan(last)) { last = v; continue; }
+     if (std::fabs(v - last) < 1e-6f) continue;
+     last = v;
++    const float echo = echo_[static_cast<size_t>(i)].exchange(-1, std::memory_order_acq_rel);
++    if (std::fabs(v - echo) < 1e-6f) continue; // the engine already applied this player edit
+     engine_.hostCall("hostMacro", "[" + num(i) + ", " + num(v) + "]");
+   }
+ }
+@@ -53,6 +91,8 @@ bool SY1Processor::startEngine(double sampleRate, const std::string& state) {
+ }
+ 
+ void SY1Processor::prepareToPlay(double sampleRate, int) {
++  std::lock_guard<std::mutex> lock(lifecycle_);
++  std::lock_guard<std::mutex> stateLock(pendingStateMu_);
+   // The engine renders in 128-frame blocks, one block behind the DAW: every DAW event of a block is
+   // known before the block renders, so each one sounds at its exact sample. The DAW is told about
+   // these 128 samples and moves the recorded audio back by them.
+@@ -71,14 +111,15 @@ void SY1Processor::prepareToPlay(double sampleRate, int) {
+   outPending_.clear();
+   outPending_.reserve(4096);
+   pending_.reserve(2048);
++  for (size_t i = 0; i < kMacros; i++) lastMacro_[i] = macros_[i]->get();
+ }
+ 
+ 
+ void SY1Processor::handleMidi(const juce::MidiMessage& m, double at) {
+-  if (m.isNoteOn()) engine_.hostCall("midiNoteOn", "[" + num(m.getNoteNumber()) + ", " + num(m.getFloatVelocity()) + "]", at);
+-  else if (m.isNoteOff()) engine_.hostCall("midiNoteOff", "[" + num(m.getNoteNumber()) + "]", at);
+-  else if (m.isPitchWheel()) engine_.hostCall("setPitchBend", "[" + num((m.getPitchWheelValue() - 8192) / 8192.0) + "]", at);
+-  else if (m.isAllNotesOff() || m.isAllSoundOff()) engine_.hostCall("allNotesOff", "[]", at);
++  if (m.isNoteOn()) engine_.hostCall("midiNoteOn", "[" + num(m.getNoteNumber()) + ", " + num(m.getFloatVelocity()) + ", " + num(m.getChannel()) + "]", at);
++  else if (m.isNoteOff()) engine_.hostCall("midiNoteOff", "[" + num(m.getNoteNumber()) + ", " + num(m.getChannel()) + "]", at);
++  else if (m.isPitchWheel()) engine_.hostCall("midiPitchBend", "[" + num((m.getPitchWheelValue() - 8192) / 8192.0) + ", " + num(m.getChannel()) + "]", at);
++  else if (m.isAllNotesOff() || m.isAllSoundOff()) engine_.hostCall("midiPanic", "[" + num(m.getChannel()) + "]", at);
+   // every other controller (mod wheel and sustain too): MIDI Learn mappings first, then the built-ins
+   else if (m.isController())
+     engine_.hostCall("hostCC", "[" + num(m.getChannel()) + ", " + num(m.getControllerNumber()) + ", " + num(m.getControllerValue()) + "]", at);
+@@ -141,6 +182,8 @@ void SY1Processor::hostClockFor(int64_t q0) {
+ 
+ void SY1Processor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midi) {
+   juce::ScopedNoDenormals noDenormals;
++  std::unique_lock<std::mutex> lock(lifecycle_, std::try_to_lock);
++  if (!lock.owns_lock()) { buffer.clear(); midi.clear(); return; }
+   const int n = buffer.getNumSamples();
+   if (!engine_.ready() || buffer.getNumChannels() < 2) { buffer.clear(); return; }
+   readPlayHead();
+@@ -164,11 +207,21 @@ void SY1Processor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuff
+       handleMidi(pending_[k].m, std::max<int64_t>(0, pending_[k].t - q0) / rate_);
+     if (k) pending_.erase(pending_.begin(), pending_.begin() + static_cast<long>(k));
+   });
++  for (size_t i = 0; i < kMacros; i++) {
++    double& value = engine_.js()->macroOut[i];
++    if (std::isfinite(value)) {
++      feedback_[i].store(static_cast<float>(value), std::memory_order_release);
++      value = std::numeric_limits<double>::quiet_NaN();
++    }
++  }
+   // MIDI out (drum hits as GM notes): each event goes where its sound is in the output, so a MIDI
+   // track recording SY-1 lines up with SY-1's audio
+   midi.clear();
+   if (rendered)
+     engine_.takeMidiOut([&](uint8_t b0, uint8_t b1, uint8_t b2, double t) {
++      if (b0 == 0xb9 && b1 == 123) {
++        outPending_.erase(std::remove_if(outPending_.begin(), outPending_.end(), [](const Pending& p) { return p.m.isNoteOn(); }), outPending_.end());
++      }
+       if (outPending_.size() >= 4096) return;
+       // (an event already in the past goes at the start of this buffer)
+       const double at = std::max(static_cast<double>(dawPos_), outBase + (t - outT0) * rate_);
+@@ -185,42 +238,74 @@ void SY1Processor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuff
+ }
+ 
+ std::string SY1Processor::currentState() {
+-  if (!pendingState_.empty()) return pendingState_;
++  {
++    std::lock_guard<std::mutex> lock(pendingStateMu_);
++    if (!pendingState_.empty()) return pendingState_;
++  }
+   // the newest state: the audio thread saves it at its next block (if audio is running)
+-  return engine_.ready() ? engine_.freshState(150) : std::string();
++  return engine_.freshState(150);
+ }
+ 
+ void SY1Processor::getStateInformation(juce::MemoryBlock& destData) {
+-  const std::string s = currentState();
++  auto state = juce::JSON::parse(juce::String(currentState()));
++  if (!state.isObject()) state = juce::var(new juce::DynamicObject());
++  juce::Array<juce::var> values;
++  for (auto* macro : macros_) values.add(macro->get());
++  state.getDynamicObject()->setProperty("sy1.host.macros", juce::JSON::toString(juce::var(values), true));
++  const std::string s = juce::JSON::toString(state, true).toStdString();
+   juce::MemoryOutputStream out(destData, false);
+   out.writeString("SY1STATE1");
+   out.writeString(juce::String::fromUTF8(s.c_str(), static_cast<int>(s.size())));
+ }
+ 
+ void SY1Processor::setStateInformation(const void* data, int sizeInBytes) {
++  if (!data || sizeInBytes < 10) return;
++  std::lock_guard<std::mutex> lock(lifecycle_);
+   juce::MemoryInputStream in(data, static_cast<size_t>(sizeInBytes), false);
+   if (in.readString() != "SY1STATE1") return;
+   const std::string s = in.readString().toStdString();
++  const auto state = juce::JSON::parse(juce::String(s));
++  if (!state.isObject()) return;
++  const auto values = juce::JSON::parse(state.getProperty("sy1.host.macros", "").toString());
++  for (size_t i = 0; i < kMacros; i++) {
++    if (values.isArray() && values.size() == kMacros && (values[static_cast<int>(i)].isDouble() || values[static_cast<int>(i)].isInt())) {
++      const float value = static_cast<float>(values[static_cast<int>(i)]);
++      if (std::isfinite(value)) static_cast<juce::AudioProcessorParameter*>(macros_[i])->setValue(std::clamp(value, 0.0f, 1.0f));
++    }
++    lastMacro_[i] = macros_[i]->get();
++    echo_[i].store(-1);
++    feedback_[i].store(-1);
++  }
+   if (rate_ > 0) {
+     suspendProcessing(true);
+     startEngine(rate_, s);
++    pending_.clear();
++    outPending_.clear();
+     // the new engine has not heard the DAW's tempo or Play state yet: send them again at the next block
+     lastBpm_ = -1;
+     wasPlaying_ = false;
+     uiPlaying_.store(false, std::memory_order_relaxed);
+-    lastMacro_.fill(std::numeric_limits<float>::quiet_NaN());
+     suspendProcessing(false);
+     // the window is rebuilt on the message thread (hosts may load a state from any thread)
+     std::weak_ptr<int> alive = alive_;
+     juce::MessageManager::callAsync([this, alive] {
+       if (alive.expired()) return;
++     #if !SY1_HEADLESS_TEST
+       if (auto* ed = dynamic_cast<SY1Editor*>(getActiveEditor())) ed->reloadUi();
++     #endif
+     });
+   } else {
++    std::lock_guard<std::mutex> stateLock(pendingStateMu_);
+     pendingState_ = s;
+   }
+ }
+ 
+-juce::AudioProcessorEditor* SY1Processor::createEditor() { return new SY1Editor(*this); }
++juce::AudioProcessorEditor* SY1Processor::createEditor() {
++ #if SY1_HEADLESS_TEST
++  return nullptr;
++ #else
++  return new SY1Editor(*this);
++ #endif
++}
+ 
+ juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter() { return new SY1Processor(); }
+diff --git a/plugin/Source/PluginProcessor.h b/plugin/Source/PluginProcessor.h
+index 64f341a..c3645d7 100644
+--- a/plugin/Source/PluginProcessor.h
++++ b/plugin/Source/PluginProcessor.h
+@@ -4,16 +4,20 @@
+ #include <cmath>
+ #include <cstdint>
+ #include <limits>
++#include <mutex>
+ #include <vector>
+ #include <juce_audio_processors/juce_audio_processors.h>
+ 
+ #include "host/sy1_engine.hpp"
+ 
+ /** SY-1 as an instrument plugin: the web app's engine, run natively (see native/README.md). */
+-class SY1Processor : public juce::AudioProcessor {
++class SY1Processor : public juce::AudioProcessor, private juce::Timer {
+  public:
+   SY1Processor();
+-  ~SY1Processor() override = default;
++  ~SY1Processor() override;
++  // Message-thread bridge used by the WebView. Stable macro IDs remain macro1..macro16.
++  void setMacroFromUi(int slot, float value);
++  void macroGesture(int slot, bool begin);
+ 
+   void prepareToPlay(double sampleRate, int samplesPerBlock) override;
+   void releaseResources() override {}
+@@ -50,8 +54,10 @@ class SY1Processor : public juce::AudioProcessor {
+ 
+  private:
+   sy1::Sy1Engine engine_;
++  std::mutex lifecycle_; // state replacement and rendering never use QuickJS concurrently
+   double rate_ = 0;
+   std::string pendingState_;
++  std::mutex pendingStateMu_;
+   juce::String error_;
+   double lastBpm_ = -1;
+   bool wasPlaying_ = false;
+@@ -68,6 +74,10 @@ class SY1Processor : public juce::AudioProcessor {
+   static constexpr int kMacros = 16;
+   std::array<juce::AudioParameterFloat*, kMacros> macros_{};
+   std::array<float, kMacros> lastMacro_ = [] { std::array<float, kMacros> a; a.fill(std::numeric_limits<float>::quiet_NaN()); return a; }();
++  std::array<std::atomic<float>, kMacros> feedback_{};
++  std::array<std::atomic<float>, kMacros> echo_{};
++  std::array<bool, kMacros> gesturing_{};
++  void timerCallback() override;
+   void macrosToEngine();
+   void readPlayHead();
+   void hostClockFor(int64_t q0);
+diff --git a/plugin/installer/install-mac.sh b/plugin/installer/install-mac.sh
+new file mode 100644
+index 0000000..c2e88ab
+--- /dev/null
++++ b/plugin/installer/install-mac.sh
+@@ -0,0 +1,117 @@
++#!/bin/bash
++# Finder-launchable installer. The payload is immutable, checksum-pinned, and offline.
++set -eo pipefail
++umask 077
++VERSION=8c1f5c2
++SHA256=b03afb0bcc3beea649eef67fa21084dfb869ca5ddc00dd098812f59fa87603cc
++RES="$(cd "$(dirname "$0")/../Resources" && pwd)"
++WORK=""
++BACKUP=""
++STAGED=()
++TARGETS=()
++OLD=()
++CHANGED=()
++COMMITTED=0
++dialog() {
++  /usr/bin/osascript - "$1" <<'APPLESCRIPT'
++on run argv
++  display dialog (item 1 of argv) with title "SY-1 · 8c1f5c2" buttons {"OK"} default button "OK"
++end run
++APPLESCRIPT
++}
++finish() {
++  code=$?
++  trap - EXIT
++  if [ "$COMMITTED" = 0 ]; then
++    for ((i=${#CHANGED[@]}-1; i>=0; i--)); do
++      idx=${CHANGED[$i]}
++      /bin/rm -rf "${TARGETS[$idx]}"
++      if [ -n "${OLD[$idx]}" ]; then
++        /bin/mv "${OLD[$idx]}" "${TARGETS[$idx]}" || code=2
++      fi
++    done
++  fi
++  for p in "${STAGED[@]}"; do [ ! -e "$p" ] || /bin/rm -rf "$p"; done
++  [ -z "$WORK" ] || /bin/rm -rf "$WORK"
++  if [ "$code" != 0 ]; then
++    dialog "نصب انجام نشد. نسخهٔ قبلی تا جای ممکن بازگردانده شد. گزارش خطا: $LOG" || true
++  fi
++  exit "$code"
++}
++LOGDIR="$HOME/Library/Logs/SY-1"
++/bin/mkdir -p "$LOGDIR"
++LOG="$LOGDIR/install-$(date +%Y%m%d-%H%M%S)-$$.log"
++exec >>"$LOG" 2>&1
++trap finish EXIT
++echo "SY-1 installer $VERSION"
++[ "$(/usr/bin/uname -s)" = Darwin ] || { echo 'macOS is required'; exit 1; }
++major=$(/usr/bin/sw_vers -productVersion | /usr/bin/cut -d. -f1)
++[ "$major" -ge 11 ] || { dialog 'این نسخه به macOS 11 یا بالاتر نیاز دارد.'; exit 1; }
++# Never close a DAW or overwrite a plugin while it is loaded.
++if /usr/bin/pgrep -if '/(Live[^/]*\.app|Logic Pro[^/]*\.app|SY-1\.app)/Contents/MacOS/' >/dev/null; then
++  dialog 'ابتدا Ableton، Logic و SY-1 را ببندید؛ سپس نصب‌کننده را دوباره باز کنید.'
++  exit 1
++fi
++ACTUAL=$(/usr/bin/shasum -a 256 "$RES/SY-1-mac.zip" | /usr/bin/awk '{print $1}')
++[ "$ACTUAL" = "$SHA256" ] || { echo 'Payload checksum mismatch'; exit 1; }
++/usr/bin/unzip -tq "$RES/SY-1-mac.zip"
++WORK=$(/usr/bin/mktemp -d "${TMPDIR:-/tmp}/sy1-install.XXXXXXXX")
++/usr/bin/ditto -x -k "$RES/SY-1-mac.zip" "$WORK"
++ARCH=$(/usr/bin/uname -m)
++for ext in vst3 component; do
++  SOURCES=()
++  while IFS= read -r -d '' p; do SOURCES+=("$p"); done < <(/usr/bin/find "$WORK" -type d -name "SY-1.$ext" -print0)
++  [ "${#SOURCES[@]}" = 1 ] || { echo "Expected exactly one SY-1.$ext"; exit 1; }
++  src=${SOURCES[0]}
++  plist="$src/Contents/Info.plist"
++  [ "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$plist")" = com.audiovido.sy1 ]
++  exe=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleExecutable' "$plist")
++  [ "$exe" = SY-1 ] && [ -x "$src/Contents/MacOS/$exe" ]
++  /usr/bin/lipo -verify_arch "$ARCH" "$src/Contents/MacOS/$exe"
++  /usr/bin/codesign --verify --deep --strict "$src"
++  if [ "$ext" = vst3 ]; then sub=VST3; else sub=Components; fi
++  dir="$HOME/Library/Audio/Plug-Ins/$sub"
++  /bin/mkdir -p "$dir"
++  [ ! -L "$dir/SY-1.$ext" ] || { echo 'Refusing a symlink destination'; exit 1; }
++  stage=$(/usr/bin/mktemp -d "$dir/.sy1-stage.XXXXXXXX")
++  STAGED+=("$stage")
++  /usr/bin/ditto "$src" "$stage/SY-1.$ext"
++  /usr/bin/diff -qr "$src" "$stage/SY-1.$ext"
++  /usr/bin/codesign --verify --deep --strict "$stage/SY-1.$ext"
++  TARGETS+=("$dir/SY-1.$ext")
++done
++BACKUP="$HOME/Library/Application Support/SY-1/Plugin Backups/$(date +%Y%m%d-%H%M%S)-$$"
++/bin/mkdir -p "$BACKUP"
++# Both plugins are fully staged and verified before either installed plugin is changed.
++for ((i=0; i<${#TARGETS[@]}; i++)); do
++  dest=${TARGETS[$i]}
++  base=$(/usr/bin/basename "$dest")
++  old=""
++  if [ -e "$dest" ]; then
++    old="$BACKUP/$base"
++    /usr/bin/ditto "$dest" "$old"
++    /usr/bin/diff -qr "$dest" "$old"
++  fi
++  OLD+=("$old")
++done
++for ((i=0; i<${#TARGETS[@]}; i++)); do
++  dest=${TARGETS[$i]}
++  base=$(/usr/bin/basename "$dest")
++  CHANGED+=("$i")
++  /bin/rm -rf "$dest"
++  /bin/mv "${STAGED[$i]}/$base" "$dest"
++  # Remove only the download quarantine on these checksum-verified plugin copies.
++  # Gatekeeper and every other security setting remain enabled.
++  /usr/bin/xattr -r -d com.apple.quarantine "$dest" 2>/dev/null || true
++  /usr/bin/codesign --verify --deep --strict "$dest"
++  [ -x "$dest/Contents/MacOS/SY-1" ]
++done
++# Verify installed bytes against the original extracted bundles, including resources.
++for ((i=0; i<${#TARGETS[@]}; i++)); do
++  base=$(/usr/bin/basename "${TARGETS[$i]}")
++  src=$(/usr/bin/find "$WORK" -type d -name "$base" -print -quit)
++  /usr/bin/diff -qr "$src" "${TARGETS[$i]}"
++done
++echo "Installed AU and VST3 $VERSION; previous bundles: $BACKUP"
++COMMITTED=1
++dialog 'نصب AU و VST3 نسخهٔ 8c1f5c2 انجام شد. اکنون Ableton را باز کنید و SY-1 را از بخش Plug-ins انتخاب کنید.' || true
+diff --git a/plugin/installer/package.py b/plugin/installer/package.py
+new file mode 100644
+index 0000000..6ef0cf2
+--- /dev/null
++++ b/plugin/installer/package.py
+@@ -0,0 +1,28 @@
++"""Build the offline Finder app without changing any plugin bytes (runs on Linux or Mac)."""
++import hashlib
++import pathlib
++import plistlib
++import shutil
++import sys
++import zipfile
++
++payload, output = map(pathlib.Path, sys.argv[1:])
++expected = 'b03afb0bcc3beea649eef67fa21084dfb869ca5ddc00dd098812f59fa87603cc'
++assert hashlib.sha256(payload.read_bytes()).hexdigest() == expected, 'Unexpected payload'
++app = output.parent / 'SY-1 Install 8c1f5c2.app'
++contents = app / 'Contents'
++(contents / 'MacOS').mkdir(parents=True, exist_ok=True)
++(contents / 'Resources').mkdir(exist_ok=True)
++shutil.copyfile(pathlib.Path(__file__).with_name('install-mac.sh'), contents / 'MacOS' / 'install')
++(contents / 'MacOS' / 'install').chmod(0o755)
++shutil.copyfile(payload, contents / 'Resources' / 'SY-1-mac.zip')
++(contents / 'Info.plist').write_bytes(plistlib.dumps({
++    'CFBundleExecutable': 'install', 'CFBundleIdentifier': 'com.audiovido.sy1.installer',
++    'CFBundleName': 'SY-1 Install 8c1f5c2', 'CFBundlePackageType': 'APPL',
++    'CFBundleVersion': '1', 'CFBundleShortVersionString': '8c1f5c2',
++    'LSMinimumSystemVersion': '11.0', 'LSUIElement': True,
++}))
++with zipfile.ZipFile(output, 'w', zipfile.ZIP_DEFLATED) as z:
++    for f in sorted(app.rglob('*')):
++        z.write(f, f.relative_to(output.parent))
++print(output, output.stat().st_size, 'bytes')
+diff --git a/plugin/installer/test_installer.py b/plugin/installer/test_installer.py
+new file mode 100644
+index 0000000..63cc5f6
+--- /dev/null
++++ b/plugin/installer/test_installer.py
+@@ -0,0 +1,69 @@
++"""Exercise installer transactions on Linux with mocked macOS utilities, not a Mac validation."""
++import hashlib
++import os
++import pathlib
++import shutil
++import subprocess
++import sys
++import tempfile
++
++payload = pathlib.Path(sys.argv[1]).resolve()
++script = pathlib.Path(__file__).with_name('install-mac.sh').read_text()
++with tempfile.TemporaryDirectory(prefix='sy1-installer-test-') as tmp:
++    root = pathlib.Path(tmp)
++    commands = root / 'commands'
++    commands.mkdir()
++    for folder in ('/bin', '/usr/bin'):
++        for p in pathlib.Path(folder).iterdir():
++            if p.is_file() and os.access(p, os.X_OK) and not (commands / p.name).exists():
++                (commands / p.name).symlink_to(p)
++    def mock(name, text):
++        p = commands / name
++        if p.is_symlink(): p.unlink()
++        p.write_text('#!/bin/bash\n' + text + '\n')
++        p.chmod(0o755)
++    mock('uname', 'if [ "$1" = -s ]; then echo Darwin; else echo x86_64; fi')
++    mock('sw_vers', 'echo 15.0')
++    mock('pgrep', '[ "${DAW_RUNNING:-0}" = 1 ]')
++    mock('osascript', 'cat >/dev/null; echo "$*" >>"$HOME/dialogs"')
++    mock('codesign', '[ "${FAIL_INSTALL:-0}" != 1 ] || [[ "$*" != *"/Plug-Ins/"* || "$*" == *".sy1-stage"* ]]')
++    mock('xattr', 'exit 0')
++    mock('lipo', 'exit 0')
++    mock('PlistBuddy', 'if [[ "$*" == *CFBundleIdentifier* ]]; then echo com.audiovido.sy1; else echo SY-1; fi')
++    mock('ditto', 'if [ "$1" = -x ]; then /usr/bin/unzip -q "$3" -d "$4"; else /bin/cp -a "$1" "$2"; fi')
++    contents = root / 'app/Contents'
++    (contents / 'MacOS').mkdir(parents=True)
++    (contents / 'Resources').mkdir()
++    shutil.copyfile(payload, contents / 'Resources/SY-1-mac.zip')
++    for prefix in ('/usr/libexec/', '/usr/bin/', '/bin/'):
++        script = script.replace(prefix, str(commands) + '/')
++    executable = contents / 'MacOS/install'
++    executable.write_text(script)
++    def run(name, flags=None, existing=False, expect=0):
++        home = root / name
++        home.mkdir()
++        dests = [home / 'Library/Audio/Plug-Ins' / sub / ('SY-1.' + ext)
++                 for sub, ext in [('VST3', 'vst3'), ('Components', 'component')]]
++        if existing:
++            for d in dests:
++                d.mkdir(parents=True)
++                (d / 'keep').write_text('previous working build')
++        result = subprocess.run(['/bin/bash', str(executable)], env={**os.environ, 'HOME': str(home), **(flags or {})})
++        assert (result.returncode == 0) == (expect == 0), (name, result.returncode)
++        if expect == 0:
++            for d in dests:
++                assert (d / 'Contents/MacOS/SY-1').stat().st_mode & 0o111
++            if existing:
++                assert len(list((home / 'Library/Application Support/SY-1/Plugin Backups').rglob('keep'))) == 2
++        elif existing:
++            for d in dests: assert (d / 'keep').read_text() == 'previous working build'
++        else:
++            assert all(not d.exists() for d in dests)
++        assert not list(home.rglob('.sy1-stage.*'))
++        print(name, 'passed')
++    run('clean install')
++    run('replacement and backup', existing=True)
++    run('failure rollback', {'FAIL_INSTALL': '1'}, existing=True, expect=1)
++    run('DAW open blocks installation', {'DAW_RUNNING': '1'}, existing=True, expect=1)
++    with (contents / 'Resources/SY-1-mac.zip').open('ab') as f: f.write(b'corrupted')
++    run('corrupt payload rejected', expect=1)
+diff --git a/plugin/tests/host_test.cpp b/plugin/tests/host_test.cpp
+index 28cffcc..2877acf 100644
+--- a/plugin/tests/host_test.cpp
++++ b/plugin/tests/host_test.cpp
+@@ -378,6 +378,97 @@ int main() {
+     check(pad == 1, "a pad tapped in the window goes out as MIDI");
+   }
+ 
++  std::printf("12. Relative encoders, pickup by default, CC + macro coexist, project state\n");
++  {
++    Run r("sy1");
++    auto js = [&](const char* e) { return r.p.engine().js()->evalString(e); };
++    r.render(2048, 512);
++    r.p.engine().post("mapCcToParam", "[74,\"cutoff\"]");
++    r.p.engine().post("mapCcToParam", "[128,\"cutoff\"]");
++    r.p.engine().post("setSynthParam", "[\"cutoff\",1000]");
++    r.render(1024, 512, {{r.pos + 10, juce::MidiMessage::controllerEvent(1, 74, 0)}});
++    check(js("String(SY1E.getSynthPatch().cutoff)") == "1000", "default pickup prevents a jump");
++    const auto map = js("localStorage.getItem('musicher_synth_midi_map')");
++    check(map.find("\"74\":\"cutoff\"") != std::string::npos && map.find("\"128\":\"cutoff\"") != std::string::npos,
++          "hardware CC and DAW macro coexist on the same knob");
++    for (const auto mode : {"twos-complement", "signed-bit", "offset-binary"}) {
++      r.p.engine().post("setMidiMode", std::string("[\"") + mode + "\"]");
++      r.p.engine().post("setSynthParam", "[\"cutoff\",1000]");
++      r.render(1024, 512);
++      const int up = std::string(mode) == "offset-binary" ? 65 : 1;
++      const int down = std::string(mode) == "twos-complement" ? 127 : (std::string(mode) == "signed-bit" ? 65 : 63);
++      r.render(1024, 512, {{r.pos + 10, juce::MidiMessage::controllerEvent(1, 74, up)}});
++      const double higher = std::stod(js("String(SY1E.getSynthPatch().cutoff)"));
++      r.render(1024, 512, {{r.pos + 10, juce::MidiMessage::controllerEvent(1, 74, down)}});
++      const double lower = std::stod(js("String(SY1E.getSynthPatch().cutoff)"));
++      check(higher > 1000 && std::fabs(lower - 1000) < 1, "relative encoder moves up and down from current value");
++    }
++    r.p.setMacroFromUi(0, 0.37f);
++    r.p.getParameters()[5]->setValueNotifyingHost(0.71f);
++    r.render(1024, 512);
++    juce::MemoryBlock state;
++    std::thread saver([&] { r.p.getStateInformation(state); });
++    r.render(8192, 512);
++    saver.join();
++    Run other("sy1");
++    other.p.setStateInformation(state.getData(), static_cast<int>(state.getSize()));
++    other.render(2048, 512);
++    check(std::fabs(other.p.getParameters()[0]->getValue() - 0.37f) < 1e-6f
++          && std::fabs(other.p.getParameters()[5]->getValue() - 0.71f) < 1e-6f,
++          "all macro values restore with the project");
++    check(other.p.engine().js()->evalString("localStorage.getItem('sy1_midi_cc_mode')") == "offset-binary", "relative encoder mode is saved");
++    other.p.engine().post("removeParamMapping", "[\"cutoff\"]");
++    other.render(1024, 512);
++    check(r.p.engine().js()->evalString("localStorage.getItem('musicher_synth_midi_map')") == map, "instances keep independent mapping tables");
++  }
++
++  std::printf("13. Host notification and gestures; UI edits are not echoed into the engine\n");
++  {
++    struct Listener : juce::AudioProcessorParameter::Listener {
++      int values = 0, begins = 0, ends = 0;
++      void parameterValueChanged(int, float) override { values++; }
++      void parameterGestureChanged(int, bool begin) override { if (begin) begins++; else ends++; }
++    } listener;
++    Run r("sy1");
++    r.render(2048, 512);
++    auto* macro = r.p.getParameters()[2];
++    macro->addListener(&listener);
++    r.p.macroGesture(2, true);
++    r.p.setMacroFromUi(2, 0.25f);
++    r.p.setMacroFromUi(2, 0.75f);
++    r.p.macroGesture(2, false);
++    check(listener.values == 2 && listener.begins == 1 && listener.ends == 1, "one balanced host gesture surrounds the drag");
++    r.render(2048, 512);
++    auto calls = r.p.engine().takeOutgoing();
++    int echoes = 0;
++    for (const auto& call : calls) if (call.first == "hostMacro") echoes++;
++    check(echoes == 0, "UI macro changes do not echo as DAW playback");
++    macro->setValueNotifyingHost(0.5f);
++    r.render(2048, 512);
++    calls = r.p.engine().takeOutgoing();
++    int playback = 0;
++    for (const auto& call : calls) if (call.first == "hostMacro") playback++;
++    check(playback == 1, "a subsequent host automation edit reaches the engine once");
++    macro->removeListener(&listener);
++  }
++
++  std::printf("14. MIDI output switch does not change audio or echo input\n");
++  {
++    Run r("kerman");
++    r.render(24000, 512);
++    r.p.engine().post("setPluginMidiOut", "[false]");
++    r.p.engine().post("playDrum", "[\"kick\",0.8]");
++    const double peak = r.render(8192, 512);
++    int ons = 0;
++    for (const auto& event : r.out) if (event.second.isNoteOn()) ons++;
++    check(ons == 0 && peak > 0.01, "output OFF suppresses MIDI notes while the drum still sounds");
++    r.p.engine().post("setPluginMidiOut", "[true]");
++    r.p.engine().post("playDrum", "[\"kick\",0.8]");
++    r.render(8192, 512);
++    for (const auto& event : r.out) if (event.second.isNoteOn()) ons++;
++    check(ons == 1, "output ON resumes MIDI");
++  }
++
+   std::printf(failures ? "\n%d FAILED\n" : "\nall passed\n", failures);
+   return failures ? 1 : 0;
+ }
+diff --git a/plugin/tests/validate.py b/plugin/tests/validate.py
+new file mode 100644
+index 0000000..cd700b0
+--- /dev/null
++++ b/plugin/tests/validate.py
+@@ -0,0 +1,29 @@
++"""Run the unmodified validator; retain verbose output and capture hung auval stacks.
++
++No tests are skipped, retried, or given a longer timeout. Diagnostic sampling does
++not change the child processes. pluginval still owns the 300-second timeout.
++"""
++import pathlib
++import subprocess
++import sys
++import time
++
++log = pathlib.Path(sys.argv[1])
++log.parent.mkdir(parents=True, exist_ok=True)
++with log.open('w') as output:
++    child = subprocess.Popen(sys.argv[2:], stdout=output, stderr=subprocess.STDOUT)
++    start = time.monotonic()
++    sampled = set()
++    while child.poll() is None:
++        elapsed = time.monotonic() - start
++        for limit in (120, 240, 300):
++            if elapsed < limit or limit in sampled:
++                continue
++            sampled.add(limit)
++            with log.with_suffix(f'.{limit}.stacks.txt').open('w') as diag:
++                subprocess.run(['ps', '-axo', 'pid,ppid,etime,state,command'], stdout=diag, stderr=diag)
++                found = subprocess.run(['pgrep', '-x', 'auvaltool'], capture_output=True, text=True)
++                for pid in found.stdout.split():
++                    subprocess.run(['sample', pid, '2', '-file', str(log.with_suffix(f'.{limit}.{pid}.sample.txt'))], stdout=diag, stderr=diag)
++        time.sleep(1)
++    sys.exit(child.returncode)
+diff --git a/scripts/midi-audit.mjs b/scripts/midi-audit.mjs
+new file mode 100644
+index 0000000..e326fb6
+--- /dev/null
++++ b/scripts/midi-audit.mjs
+@@ -0,0 +1,60 @@
++// Browser integration checks. Run with Vite on port 3344.
++import assert from 'node:assert/strict';
++import { readFileSync } from 'node:fs';
++import { chromium } from 'playwright';
++const browser = await chromium.launch();
++try {
++  const context = await browser.newContext({viewport:{width:1440,height:1000}});
++  await context.addInitScript({content: `window.__SY1_UI = true; window.__SY1_RATE = 48000; ${readFileSync('native/js/wa-shim.js', 'utf8')}
++    window.sent = []; window.__SY1_PLUGIN__ = {send(name,args) { window.sent.push([name,args]); }};`});
++  const page = await context.newPage();
++  await page.goto('http://127.0.0.1:3344/');
++  await page.waitForFunction(() => window.SY1 && window.__SY1_PLUGIN__.onCall);
++  const state = await page.evaluate(async () => {
++    const cc = await import('/src/engine/cc-map.ts');
++    cc.mapCcToParam(128, 'cutoff');
++    window.sent.length = 0;
++    return cc.getMidiPickup();
++  });
++  assert.equal(state, true);
++  const knob = page.locator('.sk[data-param="cutoff"]');
++  await page.evaluate(async () => { const P=await import('/src/ui/panel.ts'); P.setPanelPage('filter'); });
++  const box = await knob.boundingBox();
++  assert.ok(box);
++  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
++  await page.mouse.down();
++  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2 - 35, {steps:5});
++  await page.mouse.up();
++  const messages = await page.evaluate(() => window.sent);
++  assert.deepEqual(messages.filter(([n]) => n === 'macroGesture').map(([,a]) => a[1]), ['begin','end']);
++  const values = messages.filter(([n]) => n === 'macroValue');
++  assert.ok(values.length >= 1 && values.every(([,a]) => a[0] === 0 && a[1] >= 0 && a[1] <= 1));
++  await page.evaluate(() => { window.sent.length=0; window.__SY1_PLUGIN__.onCall('hostMacro',[0,0.2]); });
++  assert.equal(await page.evaluate(() => window.sent.length), 0, 'host playback must not echo');
++  await page.evaluate(() => { window.sent.length=0; window.SY1.applyPreset(window.SY1.machineData()[0].presets[1].id); });
++  assert.equal(await page.evaluate(() => window.sent.filter(([n]) => n === 'macroValue').length), 0, 'preset must not write host automation');
++  const bytes = await page.evaluate(async () => {
++    const S = await import('/src/engine/synth.ts');
++    const D = await import('/src/engine/drums.ts');
++    const E = await import('/src/ui/drum-export.ts');
++    S.setMachine('kerman');
++    const patterns = Array.from({length:8}, (_,i) => {
++      const p=D.emptyPattern(); p.steps[D.DRUM_VOICES[i]][0] = i===1 ? 2 : i===2 ? 3 : 1; return p;
++    });
++    D.loadBank(patterns);
++    const {blob}=E.drumMidiFile(true);
++    return Array.from(new Uint8Array(await blob.arrayBuffer()));
++  });
++  const b = Buffer.from(bytes);
++  assert.equal(b.toString('ascii',0,4),'MThd');
++  assert.equal(b.readUInt16BE(12),480);
++  let offset=22,tick=0;const notes=[];const offs=[];
++  function vlq(){let v=0,x; do{x=b[offset++];v=(v<<7)|(x&127);}while(x&128);return v;}
++  while(offset<b.length){tick+=vlq();const status=b[offset++];if(status===255){offset++;const length=vlq();offset+=length;continue;}
++    const note=b[offset++],vel=b[offset++];if(status===0x99)notes.push([tick,note,vel]);else if(status===0x89)offs.push([tick,note]);else assert.fail('Unexpected MIDI status');}
++  assert.equal(notes.length,8);assert.equal(offs.length,8);
++  assert.deepEqual(notes.map(n=>n[1]),[36,38,39,42,46,45,37,56]);
++  assert.deepEqual(notes.map(n=>n[0]),Array.from({length:8},(_,i)=>i*1920));
++  assert.equal(notes[1][2],127);assert.equal(notes[2][2],38);
++  console.log('PASS: plugin knob -> macro/gestures, host playback without echo, presets, all 8 MIDI patterns, GM notes, channel 10, timing, velocity');
++} finally { await browser.close(); }
+diff --git a/src/engine/calls.ts b/src/engine/calls.ts
+index c697c78..172b3df 100644
+--- a/src/engine/calls.ts
++++ b/src/engine/calls.ts
+@@ -10,7 +10,7 @@ import { setHostTempo, setSync, setTempo } from "./tempo";
+ import { setMasterVolume } from "./bus";
+ import { runUnmirrored } from "./mirror";
+ import * as ccmap from "./cc-map";
+-import { beginMidiIn, endMidiIn } from "./daw";
++import { beginMidiIn, endMidiIn, setPluginMidiOut } from "./daw";
+ 
+ export const ENGINE_CALLS: Record<string, (...a: any[]) => unknown> = {
+   setSynthParam: synth.setSynthParam,
+@@ -50,6 +50,10 @@ export const ENGINE_CALLS: Record<string, (...a: any[]) => unknown> = {
+   removeParamMapping: ccmap.removeParamMapping,
+   setMidiChannel: ccmap.setMidiChannel,
+   setMidiPickup: ccmap.setMidiPickup,
++  setMidiMode: ccmap.setMidiMode,
++  setPluginMidiOut,
++  midiPitchBend,
++  midiPanic,
+   hostCC: ccmap.hostCC,
+   hostMacro: ccmap.hostMacro,
+   midiNoteOn,
+@@ -64,11 +68,20 @@ function uiStore(key: string, value: string): void {
+ }
+ 
+ /** A note from the DAW's MIDI (plugin): played like any note, but never echoed to the MIDI out. */
+-function midiNoteOn(midi: number, vel: number): void {
++function acceptsChannel(ch: number): boolean { return !ch || !ccmap.getMidiChannel() || ch === ccmap.getMidiChannel(); }
++function midiPitchBend(value: number, ch = 0): void {
++  if (acceptsChannel(ch)) synth.setPitchBend(value);
++}
++function midiPanic(ch = 0): void {
++  if (acceptsChannel(ch)) synth.allNotesOff();
++}
++function midiNoteOn(midi: number, vel: number, ch = 0): void {
++  if (!acceptsChannel(ch)) return;
+   beginMidiIn();
+   try { synth.noteOn(midi, vel); } finally { endMidiIn(); }
+ }
+-function midiNoteOff(midi: number): void {
++function midiNoteOff(midi: number, ch = 0): void {
++  if (!acceptsChannel(ch)) return;
+   beginMidiIn();
+   try { synth.noteOff(midi); } finally { endMidiIn(); }
+ }
+diff --git a/src/engine/cc-map.ts b/src/engine/cc-map.ts
+index 0747e1b..207c61f 100644
+--- a/src/engine/cc-map.ts
++++ b/src/engine/cc-map.ts
+@@ -16,6 +16,9 @@ import { allNotesOff, getSynthPatch, setModWheel, setSustainPedal, setSynthParam
+ const STORAGE_MAP_KEY = "musicher_synth_midi_map";
+ const STORAGE_CH_KEY = "musicher_synth_midi_channel";
+ const STORAGE_PICKUP_KEY = "sy1_midi_pickup";
++const STORAGE_MODE_KEY = "sy1_midi_cc_mode";
++export const MIDI_MODES = ["absolute", "twos-complement", "signed-bit", "offset-binary"] as const;
++export type MidiMode = typeof MIDI_MODES[number];
+ 
+ /** The plugin's 16 DAW automation parameters ("Macro 1".."Macro 16") use mapping slots 128..143. */
+ export const MACRO_BASE = 128;
+@@ -27,24 +30,31 @@ export const HOST_MIDI = typeof (globalThis as any).__wa !== "undefined";
+ 
+ const ccToParam: (string | undefined)[] = new Array(SLOTS);
+ const paramToCc: Record<string, number> = {};
++const paramToMacro: Record<string, number> = {};
+ let channel = 0; // 0 = omni, 1..16
+-let pickup = false; // soft takeover for CCs
++let pickup = true; // soft takeover for CCs; existing explicit OFF is respected
++let mode: MidiMode = "absolute";
+ const lastCc: (number | undefined)[] = new Array(SLOTS);
++const lastApplied: (number | undefined)[] = new Array(SLOTS);
+ let learnMode = false;
+ let learnTarget: string | null = null;
+ 
+ try {
+   const ch = parseInt(localStorage.getItem(STORAGE_CH_KEY) || "", 10);
+   if (!isNaN(ch) && ch >= 0 && ch <= 16) channel = ch;
+-  pickup = localStorage.getItem(STORAGE_PICKUP_KEY) === "on";
++  pickup = localStorage.getItem(STORAGE_PICKUP_KEY) !== "off";
++  const savedMode = localStorage.getItem(STORAGE_MODE_KEY);
++  if (MIDI_MODES.includes(savedMode as MidiMode)) mode = savedMode as MidiMode;
+   const saved = JSON.parse(localStorage.getItem(STORAGE_MAP_KEY) || "null");
+   if (saved && typeof saved === "object") {
+     Object.keys(saved).forEach((k) => {
+-      const cc = parseInt(k, 10);
++      const cc = Number(k);
+       const param = saved[k];
+-      if (!isNaN(cc) && cc >= 0 && cc < SLOTS && typeof param === "string" && SYNTH_PARAMS[param]) {
++      if (Number.isInteger(cc) && cc >= 0 && cc < SLOTS && cc !== 120 && cc !== 123 && typeof param === "string" && SYNTH_PARAMS[param]) {
++        const reverse = cc < MACRO_BASE ? paramToCc : paramToMacro;
++        if (reverse[param] !== undefined) ccToParam[reverse[param]] = undefined;
+         ccToParam[cc] = param;
+-        paramToCc[param] = cc;
++        reverse[param] = cc;
+       }
+     });
+   }
+@@ -70,10 +80,18 @@ function notify(): void {
+ // ---- state ----
+ export function isCcLearnMode(): boolean { return learnMode; }
+ export function getCcLearnTarget(): string | null { return learnTarget; }
+-export function isParamMapped(paramKey: string): boolean { return paramToCc[paramKey] !== undefined; }
+-export function getParamMappedCc(paramKey: string): number | undefined { return paramToCc[paramKey]; }
++export function isParamMapped(paramKey: string): boolean { return getParamMappedCc(paramKey) !== undefined; }
++export function getParamMappedCc(paramKey: string): number | undefined { return paramToCc[paramKey] ?? paramToMacro[paramKey]; }
++export function getParamMacro(paramKey: string): number | undefined {
++  const slot = paramToMacro[paramKey];
++  return slot === undefined ? undefined : slot - MACRO_BASE;
++}
++export function mappingLabel(paramKey: string): string {
++  return [paramToCc[paramKey], paramToMacro[paramKey]].filter((s) => s !== undefined).map((s) => slotName(s!)).join(" + ");
++}
+ export function getMidiChannel(): number { return channel; }
+ export function getMidiPickup(): boolean { return pickup; }
++export function getMidiMode(): MidiMode { return mode; }
+ 
+ /** A readable name for a mapping slot: "CC 74" or "Macro 3". */
+ export function slotName(cc: number): string {
+@@ -92,37 +110,54 @@ function selectLearnParam__impl(paramKey: string): void {
+ }
+ function mapCcToParam__impl(cc: number, paramKey: string): void {
+   cc = Math.floor(Number(cc));
+-  if (!(cc >= 0 && cc < SLOTS) || !SYNTH_PARAMS[paramKey]) return;
+-  const prevCc = paramToCc[paramKey];
++  if (!(cc >= 0 && cc < SLOTS) || cc === 120 || cc === 123 || !SYNTH_PARAMS[paramKey]) return;
++  // A hardware CC and a DAW macro can control the same knob independently.
++  const reverse = cc < MACRO_BASE ? paramToCc : paramToMacro;
++  const prevCc = reverse[paramKey];
+   if (prevCc !== undefined) ccToParam[prevCc] = undefined;
+   const prevParam = ccToParam[cc];
+-  if (prevParam !== undefined) delete paramToCc[prevParam];
++  if (prevParam !== undefined) delete reverse[prevParam];
+   ccToParam[cc] = paramKey;
+-  paramToCc[paramKey] = cc;
++  reverse[paramKey] = cc;
+   lastCc[cc] = undefined;
++  lastApplied[cc] = undefined;
+   saveMap();
+   notify();
+ }
+ function removeParamMapping__impl(paramKey: string): boolean {
+-  const cc = paramToCc[paramKey];
+-  if (cc === undefined) return false;
+-  ccToParam[cc] = undefined;
++  const slots = [paramToCc[paramKey], paramToMacro[paramKey]];
++  if (slots.every((s) => s === undefined)) return false;
++  slots.forEach((s) => { if (s !== undefined) { ccToParam[s] = undefined; lastCc[s] = lastApplied[s] = undefined; } });
+   delete paramToCc[paramKey];
++  delete paramToMacro[paramKey];
+   saveMap();
+   notify();
+   return true;
+ }
+ function setMidiChannel__impl(ch: number): void {
+-  channel = Math.max(0, Math.min(16, Math.floor(Number(ch)) || 0));
++  const next = Math.max(0, Math.min(16, Math.floor(Number(ch)) || 0));
++  if (next !== channel) allNotesOff(); // old-channel note-offs will no longer be accepted
++  channel = next;
++  lastCc.fill(undefined);
++  lastApplied.fill(undefined);
+   try { localStorage.setItem(STORAGE_CH_KEY, String(channel)); } catch (e) {}
+   notify();
+ }
+ function setMidiPickup__impl(on: boolean): void {
+   pickup = !!on;
+   lastCc.fill(undefined);
++  lastApplied.fill(undefined);
+   try { localStorage.setItem(STORAGE_PICKUP_KEY, pickup ? "on" : "off"); } catch (e) {}
+   notify();
+ }
++function setMidiMode__impl(next: MidiMode): void {
++  if (!MIDI_MODES.includes(next)) return;
++  mode = next;
++  lastCc.fill(undefined);
++  lastApplied.fill(undefined);
++  try { localStorage.setItem(STORAGE_MODE_KEY, mode); } catch (e) {}
++  notify();
++}
+ 
+ // mirrored for the plugin (see mirror.ts); without a sink (web app) they are plain calls
+ export function setLearnMode(...a: Parameters<typeof setLearnMode__impl>): void { mirrorCall("setLearnMode", setLearnMode__impl, a); }
+@@ -131,6 +166,7 @@ export function mapCcToParam(...a: Parameters<typeof mapCcToParam__impl>): void
+ export function removeParamMapping(...a: Parameters<typeof removeParamMapping__impl>): boolean { return mirrorCall("removeParamMapping", removeParamMapping__impl, a); }
+ export function setMidiChannel(...a: Parameters<typeof setMidiChannel__impl>): void { mirrorCall("setMidiChannel", setMidiChannel__impl, a); }
+ export function setMidiPickup(...a: Parameters<typeof setMidiPickup__impl>): void { mirrorCall("setMidiPickup", setMidiPickup__impl, a); }
++export function setMidiMode(...a: Parameters<typeof setMidiMode__impl>): void { mirrorCall("setMidiMode", setMidiMode__impl, a); }
+ 
+ // ---- applying a controller ----
+ function applyNorm(paramKey: string, n: number): void {
+@@ -155,28 +191,77 @@ function pickedUp(slot: number, paramKey: string, n: number): boolean {
+   if (!def || def.type || typeof v !== "number") return true;
+   const cur = synthNorm(paramKey, v);
+   if (Math.abs(n - cur) <= 2 / 127) return true;
+-  return prev !== undefined && (prev - cur) * (n - cur) <= 0;
++  // Keep pickup latched while following this controller. A preset, mouse or automation
++  // changing the parameter disarms it, even if the controller was previously picked up.
++  return (lastApplied[slot] !== undefined && Math.abs(lastApplied[slot]! - cur) < 1e-5)
++    || (prev !== undefined && (prev - cur) * (n - cur) <= 0);
++}
++
++export function paramNorm(key: string, value: unknown): number {
++  const def = SYNTH_PARAMS[key];
++  if (!def) return 0;
++  const choices = def.type ? PARAM_CHOICES[def.type] : null;
++  return choices ? Math.max(0, choices.indexOf(String(value))) / Math.max(1, choices.length - 1)
++    : synthNorm(key, Number(value));
++}
++
++/** Controller -> host feedback only. Host automation never comes back through this path. */
++function feedback(param: string): void {
++  const i = getParamMacro(param);
++  const host = (globalThis as any).__wa;
++  if (i !== undefined && typeof host?.macroOut === "function") host.macroOut(i, paramNorm(param, getSynthPatch()[param]));
+ }
+ 
+ /** A mapping slot moved to n (0..1). Returns true when it was used (learned or mapped). */
+ export function handleSlot(slot: number, n: number): boolean {
++  if (!Number.isInteger(slot) || slot < 0 || slot >= SLOTS || !Number.isFinite(n)) return false;
+   if (learnMode && learnTarget) {
+     const target = learnTarget;
+     learnTarget = null;
+     mapCcToParam__impl(slot, target);
+-    applyNorm(target, n);
++    if (pickedUp(slot, target, n)) {
++      applyNorm(target, n);
++      lastApplied[slot] = paramNorm(target, getSynthPatch()[target]);
++    }
+     return true;
+   }
+   const param = ccToParam[slot];
+   if (param === undefined) return false;
+-  if (pickedUp(slot, param, n)) applyNorm(param, n);
++  if (pickedUp(slot, param, n)) {
++    applyNorm(param, n);
++    lastApplied[slot] = paramNorm(param, getSynthPatch()[param]);
++  }
+   return true;
+ }
+ 
+ /** A Control Change (the web app's MIDI input and the plugin's DAW MIDI). */
+ export function handleControlChange(cc: number, value: number): void {
++  if (!Number.isInteger(cc) || cc < 0 || cc > 127 || !Number.isFinite(value)) return;
++  value = Math.max(0, Math.min(127, Math.round(value)));
+   if (cc === 120 || cc === 123) { allNotesOff(); return; }
+-  if (handleSlot(cc, value / 127)) return;
++  if (mode !== "absolute" && (ccToParam[cc] !== undefined || (learnMode && learnTarget))) {
++    if (learnMode && learnTarget) {
++      const target = learnTarget;
++      learnTarget = null;
++      mapCcToParam__impl(cc, target);
++    }
++    const param = ccToParam[cc]!;
++    const delta = mode === "twos-complement" ? (value < 64 ? value : value - 128)
++      : mode === "signed-bit" ? (value < 64 ? value : -(value - 64)) : value - 64;
++    if (delta) {
++      const def = SYNTH_PARAMS[param];
++      const choices = def.type ? PARAM_CHOICES[def.type] : null;
++      const step = choices ? 1 / Math.max(1, choices.length - 1) : 1 / 127;
++      applyNorm(param, paramNorm(param, getSynthPatch()[param]) + delta * step);
++      feedback(param);
++    }
++    return;
++  }
++  if (handleSlot(cc, value / 127)) {
++    const param = ccToParam[cc];
++    if (param && lastApplied[cc] !== undefined) feedback(param);
++    return;
++  }
+   if (cc === 1) setModWheel(value / 127);
+   else if (cc === 64) setSustainPedal(value >= 64);
+ }
+diff --git a/src/engine/daw.ts b/src/engine/daw.ts
+index 7b2c002..79bd7e8 100644
+--- a/src/engine/daw.ts
++++ b/src/engine/daw.ts
+@@ -15,6 +15,22 @@
+ 
+ import { DRUM_NOTES, DRUM_VOICES, DrumPattern, DrumVoice, stepFlam, stepProb, stepRoll } from "./drums";
+ import { getTempo, onTempoChange, setTempo } from "./tempo";
++import { mirrorCall } from "./mirror";
++
++const PLUGIN_MIDI_KEY = "sy1.pluginMidiOut";
++let pluginMidiOut = true;
++try { pluginMidiOut = localStorage.getItem(PLUGIN_MIDI_KEY) !== "off"; } catch (e) {}
++export function getPluginMidiOut(): boolean { return pluginMidiOut; }
++function setPluginMidiOut__impl(on: boolean): void {
++  pluginMidiOut = !!on;
++  const host = (globalThis as any).__wa;
++  if (!pluginMidiOut && typeof host?.midiOut === "function") host.midiOut(0xb9, 123, 0, audioNow());
++  try { localStorage.setItem(PLUGIN_MIDI_KEY, pluginMidiOut ? "on" : "off"); } catch (e) {}
++  notify();
++}
++export function setPluginMidiOut(...a: Parameters<typeof setPluginMidiOut__impl>): void {
++  mirrorCall("setPluginMidiOut", setPluginMidiOut__impl, a);
++}
+ 
+ // ---------------------------------------------------------------- hooks ----
+ interface DawHooks {
+@@ -206,7 +222,7 @@ export function drumHit(v: DrumVoice, vel: number, at: number): void {
+   // the plugin: every hit the drum machine makes itself (pattern, pads, keys) goes to the DAW as MIDI
+   // (channel 10, General MIDI drums); hits played by the DAW's own MIDI are not sent back
+   const host = (globalThis as any).__wa;
+-  if (host && typeof host.midiOut === "function" && fromIn === 0) {
++  if (pluginMidiOut && host && typeof host.midiOut === "function" && fromIn === 0) {
+     const v7 = vel7(vel);
+     host.midiOut(0x99, note, v7, at);
+     host.midiOut(0x89, note, 0, at + 0.06);
+diff --git a/src/engine/midi.ts b/src/engine/midi.ts
+index 374ca62..4d1630e 100644
+--- a/src/engine/midi.ts
++++ b/src/engine/midi.ts
+@@ -3,7 +3,7 @@
+  */
+ 
+ import { beginMidiIn, endMidiIn, getMidiOutName, handleRealtime } from "./daw";
+-import { noteOff, noteOn, setPitchBend } from "./synth";
++import { allNotesOff, noteOff, noteOn, setPitchBend } from "./synth";
+ import * as cc from "./cc-map";
+ export { getParamMappedCc, isParamMapped, mapCcToParam, removeParamMapping } from "./cc-map";
+ 
+@@ -207,7 +207,9 @@ export async function requestMidi(): Promise<void> {
+     midiRejected = false;
+     midiStatusMessage = "";
+     bindMidiInputs();
+-    access.onstatechange = () => {
++    access.onstatechange = (event: any) => {
++      if (event.port?.type === "input" && event.port?.state === "disconnected") allNotesOff();
++      cc.setMidiPickup(cc.getMidiPickup()); // reconnect starts with pickup armed again
+       bindMidiInputs();
+       notifyMidiState();
+     };
+diff --git a/src/main.ts b/src/main.ts
+index 3f393b1..e7b2092 100644
+--- a/src/main.ts
++++ b/src/main.ts
+@@ -40,6 +40,7 @@ import { initMachineBrowser } from "./ui/machine-browser";
+ import { initDawPanel } from "./ui/daw-panel";
+ import { setMirrorSink } from "./engine/mirror";
+ import { applyEngineCall } from "./engine/calls";
++import { getParamMacro, paramNorm } from "./engine/cc-map";
+ 
+ function initApp(): void {
+   // Inside the AU/VST3 plugin: the plugin's engine makes the sound; this window mirrors
+@@ -58,7 +59,16 @@ function initApp(): void {
+       if (playing !== hostPlaying) { hostPlaying = playing; applyEngineCall("hostTransport", [playing]); }
+     };
+     // mirror only what the player does from now on (the start-up calls below run in the plugin's engine already)
+-    setTimeout(() => setMirrorSink((name, args) => plugin.send(name, args)), 0);
++    setTimeout(() => setMirrorSink((name, args) => {
++      plugin.send(name, args);
++      // Only a direct player edit is reported. Incoming DAW calls and nested preset
++      // changes are unmirrored, preventing automation feedback and preset jumps.
++      if (name === "setSynthParam") {
++        const key = String(args[0]);
++        const macro = getParamMacro(key);
++        if (macro !== undefined) plugin.send("macroValue", [macro, paramNorm(key, args[1])]);
++      }
++    }), 0);
+   }
+   // skin and keyboard follow the machine
+   onMachineChange((m) => {
+diff --git a/src/ui/drum-export.ts b/src/ui/drum-export.ts
+index b3a5306..92d9f4f 100644
+--- a/src/ui/drum-export.ts
++++ b/src/ui/drum-export.ts
+@@ -58,7 +58,13 @@ export function exportDrumMidi(all: boolean): void {
+ document.addEventListener("dragstart", (e) => {
+   const btn = (e.target as HTMLElement).closest?.(".drum-export");
+   if (!btn || !e.dataTransfer) return;
+-  if ((window as any).__SY1_PLUGIN__) { e.preventDefault(); return; }
++  const plugin = (window as any).__SY1_PLUGIN__;
++  if (plugin) {
++    e.preventDefault();
++    const { blob, name } = drumMidiFile(e.shiftKey);
++    blob.arrayBuffer().then((b) => plugin.send("dragFile", [name + ".mid", toBase64(new Uint8Array(b))]));
++    return;
++  }
+   const { blob, name } = drumMidiFile(e.shiftKey);
+   const url = URL.createObjectURL(blob);
+   e.dataTransfer.setData("DownloadURL", `audio/midi:${name}.mid:${url}`);
+diff --git a/src/ui/knob.ts b/src/ui/knob.ts
+index a0ccc60..7675ae8 100644
+--- a/src/ui/knob.ts
++++ b/src/ui/knob.ts
+@@ -12,6 +12,13 @@ import {
+ } from "../engine/midi";
+ import { escapeHtml, SYNTH_PARAMS, synthDenorm, synthNorm } from "../engine/params";
+ import { getSynthPatch, prepareAudio, setSynthParam } from "../engine/synth";
++import { getParamMacro, mappingLabel } from "../engine/cc-map";
++
++function gesture(key: string, phase: "begin" | "end"): void {
++  const i = getParamMacro(key);
++  const plugin = (globalThis as any).__SY1_PLUGIN__;
++  if (i !== undefined && plugin) plugin.send("macroGesture", [i, phase]);
++}
+ 
+ function buildKnobScaleSvg(bipolar: boolean): string {
+   let lines = "";
+@@ -60,7 +67,7 @@ export function renderSynthKnob(key: string, label: string): string {
+   const mapped = isParamMapped(key);
+   const cc = getParamMappedCc(key);
+   const learning = isLearnMode() && getLearnTargetParam() === key;
+-  const titleAttr = mapped ? ` title="Mapped to CC${cc} (right-click, or long-press in LEARN, to unmap)"` : "";
++  const titleAttr = mapped ? ` title="Mapped to ${mappingLabel(key)} (right-click, or long-press in LEARN, to unmap)"` : "";
+   const isBipolar = typeof def?.min === "number" && typeof def?.max === "number" && def.min < 0 && def.max > 0;
+   const scaleSvg = isBipolar ? BIPOLAR_SCALE_SVG : UNIPOLAR_SCALE_SVG;
+ 
+@@ -117,7 +124,7 @@ export function updateMidiLearnDOM(): void {
+     el.classList.toggle("is-mapped", mapped);
+     el.classList.toggle("is-learning", learningKey === key);
+     if (mapped) {
+-      el.setAttribute("title", `Mapped to CC${cc} (right-click, or long-press in LEARN, to unmap)`);
++      el.setAttribute("title", `Mapped to ${mappingLabel(key)} (right-click, or long-press in LEARN, to unmap)`);
+     } else {
+       el.removeAttribute("title");
+     }
+@@ -202,6 +209,7 @@ export function initKnobInteractions(): void {
+       return;
+     }
+ 
++    gesture(key, "begin");
+     synthDrag = {
+       key,
+       startY: e.clientY,
+@@ -239,11 +247,13 @@ export function initKnobInteractions(): void {
+     }
+     if (!synthDrag || (e && e.pointerId !== synthDrag.id)) return;
+     synthDrag.el.classList.remove("dragging");
++    gesture(synthDrag.key, "end");
+     synthDrag = null;
+   };
+ 
+   document.addEventListener("pointerup", endSynthDrag);
+   document.addEventListener("pointercancel", endSynthDrag);
++  window.addEventListener("blur", () => endSynthDrag());
+ 
+   document.addEventListener("dblclick", (e) => {
+     const knob = (e.target as HTMLElement)?.closest?.(".sk") as HTMLElement | null;
+diff --git a/src/ui/panel.ts b/src/ui/panel.ts
+index 8678a4f..59da181 100644
+--- a/src/ui/panel.ts
++++ b/src/ui/panel.ts
+@@ -52,7 +52,8 @@ import {
+ } from "../engine/synth";
+ import { evalOrbitPoint, getVectorLiveXY, setVectorDrawnPath } from "../engine/vector";
+ import { getEngine, getHQState, onEngineChange } from "../engine/hq";
+-import { getMidiPickup, HOST_MIDI, setMidiPickup } from "../engine/cc-map";
++import { getMidiPickup, getMidiMode, HOST_MIDI, MIDI_MODES, MidiMode, setMidiMode, setMidiPickup } from "../engine/cc-map";
++import { getPluginMidiOut, onDawChange, setPluginMidiOut } from "../engine/daw";
+ import { exportDrumMidi } from "./drum-export";
+ import { fmtBpm, getSync, getTempo, isHostSynced, onSyncChange, onTempoChange, setSync, setTempo, tapTempo } from "../engine/tempo";
+ import {
+@@ -717,6 +718,10 @@ export function renderSynthPanelHtml(): string {
+               <select class="synth-midi-select" id="midi-channel" aria-label="MIDI Channel" hidden>${renderChannelOptions()}</select>
+             </div>
+             <div class="synth-midi-msg" id="midi-msg" role="status" aria-live="polite" hidden></div>
++            <div class="conn-pop-row">
++              <label>CC mode <select class="synth-midi-select" id="midi-mode" aria-label="MIDI CC mode">${MIDI_MODES.map((m) => `<option value="${m}"${m === getMidiMode() ? " selected" : ""}>${m === "absolute" ? "Absolute" : `Relative: ${m}`}</option>`).join("")}</select></label>
++              ${HOST_MIDI ? `<button type="button" class="synth-midi-btn" id="plugin-midi-out" data-action="plugin-midi-out" aria-pressed="${getPluginMidiOut()}">DRUM MIDI OUT ${getPluginMidiOut() ? "ON" : "OFF"}</button>` : ""}
++            </div>
+             <button type="button" class="synth-midi-btn conn-daw-btn" data-daw="open">DAW &amp; RECORDING…</button>
+           </div>
+         </div>
+@@ -813,6 +818,13 @@ export function updateMidiBarDOM(): void {
+     msgEl.hidden = !msgEl.textContent;
+   }
+   updateMidiLearnDOM();
++  const modeSelect = document.getElementById("midi-mode") as HTMLSelectElement | null;
++  if (modeSelect) modeSelect.value = getMidiMode();
++  const outBtn = document.getElementById("plugin-midi-out");
++  if (outBtn) {
++    outBtn.textContent = `DRUM MIDI OUT ${getPluginMidiOut() ? "ON" : "OFF"}`;
++    outBtn.setAttribute("aria-pressed", String(getPluginMidiOut()));
++  }
+ }
+ 
+ function updateEngineDOM(): void {
+@@ -883,6 +895,7 @@ window.addEventListener("resize", () => {
+ });
+ 
+ function bindPanelElements(): void {
++  document.getElementById("midi-mode")?.addEventListener("change", (e) => setMidiMode((e.target as HTMLSelectElement).value as MidiMode));
+   const devSelect = document.getElementById("midi-device") as HTMLSelectElement | null;
+   if (devSelect) devSelect.addEventListener("change", () => setSelectedMidiDevice(devSelect.value));
+   const chSelect = document.getElementById("midi-channel") as HTMLSelectElement | null;
+@@ -929,6 +942,7 @@ export function initPanelInteractions(): void {
+     renderKeyboard();
+   });
+   onMidiStateChange(() => updateMidiBarDOM());
++  onDawChange(() => updateMidiBarDOM());
+   onEngineChange(updateEngineDOM);
+   onMachineChange(() => { connOpen = false; renderPanel(); });
+   onTempoChange((bpm) => {
+@@ -1012,6 +1026,7 @@ export function initPanelInteractions(): void {
+       case "midi-enable": if (!isMidiUnavailable()) requestMidi(); break;
+       case "midi-learn": if (!isLearnUnavailable()) toggleLearnMode(); break;
+       case "midi-pickup": setMidiPickup(!getMidiPickup()); break;
++      case "plugin-midi-out": setPluginMidiOut(!getPluginMidiOut()); break;
+       case "synth-panic": stopDrums(); allNotesOff(); break;
+       // drum machine
+       case "drum-play":
+diff --git a/tsconfig.json b/tsconfig.json
+index eb6ccc8..fbf93ed 100644
+--- a/tsconfig.json
++++ b/tsconfig.json
+@@ -23,5 +23,5 @@
+     "allowImportingTsExtensions": true,
+     "noEmit": true
+   },
+-  "exclude": ["dist", "scripts", "native"]
++  "exclude": ["dist", "scripts", "native", "plugin/build", "plugin/build-ui", "plugin/resources"]
+ }
