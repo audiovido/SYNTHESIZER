@@ -169,7 +169,11 @@
   globalThis.setInterval = (fn, ms) => { const id = nextId++; const iv = { id, at: W.time() * 1000 + (+ms || 0), fn, every: Math.max(1, +ms || 1) }; timers.push(iv); return id; };
   globalThis.clearInterval = globalThis.clearTimeout;
   globalThis.__runTimers = () => {
+    if (!timers.length) return;
     const now = W.time() * 1000;
+    let ready = false;
+    for (const t of timers) { if (t.at <= now) { ready = true; break; } }
+    if (!ready) return; // no temporary arrays when no callback is due
     const due = timers.filter((t) => t.at <= now);
     timers = timers.filter((t) => t.at > now || t.every);
     for (const t of due) { if (t.every) t.at = now + t.every; try { t.fn(); } catch (e) {} }

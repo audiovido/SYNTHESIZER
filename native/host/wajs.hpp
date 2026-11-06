@@ -9,6 +9,7 @@
 // output are freed by sweep().
 #pragma once
 #include <cstdlib>
+#include <cstdio>
 #include <array>
 #include <limits>
 #include <cstring>
@@ -43,8 +44,16 @@ class WaJs {
     nodes_.push_back(dest_);
     born_.push_back(0);
     installApi();
+    // Compile dispatch once; resolve the globals on each call so instrumented
+    // entry points and the original promise-job ordering remain unchanged.
+    const char* dispatch = "(function(name,args,offset){if(offset>0){__evOffset=offset;try{return SY1E.call(name,args);}finally{__evOffset=0;}}return SY1E.call(name,args);})";
+    dispatch_ = JS_Eval(ctx_, dispatch, std::strlen(dispatch), "<dispatch>", JS_EVAL_TYPE_GLOBAL);
+    const char* timers = "(function(){return __runTimers();})";
+    timers_ = JS_Eval(ctx_, timers, std::strlen(timers), "<timer-dispatch>", JS_EVAL_TYPE_GLOBAL);
   }
   ~WaJs() {
+    JS_FreeValue(ctx_, dispatch_);
+    JS_FreeValue(ctx_, timers_);
     JS_FreeContext(ctx_);
     JS_FreeRuntime(rt_);
   }
@@ -80,12 +89,31 @@ class WaJs {
   /** Call a global function path like "SY1E.triggerDrum" with numeric/string args given as a JS expression. */
   std::string run(const std::string& expr) { return eval(expr, "<run>"); }
 
+  /** Invoke the engine with JSON data instead of compiling a script per event. */
+  std::string callEngine(const std::string& name, const std::string& argsJson, double offsetSec = 0) {
+    JS_UpdateStackTop(rt_);
+    const char* json = argsJson.empty() ? "[]" : argsJson.c_str();
+    JSValue args[3] = {JS_NewStringLen(ctx_, name.data(), name.size()),
+                      JS_ParseJSON(ctx_, json, std::strlen(json), "<args>"), JS_UNDEFINED};
+    // Preserve the old event-time rounding, even at fractional sample rates.
+    char offset[48];
+    std::snprintf(offset, sizeof offset, "%.12g", offsetSec);
+    args[2] = JS_NewFloat64(ctx_, std::strtod(offset, nullptr));
+    JSValue result = JS_IsException(args[1]) ? JS_EXCEPTION : JS_Call(ctx_, dispatch_, JS_UNDEFINED, 3, args);
+    std::string err;
+    if (JS_IsException(result)) err = exceptionText();
+    JS_FreeValue(ctx_, result);
+    for (auto value : args) JS_FreeValue(ctx_, value);
+    runJobs();
+    return err;
+  }
+
   /** Render one 128-frame quantum of the destination, then run due JS timers. */
   void render(float* L, float* R) {
     g.render(dest_, L, R);
     if (++blocks_ % 64 == 0) sweep();
     JS_UpdateStackTop(rt_);
-    JS_FreeValue(ctx_, JS_Eval(ctx_, "__runTimers()", 13, "<timers>", JS_EVAL_TYPE_GLOBAL));
+    JS_FreeValue(ctx_, JS_Call(ctx_, timers_, JS_UNDEFINED, 0, nullptr));
     JSContext* c;
     while (JS_ExecutePendingJob(rt_, &c) > 0) {}
   }
@@ -111,6 +139,7 @@ class WaJs {
  private:
   JSRuntime* rt_;
   JSContext* ctx_;
+  JSValue dispatch_ = JS_UNDEFINED, timers_ = JS_UNDEFINED;
   wa::Gain* dest_;
   std::vector<wa::Node*> nodes_;  // id -> node (nullptr once freed)
   std::vector<size_t> born_;
