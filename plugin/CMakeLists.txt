@@ -70,6 +70,16 @@ target_link_libraries(SY1 PRIVATE SY1Resources quickjs
 
 # Host simulation test (not part of the plugin): cmake -DSY1_TESTS=ON
 if(SY1_TESTS)
+  enable_testing()
+  find_package(Threads REQUIRED)
+  add_executable(SY1UiEventsTest ../native/tests/ui_events.cpp)
+  target_link_libraries(SY1UiEventsTest PRIVATE Threads::Threads)
+  if(MSVC)
+    target_compile_options(SY1UiEventsTest PRIVATE /UNDEBUG)
+  else()
+    target_compile_options(SY1UiEventsTest PRIVATE -UNDEBUG)
+  endif()
+  add_test(NAME ui-events COMMAND SY1UiEventsTest)
   option(SY1_TESTS_HEADLESS "Build processor tests without a WebView (Linux CI)" OFF)
   if(SY1_TESTS_HEADLESS)
     juce_add_console_app(SY1HostTest PRODUCT_NAME "SY1HostTest" NEEDS_WEB_BROWSER FALSE)

@@ -469,6 +469,58 @@ int main() {
     check(ons == 1, "output ON resumes MIDI");
   }
 
+  std::printf("15. Three sustained instruments, dense filter CCs and concurrent UI reads\n");
+  {
+    std::array<std::unique_ptr<Run>, 3> runs;
+    const char* machines[] = {"sy1", "tabriz", "kashan"};
+    for (size_t i = 0; i < runs.size(); ++i) {
+      runs[i] = std::make_unique<Run>(machines[i]);
+      runs[i]->p.engine().post("setMidiPickup", "[false]");
+      runs[i]->p.engine().post("mapCcToParam", "[74,\"cutoff\"]");
+      runs[i]->p.engine().post("mapCcToParam", "[71,\"res\"]");
+      runs[i]->render(2048, 256);
+    }
+    std::atomic<bool> reading{true};
+    std::thread ui([&] {
+      while (reading.load()) {
+        for (auto& run : runs) { run->p.engine().takeOutgoing(); run->p.engine().scope(); }
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+      }
+    });
+    bool finite = true, noEcho = true;
+    double peak = 0, elapsed = 0;
+    const int sizes[] = {64, 128, 256, 512, 257};
+    int frames = 0, blocks = 0;
+    for (; frames < 48000 * 4; ++blocks) {
+      const int size = sizes[blocks % 5];
+      for (auto& run : runs) {
+        juce::AudioBuffer<float> audio(2, size);
+        juce::MidiBuffer midi;
+        if (blocks == 0) for (int note : {48, 55, 60, 64, 67, 72})
+          midi.addEvent(juce::MidiMessage::noteOn(1, note, 0.7f), 0);
+        for (int sample = 1; sample < size; sample += 32) {
+          midi.addEvent(juce::MidiMessage::controllerEvent(1, 74, (blocks + sample) % 128), sample);
+          midi.addEvent(juce::MidiMessage::controllerEvent(1, 71, (blocks * 3 + sample) % 96), sample);
+        }
+        const auto start = std::chrono::steady_clock::now();
+        run->p.processBlock(audio, midi);
+        elapsed += std::chrono::duration<double>(std::chrono::steady_clock::now() - start).count();
+        for (int c = 0; c < 2; ++c) for (int sample = 0; sample < size; ++sample) {
+          const float value = audio.getSample(c, sample);
+          finite &= std::isfinite(value);
+          peak = std::max(peak, static_cast<double>(std::fabs(value)));
+        }
+        for (const auto event : midi) noEcho &= !event.getMessage().isNoteOn();
+      }
+      frames += size;
+    }
+    reading.store(false);
+    ui.join();
+    check(finite && peak > 0.01 && peak <= 1.001, "held notes and dense CCs remain finite within the existing output ceiling");
+    check(noEcho, "input notes are not echoed while three instances play");
+    for (auto& run : runs) check(run->p.getLatencySamples() == 128, "audio latency remains 128 samples");
+    std::printf("     3 instances, 6 held notes each, Cutoff/Resonance every 32 samples, %.1f%% serial callback CPU\n", elapsed / (frames / 48000.0) * 100);
+  }
   std::printf(failures ? "\n%d FAILED\n" : "\nall passed\n", failures);
   return failures ? 1 : 0;
 }

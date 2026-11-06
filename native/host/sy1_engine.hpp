@@ -16,6 +16,7 @@
 #include <vector>
 
 #include "wajs.hpp"
+#include "ui_events.hpp"
 
 namespace sy1 {
 
@@ -46,14 +47,11 @@ class Sy1Engine {
   /** Queue an engine call (name + JSON array of arguments) from any thread. */
   void post(const std::string& name, const std::string& argsJson) {
     std::lock_guard<std::mutex> l(inMu_);
-    in_.push_back("SY1E.call(" + quote(name) + ", " + (argsJson.empty() ? "[]" : argsJson) + ");");
+    in_.push_back({name, argsJson});
   }
   /** Calls this engine made on its own (DAW MIDI, tempo): the window applies them too. */
   std::vector<std::pair<std::string, std::string>> takeOutgoing() {
-    std::lock_guard<std::mutex> l(outMu_);
-    std::vector<std::pair<std::string, std::string>> v;
-    v.swap(out_);
-    return v;
+    return out_.take();
   }
   /** Last ~1000 output samples (mono) for the window's scope. */
   std::vector<float> scope() {
@@ -69,16 +67,8 @@ class Sy1Engine {
   // ---- audio thread ------------------------------------------------------
   /** A call made by the host side on the audio thread (MIDI, tempo, transport). */
   void hostCall(const std::string& name, const std::string& argsJson, double offsetSec = 0) {
-    if (offsetSec > 0) {
-      // sample-exact: the engine sees the event's own time inside the block
-      char b[48];
-      std::snprintf(b, sizeof b, "__evOffset = %.12g; ", offsetSec);
-      run(std::string(b) + "try { SY1E.call(" + quote(name) + ", " + argsJson + "); } finally { __evOffset = 0; }");
-    } else {
-      run("SY1E.call(" + quote(name) + ", " + argsJson + ");");
-    }
-    std::lock_guard<std::mutex> l(outMu_);
-    if (out_.size() < 4096) out_.push_back({name, argsJson});
+    js_->callEngine(name, argsJson, offsetSec);
+    out_.push(name, argsJson);
   }
   /** The engine's audio clock (seconds; audio thread). */
   double time() const { return js_->g.ctx.currentTime(); }
@@ -158,9 +148,10 @@ class Sy1Engine {
   int fifoPos_ = wa::RQ;
   size_t blocks_ = 0;
   unsigned quiet_ = 0;
-  std::mutex inMu_, outMu_, scopeMu_, stateMu_;
-  std::vector<std::string> in_;
-  std::vector<std::pair<std::string, std::string>> out_;
+  std::mutex inMu_, scopeMu_, stateMu_;
+  struct Call { std::string name, args; };
+  std::vector<Call> in_;
+  UiEvents out_;
   float scope_[kScope] = {};
   std::string state_;
   std::atomic<bool> saveRequest_{false};
@@ -169,13 +160,13 @@ class Sy1Engine {
 
   void run(const std::string& code) { js_->eval(code, "<call>"); }
   void drainIn() {
-    std::vector<std::string> calls;
+    std::vector<Call> calls;
     {
       std::unique_lock<std::mutex> l(inMu_, std::try_to_lock);
       if (!l.owns_lock() || in_.empty()) return;
       calls.swap(in_);
     }
-    for (auto& c : calls) run(c);
+    for (auto& c : calls) js_->callEngine(c.name, c.args);
   }
   /** Garbage collection only after a second of silence (never while something sounds). */
   void idleGc() {
