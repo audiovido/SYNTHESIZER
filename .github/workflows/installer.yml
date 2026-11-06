@@ -1,0 +1,73 @@
+name: Mac installer
+on:
+  push:
+    branches: [main, fix/mac-installer-lipo]
+    paths: ["plugin/installer/**", ".github/workflows/installer.yml"]
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  native-install:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-15-intel, macos-15]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: SY-1-mac
+          run-id: 42221820050
+          github-token: ${{ github.token }}
+          path: payload
+      - name: Exercise real macOS installation with the validated 5ff2184 payload
+        shell: bash
+        run: |
+          python3 - <<'PYTEST'
+          import hashlib, os, pathlib, shutil, subprocess, tempfile
+          payload = pathlib.Path('payload/SY-1-mac.zip').resolve()
+          digest = '252de4213d1039d8814a8e9c9b5325b5dfdaa2ee31317d2005759932bba286d8'
+          assert hashlib.sha256(payload.read_bytes()).hexdigest() == digest
+          root = pathlib.Path(tempfile.mkdtemp(prefix='SY1 native installer '))
+          contents = root / 'App with spaces.app/Contents'
+          (contents / 'MacOS').mkdir(parents=True)
+          (contents / 'Resources').mkdir()
+          shutil.copyfile(payload, contents / 'Resources/SY-1-mac.zip')
+          source = pathlib.Path('plugin/installer/install-mac.sh').read_text()
+          source = source.replace('8c1f5c2', '5ff2184').replace('b03afb0bcc3beea649eef67fa21084dfb869ca5ddc00dd098812f59fa87603cc', digest)
+          # Only the modal dialog is suppressed. lipo, ditto, codesign, xattr,
+          # PlistBuddy, permissions, backup, replacement and diff are real.
+          source = source.replace('/usr/bin/osascript', '/usr/bin/true')
+          script = contents / 'MacOS/install'
+          script.write_text(source)
+          home = root / 'Home with spaces'
+          home.mkdir()
+          env = {**os.environ, 'HOME': str(home)}
+          def run(expect):
+              result = subprocess.run(['/bin/bash', str(script)], env=env)
+              logs = sorted((home / 'Library/Logs/SY-1').glob('*.log'), key=lambda p: p.stat().st_mtime_ns)
+              print(logs[-1].read_text(), flush=True)
+              assert (result.returncode == 0) == expect, result.returncode
+          run(True)
+          run(True)
+          backup = home / 'Library/Application Support/SY-1/Plugin Backups'
+          assert len(list(backup.rglob('SY-1.vst3'))) == 1
+          assert len(list(backup.rglob('SY-1.component'))) == 1
+          assert not list(home.rglob('.sy1-stage.*'))
+          # The original input-order bug must fail using Apple's own lipo.
+          old = source.replace('/usr/bin/lipo "$src/Contents/MacOS/$exe" -verify_arch "$ARCH"', '/usr/bin/lipo -verify_arch "$ARCH" "$src/Contents/MacOS/$exe"')
+          assert old != source
+          script.write_text(old)
+          run(False)
+          assert len(list(backup.rglob('SY-1.vst3'))) == 1
+          script.write_text(source)
+          with (contents / 'Resources/SY-1-mac.zip').open('ab') as f: f.write(b'corrupt')
+          run(False)
+          for sub, ext in [('VST3', 'vst3'), ('Components', 'component')]:
+              bundle = home / 'Library/Audio/Plug-Ins' / sub / ('SY-1.' + ext)
+              subprocess.run(['/usr/bin/codesign', '--verify', '--deep', '--strict', str(bundle)], check=True)
+              subprocess.run(['/usr/bin/lipo', str(bundle / 'Contents/MacOS/SY-1'), '-verify_arch', 'x86_64', 'arm64'], check=True)
+          print('Native install, replacement, backup, legacy regression and corrupt payload checks passed on ' + os.uname().machine, flush=True)
+          PYTEST
