@@ -48,7 +48,7 @@ echo "SY-1 installer $VERSION"
 major=$(/usr/bin/sw_vers -productVersion | /usr/bin/cut -d. -f1)
 [ "$major" -ge 11 ] || { dialog 'این نسخه به macOS 11 یا بالاتر نیاز دارد.'; exit 1; }
 # Never close a DAW or overwrite a plugin while it is loaded.
-if /usr/bin/pgrep -if '/(Live[^/]*\.app|Logic Pro[^/]*\.app|SY-1\.app)/Contents/MacOS/' >/dev/null; then
+if /usr/bin/pgrep -if '/(Ableton Live[^/]*\.app|Live[^/]*\.app|Logic Pro[^/]*\.app|SY-1\.app)/Contents/MacOS/' >/dev/null; then
   dialog 'ابتدا Ableton، Logic و SY-1 را ببندید؛ سپس نصب‌کننده را دوباره باز کنید.'
   exit 1
 fi
